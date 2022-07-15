@@ -6,9 +6,12 @@ library(rvest)
 library(xml2)
 library(data.table)
 library(patchwork)
+library(lubridate)
 
 
-#### Scraping survey data from the infratest dimap website ####
+
+#### Datasets: Polls ####
+# Scraping survey data from the infratest dimap website
 
 
 # To be able to weight Google trends data with data from opinion polls, 
@@ -32,7 +35,8 @@ infra_dimap_all <- infra_dimap_all[-1,]
 
 
 
-#### Create data sets with real election results ####
+#### Datasets: Elections results ####
+# Create the datasets manually ####
 
 # constructing an election results 2005 data set to be able to use this data for the weighting factor in the Model 2 for 2009
 election_results_05 <- data.frame(keyword=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
@@ -82,7 +86,44 @@ election_results_21 <- data.frame(keyword=c("AFD", "CDU", "FDP", "Grüne", "Link
 
 
 
-#### Preparation for loop 1####
+# Datasets: Model types ####
+
+# Create dataframe
+data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
+                                              "24-09-2017",
+                                              "22-09-2013",
+                                              "27-09-2009"), format = "%d-%m-%Y"),
+                    model_data = c("GT",
+                                   "GT + election weight",
+                                   "GT + polls weight",
+                                   "GT + weekly polls weight",
+                                   "Only polls"),
+                    model_time_period = duration(c(1,3), "months"))
+
+# Sort dataframe
+data_models <- data_models %>% arrange(election_date, model_data, model_time_period)
+
+# Add model index/number
+data_models <- data_models %>% 
+  mutate(model_id = row_number()) %>%
+  select(model_id, everything())
+
+# Add GT data collection periods
+data_models <- data_models %>%
+  mutate(GT_end_date = election_date - 1, # time ends one day before election
+         GT_start_date = as.Date(GT_end_date - model_time_period)) # time period starts 1 or 3 months earlier
+
+# Add vars for coloring
+data_models <- data_models %>%
+  mutate(election = as.factor(format(election_date, "%d %b, %Y")),
+         model_time_period_color = as.factor(as.character(time_length(model_time_period, unit = "months"))),
+         model_time_period_color = paste(model_time_period_color, "month(s)"))
+
+
+
+# ANALYSIS ####
+
+#### Loop 1: Preparation####
 
 full_Model1_09_1month <- data.frame()
 full_Model2_09_1month <- data.frame()
