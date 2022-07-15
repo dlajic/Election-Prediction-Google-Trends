@@ -5,6 +5,7 @@ library(tidyr)
 library(rvest)
 library(xml2)
 library(data.table)
+library(patchwork)
 
 
 #### Scraping survey data from the infratest dimap website ####
@@ -2506,7 +2507,7 @@ ggplot(data=Plot_Model4_21_3month, aes(x=keyword, y=Mean, fill=keyword))+
 #### Figure 5 plot ####
 
 
-Figure5 <- plyr::rbind.fill(Plot_Model1_13_1month, 
+data_figure5 <- plyr::rbind.fill(Plot_Model1_13_1month, 
                             Plot_Model2_13_1month, 
                             Plot_Model3_13_1month, 
                             Plot_Model4_13_1month,
@@ -2514,7 +2515,7 @@ Figure5 <- plyr::rbind.fill(Plot_Model1_13_1month,
                             election_results_13)
 
 
-ggplot(data=Figure5, aes(x=factor(model), y=perc_dev, fill=keyword, group=as.factor(ordered(keyword, levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))))+
+ggplot(data=data_figure5, aes(x=factor(model), y=perc_dev, fill=keyword, group=as.factor(ordered(keyword, levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))))+
   geom_bar(stat="identity", width= 0.9, position=position_dodge(0.9)) +
   scale_x_discrete(labels = c("Model 1 (Google data)", "Model 2 (weighted elect. results)", "Model 3 (weighted poll)", "Model 4 (weekly weighted)", "Average polls", "Final election results 2013")) +
   scale_y_continuous(breaks= c(-15, -10, -5, 0,5,10,15,20,25,30,35,40,45), limits = c(-15,45)) +
@@ -2524,7 +2525,53 @@ ggplot(data=Figure5, aes(x=factor(model), y=perc_dev, fill=keyword, group=as.fac
   geom_errorbar(aes(ymin=dev.low.ci, ymax=dev.up.ci),width=.3, position=position_dodge(.9)) +
   labs(y="Percentage")
 
+# Fig5: Alternative ####
+plot1 <- data_figure5 %>% 
+      filter(model==6) %>%
+  ggplot(aes(x=factor(model), y=perc_dev, fill=keyword, group=as.factor(ordered(keyword, levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))))+
+  geom_bar(stat="identity", width= 0.9, position=position_dodge(0.9)) +
+  scale_x_discrete(labels = c("Final election results 2013")) +
+  scale_y_continuous(limits = c(0,45)) +
+  scale_fill_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red"), name = "Political party", breaks = c("CDU","SPD","AFD","FDP", "Linke", "Grüne" )) +
+  geom_text(aes(label=round(perc_dev, digits = 1), y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), position=position_dodge(width=.9)) +
+  theme(axis.title.x = element_blank()) +
+  geom_errorbar(aes(ymin=dev.low.ci, ymax=dev.up.ci),width=.3, position=position_dodge(.9)) +
+  labs(y="Percentage", x="") +
+  theme_minimal()
 
+plot2 <- data_figure5 %>% 
+  filter(model!=6) %>%
+  ggplot(aes(x=factor(model), y=perc_dev, fill=keyword, group=as.factor(ordered(keyword, levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))))+
+  geom_bar(stat="identity", width= 0.9, position=position_dodge(0.9)) +
+  scale_x_discrete(labels = c("Model 1\n(Google data)", "Model 2\n(weighted elect. results)", "Model 3\n(weighted poll)", "Model 4\n(weekly weighted)", "Average polls")) +
+  scale_y_continuous(limits = c(-15,15)) +
+  scale_fill_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red"), name = "Political party", breaks = c("CDU","SPD","AFD","FDP", "Linke", "Grüne" )) +
+  geom_text(aes(label=round(perc_dev, digits = 1), y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), position=position_dodge(width=.9)) +
+  theme(axis.title.x = element_blank()) +
+  geom_errorbar(aes(ymin=dev.low.ci, ymax=dev.up.ci),width=.3, position=position_dodge(.9)) +
+  labs(y="Percentage", x="") +
+  theme_minimal()
+
+
+
+figure5 <- plot1 + plot2 +
+  plot_layout(ncol = 2) + plot_layout(widths = c(1, 3),
+                                      guides = "collect")
+
+figure5 <- figure5 + plot_annotation(
+  title = 'Figure 5: Deviations of the one-month models from the ﬁnal election results in 2013',
+  theme = theme(plot.title = element_text(size = 20),
+                plot.subtitle = element_text(size = 16))
+)
+
+ggsave(filename = "fig5.png",
+       plot = figure5,
+       width = 9,
+       height =4.5,
+       units = "in",
+       dpi = 300)
+
+figure1
 
 
 
