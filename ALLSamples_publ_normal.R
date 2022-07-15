@@ -6,10 +6,6 @@ library(rvest)
 library(xml2)
 library(data.table)
 
-getwd()
-setwd("C:/Users/janbe/Desktop/Uni/02_Master Sociology/FSS 2021/Research Methods/Publikation/Daten_Publikation")
-
-
 
 #### Scraping survey data from the infratest dimap website ####
 
@@ -124,7 +120,7 @@ full_Model3_21_3month <- data.frame()
 
 
 
-counter <- c(" 2021-09-20 11-21-45", " 2021-09-21 15-21-45"," 2021-09-22 15-21-45")
+counter <- c("2021-09-20 11-21-45", "2021-09-21 15-21-45", "2021-09-22 15-21-45")
 
 
 
