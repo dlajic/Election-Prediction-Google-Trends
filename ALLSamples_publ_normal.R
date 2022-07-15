@@ -93,7 +93,7 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                               "24-09-2017",
                                               "22-09-2013",
                                               "27-09-2009"), format = "%d-%m-%Y"),
-                    model_data = c("GT",
+                    data_source_weight = c("GT",
                                    "GT + election weight",
                                    "GT + polls weight",
                                    "GT + weekly polls weight",
@@ -101,7 +101,7 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                     model_time_period = duration(c(1,3), "months"))
 
 # Sort dataframe
-data_models <- data_models %>% arrange(election_date, model_data, model_time_period)
+data_models <- data_models %>% arrange(election_date, data_source_weight, model_time_period)
 
 # Add model index/number
 data_models <- data_models %>% 
