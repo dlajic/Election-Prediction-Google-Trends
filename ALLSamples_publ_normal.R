@@ -2533,11 +2533,14 @@ plot1 <- data_figure5 %>%
   scale_x_discrete(labels = c("Final election results 2013")) +
   scale_y_continuous(limits = c(0,45)) +
   scale_fill_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red"), name = "Political party", breaks = c("CDU","SPD","AFD","FDP", "Linke", "Grüne" )) +
-  geom_text(aes(label=round(perc_dev, digits = 1), y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), position=position_dodge(width=.9)) +
-  theme(axis.title.x = element_blank()) +
+  geom_text(aes(label=round(perc_dev, digits = 1), 
+                y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), 
+            position=position_dodge(width=.9)) +
   geom_errorbar(aes(ymin=dev.low.ci, ymax=dev.up.ci),width=.3, position=position_dodge(.9)) +
   labs(y="Percentage", x="") +
-  theme_minimal()
+  theme_minimal() + guides(fill = guide_legend(nrow = 1)) +
+  theme(axis.title.x = element_blank(),
+        legend.position="top")
 
 plot2 <- data_figure5 %>% 
   filter(model!=6) %>%
@@ -2546,28 +2549,31 @@ plot2 <- data_figure5 %>%
   scale_x_discrete(labels = c("Model 1\n(Google data)", "Model 2\n(weighted elect. results)", "Model 3\n(weighted poll)", "Model 4\n(weekly weighted)", "Average polls")) +
   scale_y_continuous(limits = c(-15,15)) +
   scale_fill_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red"), name = "Political party", breaks = c("CDU","SPD","AFD","FDP", "Linke", "Grüne" )) +
-  geom_text(aes(label=round(perc_dev, digits = 1), y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), position=position_dodge(width=.9)) +
-  theme(axis.title.x = element_blank()) +
+  geom_text(aes(label=round(perc_dev, digits = 1), 
+                y=round(perc_dev, digits = 1)+ifelse(round(perc_dev, digits = 1) >=0, 3, -3)), 
+            position=position_dodge(width=.9),
+            angle=90) +
   geom_errorbar(aes(ymin=dev.low.ci, ymax=dev.up.ci),width=.3, position=position_dodge(.9)) +
   labs(y="Percentage", x="") +
-  theme_minimal()
+  theme_minimal() + guides(fill = guide_legend(nrow = 1)) +
+  theme(axis.title.x = element_blank(),
+        legend.position="top")
 
 
 
 figure5 <- plot1 + plot2 +
   plot_layout(ncol = 2) + plot_layout(widths = c(1, 3),
-                                      guides = "collect")
+                                      guides = "collect") & theme(legend.position = 'top')
 
 figure5 <- figure5 + plot_annotation(
   title = 'Figure 5: Deviations of the one-month models from the ﬁnal election results in 2013',
-  theme = theme(plot.title = element_text(size = 20),
-                plot.subtitle = element_text(size = 16))
+  theme = theme(plot.title = element_text(size = 16))
 )
 
 ggsave(filename = "fig5.png",
        plot = figure5,
        width = 9,
-       height =4.5,
+       height =4,
        units = "in",
        dpi = 300)
 
