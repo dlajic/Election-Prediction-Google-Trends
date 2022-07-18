@@ -2618,7 +2618,7 @@ ggsave(filename = "fig5.png",
        units = "in",
        dpi = 300)
 
-figure1
+# figure5
 
 
 
@@ -2773,6 +2773,51 @@ ggplot(DevComplPlot, aes(x = factor(Year), y=Deviation, group = Length, colour= 
 
 
 
+# Fig9: Alternative ####
+DevComplPlot <- DevComplPlot %>% 
+  mutate(Year = factor(Year)) %>%
+  mutate(Model = recode(Model,
+                        "Model1" = "GT",
+                        "Model2" = "GT + election weight",
+                        "Model3" = "GT + polls weight",
+                        "Model4" = "GT + weekly polls weight",
+                        "Polling" = "Only polls"))
+DevComplPlot$Model <- factor(DevComplPlot$Model)
+
+
+
+figure9 <- ggplot(DevComplPlot, aes(x = Year, 
+                                    y=Deviation, 
+                                    colour=Model, 
+                                    shape= Model,
+                                    group=interaction(Length, Model)))+
+  geom_point(size = 2, stroke =1, position= position_dodge(0.5)) + xlab("") + ylab("Absolute average deviation from election results") + # stroke defines border size
+  geom_line(position= position_dodge(0.5)) +
+  scale_y_continuous(breaks= seq(0,10, 0.5), limits = c(0,6.5)) +
+  #scale_shape_manual(values=c(21,23,24,22,16)) + #manual symbols in plot
+  scale_colour_manual(name = "Data Source & Weighting",
+                      labels = levels(DevComplPlot$Model),
+                      values = c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e')) + 
+  scale_shape_manual(name = "Data Source & Weighting",
+                     labels = levels(DevComplPlot$Model),
+                     values = c(21,23,24,22,16)) +
+  labs(shape="Model", colour="Duration") + 
+  theme(legend.key = element_rect(fill = "transparent")) +
+  facet_wrap(~Length) +
+  theme_minimal()
+
+
+  
+
+
+
+
+ggsave(filename = "fig9.png",
+       plot = figure9,
+       width = 9,
+       height =4,
+       units = "in",
+       dpi = 300)
 
 
 #### New model 3 (Paul) ####
