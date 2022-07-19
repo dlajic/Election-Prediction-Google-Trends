@@ -10,6 +10,25 @@ library(patchwork)
 library(lubridate)
 
 
+# Dataset: Election results ####
+# Creates a list
+list_electionresults <- NULL
+list_electionresults[["2005-09-18"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
+                                                   share=c(35.2, 9.8, 8.1, 8.7, 34.2))
+
+list_electionresults[["2009-09-27"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
+                                                   share=c(33.8, 14.6, 10.7, 11.9, 23)) %>% 
+  arrange(party)
+
+list_electionresults[["2013-09-22"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
+                                                   share=c(4.7, 41.5, 4.8, 8.4, 8.6, 25.7)) %>% arrange(party)
+
+list_electionresults[["2017-09-24"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
+                                                   share=c(12.6, 32.9, 10.7, 8.9 , 9.2, 20.5)) %>% arrange(party)
+
+list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
+                                                   share=c(10.3, 24.1, 11.5, 14.8 , 4.9, 25.7)) %>% arrange(party)
+
 
 
 
@@ -86,22 +105,6 @@ data_models <- data_models %>%
 
 
 ## Add var election results ####
-list_electionresults <- NULL
-list_electionresults[["2005-09-18"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(35.2, 9.8, 8.1, 8.7, 34.2))
-
-list_electionresults[["2009-09-27"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(33.8, 14.6, 10.7, 11.9, 23)) %>% 
-  arrange(party)
-
-list_electionresults[["2013-09-22"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(4.7, 41.5, 4.8, 8.4, 8.6, 25.7)) %>% arrange(party)
-
-list_electionresults[["2017-09-24"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(12.6, 32.9, 10.7, 8.9 , 9.2, 20.5)) %>% arrange(party)
-
-list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(10.3, 24.1, 11.5, 14.8 , 4.9, 25.7)) %>% arrange(party)
 
 # Write election results to variable
 for(i in names(list_electionresults)){
@@ -181,7 +184,7 @@ replace_searchterms <- function(x){
 
 
 
-# Loop A: Create GT datasets ####
+## Loop A: Create GT datasets ####
 # Create GT datasets for the different time periods for all models that include GT data (see filter below)
 data_models$data_GT <- list(NA)
 
@@ -244,7 +247,7 @@ for(i in 1:nrow(data_models)){
 
 
 
-# Loop B: Create Poll average datasets ####
+## Loop B: Create Poll average datasets ####
 # For each model: Create poll datasets (averages)
 data_models$data_polls_average <- list(NA)  
 
@@ -272,7 +275,7 @@ for(i in 1:nrow(data_models)){
 
 
 
-# Loop C: ADD Predictions (GT) ####
+## Loop C: ADD Predictions (GT) ####
 # Use the GT data, summarize it to create predictions
 # Important: No predictions for AFD for 2009!
 data_models$predictions_GT <- list(NA)  
@@ -292,7 +295,7 @@ for(i in 1:nrow(data_models)){
   }}
 
 
-# Loop D: ADD Predictions (GT + previous election weight) ####
+## Loop D: ADD Predictions (GT + previous election weight) ####
 # Here the GT predictions are simply weighted with the previous election
 # For AFD 2013 we get no prediction because not data for 2009 election
 data_models$predictions_GT_election_weight <- list(NA)  
@@ -311,7 +314,7 @@ for(i in 1:nrow(data_models)){
   }} 
 
 
-# Loop E: ADD Predictions (GT + polls weight) ####
+## Loop E: ADD Predictions (GT + polls weight) ####
 # Here GT predictions are weighted (take mean) with average polls from this time period
 data_models$predictions_GT_polls <- list(NA)  
 
@@ -332,7 +335,7 @@ for(i in 1:nrow(data_models)){
 
 
 
-# Loop F: ADD Predictions (Only polls) ####
+## Loop F: ADD Predictions (Only polls) ####
 # Here we store average polls result in a new prediciton dataframe
 data_models$predictions_only_polls <- list(NA)  
 
@@ -353,7 +356,7 @@ for(i in 1:nrow(data_models)){
 
 
 
-# Loop G: Pull together predictions of different models
+## Loop G: Merge predictions ####
 # Create column that contains dataframe with all the predictions
 data_models$predictions <- list(NA)  
 
@@ -382,7 +385,12 @@ for(i in 1:nrow(data_models)){
 
 
 
-# Pull together all predictions  
+
+
+
+# Dataset: Predictions ####
+# Below we unnest the dataframe to get predictions for single
+# parties across years
 data_predictions <- data_models %>% 
   select(model_id, model_name, election_date, datasource_weight,
          model_time_period, GT_end_date, GT_start_date, 
@@ -391,11 +399,46 @@ data_predictions <- data_models %>%
   unnest(cols = c(data_election, predictions))
 
 
-# Add deviations
+## Add deviations ####
 data_predictions <- data_predictions %>%
-  mutate(deviations = share - prediction)
+  mutate(deviation = share - prediction)
+
+nrow(data_predictions) # number of predictions (40 models for each party)
 
 
 
+
+# Graphs ####
+
+## Figure 5 ####
+# Prepare data
+data_predictions$party <-
+  as.factor(ordered(data_predictions$party, 
+                    levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
+data_predictions$deviation_label <-
+  round(data_predictions$deviation, 1)
+data_predictions$datasource_weight <- 
+  factor(data_predictions$datasource_weight)
+
+
+ggplot(data = data_predictions,
+       aes(x = datasource_weight,
+           y = deviation, 
+           fill = party, 
+           group = party)) +
+  geom_bar(stat="identity", width= 0.6, position=position_dodge(0.9)) +
+  scale_fill_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red"), 
+                    name = "Political party", 
+                    breaks = c("CDU","SPD","AFD","FDP", "Linke", "Grüne" )) +
+  labs(y="Percentage", x="") +
+  theme_minimal() + 
+  guides(fill = guide_legend(nrow = 1)) +
+  theme(axis.title.x = element_blank(),
+        legend.position="top")  +
+  facet_wrap(~election_date, ncol = 1) #+
+
+  # geom_text(aes(label = deviation_label), # round(deviation, digits = 1)+ifelse(round(deviation, digits = 1) >=0, 3, -3)
+  #           position=position_dodge(width=.9),
+  #           angle=90)
 
 
