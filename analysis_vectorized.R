@@ -70,7 +70,8 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + polls weight",
                                                  "GT + weekly polls weight",
                                                  "Only polls"),
-                           model_time_period = duration(c(1,3), "months"))
+                           model_time_period = duration(c(1,3), "months"), # 1 woche, 
+                           model_time_distance = days(1)) # 1 tag vorher, 3 tage, 7 tage, 14 tage
 
 # Convert to tibble
 data_models <- as_tibble(data_models)
@@ -86,7 +87,7 @@ data_models <- data_models %>%
 
 ## Add GT data collection periods ####
 data_models <- data_models %>%
-  mutate(GT_end_date = election_date - 1, # time ends one day before election
+  mutate(GT_end_date = election_date - model_time_distance, # time ends one day before election
          GT_start_date = as.Date(GT_end_date - model_time_period)) # time period starts 1 or 3 months earlier
 
 ## Add vars for coloring ####
@@ -213,7 +214,7 @@ for(i in 1:nrow(data_models)){
       
       data_models$data_GT[[i]] <- df1 %>%
         select(date, hits, keyword) %>%
-        mutate(hits = str_replace(hits, "<1", "0"), # HIER WEITER
+        mutate(hits = str_replace(hits, "<1", "0"), 
                hits = as.numeric(hits), 
                date = as.Date(date))%>% 
         replace(is.na(.), 0) %>%
@@ -401,7 +402,7 @@ data_predictions <- data_models %>%
 
 ## Add deviations ####
 data_predictions <- data_predictions %>%
-  mutate(deviation = share - prediction)
+  mutate(deviation = prediction- share)
 
 nrow(data_predictions) # number of predictions (40 models for each party)
 
@@ -437,8 +438,8 @@ ggplot(data = data_predictions,
         legend.position="top")  +
   facet_wrap(~election_date, ncol = 1) #+
 
-  # geom_text(aes(label = deviation_label), # round(deviation, digits = 1)+ifelse(round(deviation, digits = 1) >=0, 3, -3)
-  #           position=position_dodge(width=.9),
-  #           angle=90)
+   # geom_text(aes(label = deviation_label), # round(deviation, digits = 1)+ifelse(round(deviation, digits = 1) >=0, 3, -3)
+   #           position=position_dodge(width=.9),
+   #           angle=90)
 
 
