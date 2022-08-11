@@ -17,8 +17,7 @@ list_electionresults[["2005-09-18"]] <- data.frame(party=c("CDU", "FDP", "Grüne
                                                    share=c(35.2, 9.8, 8.1, 8.7, 34.2))
 
 list_electionresults[["2009-09-27"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD"), 
-                                                   share=c(33.8, 14.6, 10.7, 11.9, 23)) %>% 
-  arrange(party)
+                                                   share=c(33.8, 14.6, 10.7, 11.9, 23)) %>% arrange(party)
 
 list_electionresults[["2013-09-22"]] <- data.frame(party=c("AFD", "CDU", "FDP", "Grüne", "Linke", "SPD"), 
                                                    share=c(4.7, 41.5, 4.8, 8.4, 8.6, 25.7)) %>% arrange(party)
@@ -32,30 +31,30 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 
-# Datasets: Polls ####
+
 # Scraping survey data from the infratest dimap website
 
 
 # To be able to weight Google trends data with data from opinion polls, 
-# polling results of infratest dimap polling institute are scraped from their website
+# polling results of infratest dimap polling institute were scraped from their website on 5th August 2022
+
+#url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
+
+#html <- read_html(url)
+#tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
+#infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
+
+## delete column for political party "Freie Wähler" and column "Other"
+#infra_dimap_all$X8 <- NULL
+#infra_dimap_all$X9 <- NULL
+
+## assign names of parties to columns and delete first row of data set (contains names of political parties)
+#colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke")
+#infra_dimap_all <- infra_dimap_all[-1,] 
 
 
-url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
-
-html <- read_html(url)
-tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
-infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
-
-# delete column for political party "Freie Wähler" and column "Other"
-infra_dimap_all$X8 <- NULL
-infra_dimap_all$X9 <- NULL
-
-# assign names of parties to columns and delete first row of data set (contains names of political parties)
-colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke")
-infra_dimap_all <- infra_dimap_all[-1,] 
-
-
-
+# Load poll data set, scraped on 5th August 2022
+load("infratest_dimap_polls.RData")
 
 
 # Dataset: Models ####
@@ -134,6 +133,8 @@ data_models <- data_models %>%
                              "months",
                              gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
                              sep = "_"))
+
+
 # Reorder
 data_models <- data_models %>%
                 select(model_id, model_name, everything())
@@ -402,7 +403,7 @@ data_predictions <- data_models %>%
 
 ## Add deviations ####
 data_predictions <- data_predictions %>%
-  mutate(deviation = prediction- share)
+  mutate(deviation = prediction - share)
 
 nrow(data_predictions) # number of predictions (40 models for each party)
 
