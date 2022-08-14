@@ -195,8 +195,9 @@ data_models$data_GT <- list(NA)
 names_df <- c("2021-09-20 11-21-45", "2021-09-21 15-21-45")
 data_predictions_final <- data.frame()
 
+
 for(y in names_df){
-  
+
   for(i in 1:nrow(data_models)){
     # Load GT datasets
     name <- paste(y,".RData",sep="") 
@@ -268,22 +269,106 @@ for(y in names_df){
     year_i <- year(data_models$election_date)[i]
     cat("\n\n\n\n", year_i, "\n\n")  
     
-    # Add polldatasets (average) for each model (i.e., row)
-    data_models$data_polls_average[[i]] <-   infra_dimap_all %>%
+    
+      f <- infra_dimap_all %>%
       mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-      filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]) %>%
-      mutate_if(is.character, as.numeric) %>% 
-      pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-      group_by(party) %>%
-      summarize(perc_mean = mean(perc, na.rm=TRUE),
-                SD = sd(perc, na.rm=TRUE),
-                N = n()) %>% # CHECK
-      mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
-             upper.ci = perc_mean + 1.96*(SD/sqrt(N))) 
-     filter(!is.na(SD)) # Filter out AFD when no data
+      filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]) 
+    
+
+      if(nrow(f) == 0){
+        
+        if(grepl("2009", data_models$model_name[i])){
+        
+        data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+          mutate_if(is.character, as.numeric) %>%
+          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+          na.omit(.) %>%
+          group_by(party) %>%
+          summarize(perc_mean = mean(perc, na.rm=TRUE),
+                    SD = sd(perc, na.rm=TRUE),
+                    N = n()) %>% # CHECK
+          mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
+                 upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
+          mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
+        #filter(!is.na(SD)) # Filter out AFD when no data
+        
+      }
+  }
+ 
+    
+      if(nrow(f) == 0){
+        
+        if(!grepl("2009", data_models$model_name[i])){
+          
+          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+            mutate_if(is.character, as.numeric) %>%
+            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+            group_by(party) %>%
+            summarize(perc_mean = mean(perc, na.rm=TRUE),
+                      SD = sd(perc, na.rm=TRUE),
+                      N = n()) %>% # CHECK
+            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
+                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
+            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
+          #filter(!is.na(SD)) # Filter out AFD when no data
+          
+        }
+      }
+      
+      
+      
+      
+      if(nrow(f) >= 1){
+        
+        if(grepl("2009", data_models$model_name[i])){
+          
+          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+            mutate_if(is.character, as.numeric) %>%
+            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+            na.omit(.) %>%
+            group_by(party) %>%
+            summarize(perc_mean = mean(perc, na.rm=TRUE),
+                      SD = sd(perc, na.rm=TRUE),
+                      N = n()) %>% # CHECK
+            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
+                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
+            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
+          #filter(!is.na(SD)) # Filter out AFD when no data
+          
+          
+        }
+      }
+      
+      
+      if(nrow(f) >= 1){
+        
+        if(!grepl("2009", data_models$model_name[i])){
+          
+          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+            mutate_if(is.character, as.numeric) %>%
+            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+            group_by(party) %>%
+            summarize(perc_mean = mean(perc, na.rm=TRUE),
+                      SD = sd(perc, na.rm=TRUE),
+                      N = n()) %>% # CHECK
+            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
+                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
+            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
+          #filter(!is.na(SD)) # Filter out AFD when no data
+          
+          
+        }
+      }
     
   }
-  
   
   
   ## Loop C: ADD Predictions (GT) ####
@@ -295,8 +380,7 @@ for(y in names_df){
     if(str_detect(data_models$datasource_weight[i], "GT")){ # Filter GT ONLY
       
       data_models$predictions_GT[[i]] <- data_models$data_GT[[i]] %>%
-        filter(date >= data_models$GT_start_date[i] &  
-                 date <= data_models$GT_end_date[i]) %>%
+        filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
@@ -346,14 +430,14 @@ for(y in names_df){
   
   
   
-  ## Loop G: ADD Predictions (Only polls) ####
+  ## Loop F: Weekly Weigthing ####
   data_models$Poll_dates_weekly_weighting <- list(NA)  
   data_models$GT_data_weekly_weighting <- list(NA)
   data_models$predicitons_GT_weekly_polls <- list(NA)
   data_models$predicitons_GT_weekly_polls_mean <- list(NA)
   data_models$predictions
   
-
+  
   for(i in 1:nrow(data_models)){ 
     
     # execute weekly weighting only in the corresponding rows
@@ -1122,7 +1206,6 @@ for(y in names_df){
       # write the mean/results to the predictions column
       data_models$predicitons_GT_weekly_polls_mean[[i]] <- tibble(mean_df2)
       
-      print(i)
       print("Nested data set with mean successful")
       
     }  
@@ -1195,10 +1278,10 @@ for(y in names_df){
            data_election, predictions) %>%
     unnest(cols = c(data_election, predictions))
   
-
+  
   ## Add deviations ####
   data_predictions <- data_predictions %>%
-    mutate(deviation = predictions - share)
+    mutate(deviation = prediction - share)
   
   nrow(data_predictions) # number of predictions (40 models for each party)
   
