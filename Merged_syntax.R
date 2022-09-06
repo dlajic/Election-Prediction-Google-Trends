@@ -72,7 +72,10 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + weekly polls weight",
                                                  "Only polls"),
                            model_time_period = duration(c(1,3), "weeks"), # 1 woche, 
-                           model_time_distance = days(31)) # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_distance = days(31),
+                           model_time_id = "weeks") # 1 tag vorher, 3 tage, 7 tage, 14 tage
+
+
 
 # Convert to tibble
 data_models <- as_tibble(data_models)
@@ -100,7 +103,7 @@ data_models <- data_models %>%
 
 ## Add var with parties running in election ####
 data_models <- data_models %>%
-  mutate(parties = ifelse(election_date=="2009-09-27",
+  mutate(parties = ifelse(election_date<="2009-09-27",
                           list(c("CDU", "SPD", "Grüne", "Linke", "FDP")),
                           list(c("CDU", "SPD", "Grüne", "Linke", "FDP", "AFD"))
   )) 
@@ -128,13 +131,39 @@ for(i in 1:length(list_electionresults)){
 
 ## Add unique model name ####
 data_models <- data_models %>%
-  mutate(model_name  = paste("M", 
-                             model_id, 
-                             year(election_date), 
-                             as.character(time_length(model_time_period, unit = "months")),
-                             "months",
-                             gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-                             sep = "_"))
+  mutate(model_name  = if(grepl("months", data_models$model_time_id) == TRUE){
+    
+    paste("M", 
+         model_id, 
+         year(election_date), 
+         as.character(time_length(model_time_period, unit = "months")),
+         "months",
+         gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+         sep = "_")
+  } 
+  
+  else if(grepl("weeks", data_models$model_time_id) == TRUE) {
+    
+    paste("M", 
+          model_id, 
+          year(election_date), 
+          as.character(time_length(model_time_period, unit = "weeks")),
+          "weeks",
+          gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+          sep = "_")
+  } 
+  
+  else {
+    
+    paste("M", 
+          model_id, 
+          year(election_date), 
+          as.character(time_length(model_time_period, unit = "days")),
+          "days",
+          gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+          sep = "_")
+  }
+  ) 
 
 
 # Reorder
@@ -390,6 +419,9 @@ for(y in names_df){
     }}
   
   
+
+  
+  
   ## Loop D: ADD Predictions (GT + previous election weight) ####
   # Here the GT predictions are simply weighted with the previous election
   # For AFD 2013 we get no prediction because not data for 2009 election
@@ -410,23 +442,94 @@ for(y in names_df){
   
   
   ## Loop E: ADD Predictions (GT + polls weight) ####
-  # Here GT predictions are weighted (take mean) with average polls from this time period
-  data_models$predictions_GT_polls <- list(NA)  
+  data_models$avg_polls_before_int <- list(NA)  
+  data_models$predictions_GT_before_int <- list(NA)  
+  data_models$Weight_Model_3 <- list(NA) 
+  data_models$predictions_GT_polls <- list(NA) 
   
-  for(i in 1:nrow(data_models)){   
+  for(i in 1:nrow(data_models)){  
     
-    # Filter
-    if(data_models$datasource_weight[i]=="GT + polls weight"){ # Filter GT ONLY
+    
+    if(data_models$datasource_weight[i]=="GT + polls weight"){
       
-      
-      data_models$predictions_GT_polls[[i]] <- 
-        left_join(data_models$predictions_GT[[i]], 
-                  data_models$data_polls_average[[i]], 
-                  by= "party") %>%
-        mutate(prediction = rowMeans(select(.,prediction, perc_mean))) %>%
+      # Get raw data and calculate Google Prop. for the interval before the set interval 
+      data_models$predictions_GT_before_int[[i]] <- data_models$data_GT[[i]] %>%
+        filter(date >= as.Date((data_models$GT_start_date[i] - data_models$model_time_period[[i]]), "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i]-1, "%d.%m.%y")) %>%
+        group_by(keyword) %>%
+        rename(party=keyword) %>%
+        summarize(hits_sum = sum(hits)) %>% 
+        mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
         select(party, prediction)
       
-    }} 
+      
+      if (grepl("2009", data_models$model_name[i])){
+        
+        # Identify polls that lie in the interval before the set interval, take the mean of the identified polls, and delete the AFD row in 2009.
+        data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
+          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+          filter(Date >= (data_models$GT_start_date[i] - data_models$model_time_period[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
+          mutate_if(is.character, as.numeric) %>%
+          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+          group_by(party) %>%
+          select(party, perc) %>%
+          rename(prediction = perc) %>%
+          arrange(party) %>%
+          na.omit() %>%
+          summarise(prediciton = mean(prediction))
+        
+      }
+      
+      if (!grepl("2009", data_models$model_name[i])){
+        
+        # Identify polls that lie in the interval before the set interval, take the mean of the identified polls
+        # If AFD NA in 2013, replace NA with Google Proportion to get a weighting factor of 1.
+        data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
+          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+          filter(Date >= (data_models$GT_start_date[i] - data_models$model_time_period[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
+          mutate_if(is.character, as.numeric) %>%
+          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+          group_by(party) %>%
+          select(party, perc) %>%
+          rename(prediction = perc) %>%
+          arrange(party) %>%
+          summarise(prediciton = mean(prediction)) %>%
+          replace(is.na(.), as.numeric(unlist(data_models$predictions_GT_before_int[[i]][1,2]))) # If afd NA in 2013, replace NA with Google Proportion to get a weighting factor of 1.
+        
+      }
+      
+      # In case there are no polls in the defined time span, just use the Google Proportion of the set interval. 
+      if(nrow(data_models$avg_polls_before_int[[i]]) == 0){
+        
+        data_models$predictions_GT_polls[[i]] <- data_models$data_GT[[i]] %>%
+          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i], "%d.%m.%y")) %>%
+                   group_by(keyword) %>%
+                   rename(party=keyword) %>%
+                   summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
+                   mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+                   select(party, prediction)
+                 
+                 next
+      }
+      
+      
+      # Calculate weighting factor using the avg. of the polls before our set interval and the Google Prop. before our set interval
+      t <- (data_models$avg_polls_before_int[[i]][2])/(data_models$predictions_GT_before_int[[i]][2])
+      
+      data_models$Weight_Model_3[[i]] <- cbind(data_models$predictions_GT_before_int[[i]][1], t)
+      
+      # Apply previously calculated weighting factor on Google Prop. of the interval of interest
+      data_models$predictions_GT_polls[[i]] <- data_models$data_GT[[i]] %>%
+        filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
+        group_by(keyword) %>%
+        rename(party=keyword) %>%
+        summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
+        mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+        select(party, prediction) %>%
+        mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_3[[i]][2])))
+      
+    }
+  }
+  
   
   
   
