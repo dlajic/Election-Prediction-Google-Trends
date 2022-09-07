@@ -53,8 +53,6 @@ trend_sonst_05 = gtrends(keyword= c('CDU + CSU + Angela Merkel', 'SPD + Gerhard 
 # query for prediction of election results 2021
 # attention: only possible to get data for up to 36h before you search
 
-# If query get updated (date) -> change date in infra_dimap_21 !!!!!!!!!!!!
-
 trend_CDU_21 = gtrends(keyword= c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch', 
                                   'FDP + Christian Lindner'), geo= "DE" , category=19, time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
 
@@ -63,23 +61,6 @@ trend_AFD_21 = gtrends(keyword= c('Alice Weidel + Tino Chrupalla + Afd', 'CDU + 
 
 trend_sonst_21 = gtrends(keyword= c('Freie Wähler + Tierschutzpartei + dieBasis + Die Partei', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
                                   'FDP + Christian Lindner'), geo= "DE" , category=19, time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-
-
-
-
-# If query get updated (date) -> change date in infra_dimap_21 !!!!!!!!!!!!
-
-trend_CDU_21_NEW = gtrends(keyword= c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch', 
-                                      'FDP + Christian Lindner'), geo= "DE" , category=19, time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-trend_AFD_21_NEW = gtrends(keyword= c('Alice Weidel + Tino Chrupalla + Afd', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
-                                      'FDP + Christian Lindner'), geo= "DE" , category=19, time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-trend_sonst_21_NEW = gtrends(keyword= c('Freie Wähler + Tierschutzpartei + dieBasis + Die Partei', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
-                                      'FDP + Christian Lindner'), geo= "DE" , category=19, time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-
 
 
 
@@ -130,8 +111,6 @@ trend_sonst_05_WK = gtrends(keyword= c('CDU + CSU + Angela Merkel', 'SPD + Gerha
 # query for prediction of election results 2021
 # attention: only possible to get data for up to 36h before you search
 
-# If query get updated (date) -> change date in infra_dimap_21 !!!!!!!!!!!!
-
 trend_CDU_21_WK = gtrends(keyword= c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch', 
                                   'FDP + Christian Lindner'), geo= "DE", time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
 
@@ -140,22 +119,6 @@ trend_AFD_21_WK = gtrends(keyword= c('Alice Weidel + Tino Chrupalla + Afd', 'CDU
 
 trend_sonst_21_WK = gtrends(keyword= c('Freie Wähler + Tierschutzpartei + dieBasis + Die Partei', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
                                     'FDP + Christian Lindner'), geo= "DE", time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-
-
-
-
-# If query get updated (date) -> change date in infra_dimap_21 !!!!!!!!!!!!
-
-trend_CDU_21_NEW_WK = gtrends(keyword= c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch', 
-                                      'FDP + Christian Lindner'), geo= "DE", time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-trend_AFD_21_NEW_WK = gtrends(keyword= c('Alice Weidel + Tino Chrupalla + Afd', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
-                                      'FDP + Christian Lindner'), geo= "DE", time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
-trend_sonst_21_NEW_WK = gtrends(keyword= c('Freie Wähler + Tierschutzpartei + dieBasis + Die Partei', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 
-                                        'FDP + Christian Lindner'), geo= "DE", time = ("2021-01-01 2021-12-31"), gprop="web", onlyInterest =  TRUE)
-
 
 
 
