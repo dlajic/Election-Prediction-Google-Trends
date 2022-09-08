@@ -65,15 +65,17 @@ load("infratest_dimap_polls.RData")
 data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                      "24-09-2017",
                                                      "22-09-2013",
-                                                     "27-09-2009"), format = "%d-%m-%Y"),
+                                                     "27-09-2009",
+                                                     "18-09-2005"), format = "%d-%m-%Y"),
                            datasource_weight = c("GT",
                                                  "GT + election weight",
                                                  "GT + polls weight",
                                                  "GT + weekly polls weight",
                                                  "Only polls"),
-                           model_time_period = duration(c(1,3), "weeks"), # 1 woche, 
-                           model_time_distance = days(31),
-                           model_time_id = "weeks") # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_interval = duration(c(7, 21), "days"),
+                           model_time_distance = days(1), # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_id = "days") 
+
 
 
 
@@ -81,7 +83,7 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
 data_models <- as_tibble(data_models)
 
 # Sort dataframe
-data_models <- data_models %>% arrange(election_date, datasource_weight, model_time_period)
+data_models <- data_models %>% arrange(election_date, datasource_weight, model_time_interval)
 
 
 ## Add model index/number ####
@@ -92,18 +94,18 @@ data_models <- data_models %>%
 ## Add GT data collection periods ####
 data_models <- data_models %>%
   mutate(GT_end_date = election_date - model_time_distance, # time ends one day before election
-         GT_start_date = as.Date(GT_end_date - model_time_period)) # time period starts 1 or 3 months earlier
+         GT_start_date = as.Date(GT_end_date - model_time_interval)) # time period starts 1 or 3 months earlier
 
 ## Add vars for coloring ####
 data_models <- data_models %>%
   mutate(election = as.factor(format(election_date, "%d %b, %Y")),
-         model_time_period_color = as.factor(as.character(time_length(model_time_period, unit = "months"))),
+         model_time_period_color = as.factor(as.character(time_length(model_time_interval, unit = "months"))),
          model_time_period_color = paste(model_time_period_color, "month(s)"))
 
 
 ## Add var with parties running in election ####
 data_models <- data_models %>%
-  mutate(parties = ifelse(election_date<="2009-09-27",
+  mutate(parties = ifelse(election_date <="2009-09-27",
                           list(c("CDU", "SPD", "Grüne", "Linke", "FDP")),
                           list(c("CDU", "SPD", "Grüne", "Linke", "FDP", "AFD"))
   )) 
@@ -131,39 +133,17 @@ for(i in 1:length(list_electionresults)){
 
 ## Add unique model name ####
 data_models <- data_models %>%
-  mutate(model_name  = if(grepl("months", data_models$model_time_id) == TRUE){
-    
-    paste("M", 
-         model_id, 
-         year(election_date), 
-         as.character(time_length(model_time_period, unit = "months")),
-         "months",
-         gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-         sep = "_")
-  } 
-  
-  else if(grepl("weeks", data_models$model_time_id) == TRUE) {
-    
-    paste("M", 
+  mutate(model_name  = paste("M", 
           model_id, 
           year(election_date), 
-          as.character(time_length(model_time_period, unit = "weeks")),
-          "weeks",
-          gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-          sep = "_")
-  } 
-  
-  else {
-    
-    paste("M", 
-          model_id, 
-          year(election_date), 
-          as.character(time_length(model_time_period, unit = "days")),
+          "int",
+          as.character(time_length(model_time_interval, unit = "days")),
+          "days",
+          "dist",
+          as.character(time_length(model_time_distance, unit = "days")),
           "days",
           gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-          sep = "_")
-  }
-  ) 
+          sep = "_"))
 
 
 # Reorder
@@ -174,6 +154,7 @@ data_models <- data_models %>%
 
 ## Add GT dataset names #### 
 data_models$name_GT_datasets <- NULL
+data_models$name_GT_datasets[grepl("GT", data_models$model_name) & grepl("2005", data_models$model_name)] <- list(c("trend_05"))
 data_models$name_GT_datasets[grepl("GT", data_models$model_name) & grepl("2009", data_models$model_name)] <- list(c("trend_09")) # "trend_05", 
 data_models$name_GT_datasets[grepl("GT", data_models$model_name) & grepl("2013", data_models$model_name)] <- list(c("trend_CDU_13",
                                                                                                                     "trend_AFD_13"))
@@ -203,6 +184,7 @@ replace_searchterms <- function(x){
   
   # LINKE
   x <- gsub('Linke.*', 'Linke',  x)
+  x <- gsub('PDS.*', 'Linke',  x)
   
   # FDP
   x <- gsub('FDP.*', 'FDP', x)
@@ -220,7 +202,7 @@ replace_searchterms <- function(x){
 # Create GT datasets for the different time periods for all models that include GT data (see filter below)
 data_models$data_GT <- list(NA)
 
-
+# Names of Google Trends datasets 
 names_df <- c("2021-09-20 11-21-45", "2021-09-21 15-21-45")
 data_predictions_final <- data.frame()
 
@@ -247,8 +229,8 @@ for(y in names_df){
       name_GT_datasets_i <- as.character(data_models$name_GT_datasets[i][[1]])
       print(name_GT_datasets_i)
       
-      # Detect if 2009 election
-      if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2009
+      # Detect if 2005/2009 election
+      if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2005/2009
         
         df1 <- get(name_GT_datasets_i[1])$interest_over_time # Ony 1 dataset
         
@@ -294,10 +276,13 @@ for(y in names_df){
   
   for(i in 1:nrow(data_models)){  
     
+    if(grepl("2005", data_models$model_name[i])){
+      next
+    }
+    
     # Prepare dataset(s) for model
     year_i <- year(data_models$election_date)[i]
     cat("\n\n\n\n", year_i, "\n\n")  
-    
     
       f <- infra_dimap_all %>%
       mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
@@ -406,6 +391,8 @@ for(y in names_df){
   data_models$predictions_GT <- list(NA)  
   
   for(i in 1:nrow(data_models)){   
+    
+    
     if(str_detect(data_models$datasource_weight[i], "GT")){ # Filter GT ONLY
       
       data_models$predictions_GT[[i]] <- data_models$data_GT[[i]] %>%
@@ -425,20 +412,52 @@ for(y in names_df){
   ## Loop D: ADD Predictions (GT + previous election weight) ####
   # Here the GT predictions are simply weighted with the previous election
   # For AFD 2013 we get no prediction because not data for 2009 election
-  data_models$predictions_GT_election_weight <- list(NA)  
+  identifier = sum(str_count(data_models$model_name, "2005"))
+  
+  data_models$predictions_GT_election_weight <- list(NA)
+  data_models$Weight_Model_2 <- list(NA)  
   
   for(i in 1:nrow(data_models)){   
     
-    # Filter
-    if(data_models$datasource_weight[i]=="GT + election weight"){ # Filter GT ONLY
+    if(!grepl("2005", data_models$model_name[[i]]) == TRUE){
       
-      data_models$predictions_GT_election_weight[[i]] <- 
-        left_join(data_models$predictions_GT[[i]], 
-                  data_models$data_election_previous[[i]], 
-                  by= "party") %>%
-        mutate(prediction = rowMeans(select(.,prediction, share))) %>% # Take mean of prediction and election result
-        select(party, prediction)
-    }} 
+      if(grepl("election weight", data_models$datasource_weight[[i]]) == TRUE){ # Filter GT ONLY
+        
+        k = i - identifier
+        
+        data_models$predictions_GT[[k]][2] <- data_models$predictions_GT[[k]][2] %>%
+          mutate(prediction = ifelse(prediction == 0, as.numeric(unlist(data_models$data_election_previous[[i]][2])), prediction))
+        
+        t <- (data_models$data_election_previous[[i]][2]/data_models$predictions_GT[[k]][2])
+        
+        data_models$Weight_Model_2[[i]] <- cbind(data_models$predictions_GT[[k]][1], t)
+        
+        
+        if(grepl("2013", data_models$model_name[[i]]) == TRUE){
+          
+          data_models$Weight_Model_2[[i]] <-  data_models$Weight_Model_2[[i]] %>%
+            add_row(party = "AFD", share = 1, .before = 1) 
+          
+          
+        }
+        
+        
+        # Apply previously calculated weighting factor on Google Prop. of the interval of interest
+        data_models$predictions_GT_election_weight[[i]] <- data_models$data_GT[[i]] %>%
+          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
+          group_by(keyword) %>%
+          rename(party=keyword) %>%
+          summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
+          mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+          select(party, prediction) %>%
+          mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_2[[i]][2])))
+        
+      }
+    }
+  }
+  
+  
+  data_models$Weight_Model_2
   
   
   ## Loop E: ADD Predictions (GT + polls weight) ####
@@ -449,12 +468,15 @@ for(y in names_df){
   
   for(i in 1:nrow(data_models)){  
     
+    if(grepl("2005", data_models$model_name[i])){
+      next
+    }
     
     if(data_models$datasource_weight[i]=="GT + polls weight"){
       
       # Get raw data and calculate Google Prop. for the interval before the set interval 
       data_models$predictions_GT_before_int[[i]] <- data_models$data_GT[[i]] %>%
-        filter(date >= as.Date((data_models$GT_start_date[i] - data_models$model_time_period[[i]]), "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i]-1, "%d.%m.%y")) %>%
+        filter(date >= as.Date((data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]), "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i]-1, "%d.%m.%y")) %>%
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% 
@@ -467,7 +489,7 @@ for(y in names_df){
         # Identify polls that lie in the interval before the set interval, take the mean of the identified polls, and delete the AFD row in 2009.
         data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= (data_models$GT_start_date[i] - data_models$model_time_period[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
+          filter(Date >= (data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
           group_by(party) %>%
@@ -485,7 +507,7 @@ for(y in names_df){
         # If AFD NA in 2013, replace NA with Google Proportion to get a weighting factor of 1.
         data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= (data_models$GT_start_date[i] - data_models$model_time_period[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
+          filter(Date >= (data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
           group_by(party) %>%
@@ -542,6 +564,10 @@ for(y in names_df){
   
   
   for(i in 1:nrow(data_models)){ 
+    
+    if(grepl("2005", data_models$model_name[i])){
+      next
+    }
     
     # execute weekly weighting only in the corresponding rows
     if(data_models$datasource_weight[i] == "GT + weekly polls weight"){
@@ -1323,6 +1349,10 @@ for(y in names_df){
   
   for(i in 1:nrow(data_models)){   
     
+    if(grepl("2005", data_models$model_name[i])){
+      next
+    }
+    
     # Filter
     if(data_models$datasource_weight[i]=="Only polls"){ # Filter GT ONLY
       
@@ -1343,6 +1373,10 @@ for(y in names_df){
   data_models$predictions <- list(NA)  
   
   for(i in 1:nrow(data_models)){  
+    
+    if(grepl("2005", data_models$model_name[i])){
+      next
+    }
     
     if(data_models$datasource_weight[i]=="GT"){
       data_models$predictions[[i]] <- data_models$predictions_GT[[i]] %>% rename(party_pred=party) # rename
@@ -1369,14 +1403,16 @@ for(y in names_df){
   }
   
   
-  
+  if(grepl("2005", data_models$model_name[i])){
+    next
+  }
   # Dataset: Predictions ####
   # Below we unnest the dataframe to get predictions for single
   # parties across years
   data_predictions <- data_models %>% 
     mutate(df_id = y) %>%
     select(model_id, df_id, model_name, election_date, datasource_weight,
-           model_time_period, GT_end_date, GT_start_date, 
+           model_time_interval, GT_end_date, GT_start_date, 
            election, model_time_period_color, 
            data_election, predictions) %>%
     unnest(cols = c(data_election, predictions))
@@ -1393,13 +1429,46 @@ for(y in names_df){
 }
 
 
+#######
+#### delete 2005 rows (just needed for Model2_2009)
+#######
+data_models <- data_models %>% 
+  filter(grepl("2005", data_models$model_name) == FALSE)
+
+#And again renaming since first id´s are missing (deleted 2005´s)
+## Add model index/number ####
+data_models <- data_models %>% 
+  mutate(model_id = row_number()) %>%
+  select(model_id, everything())
+
+
+## Add unique model name ####
+data_models <- data_models %>%
+  mutate(model_name  = paste("M", 
+                             model_id, 
+                             year(election_date), 
+                             "int",
+                             as.character(time_length(model_time_interval, unit = "days")),
+                             "days",
+                             "dist",
+                             as.character(time_length(model_time_distance, unit = "days")),
+                             "days",
+                             gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+                             sep = "_"))
+
+
+# Reorder
+data_models <- data_models %>%
+  select(model_id, model_name, everything())
 
 
 data_predictions_final_mean <- data_predictions_final %>%
   group_by(model_id, model_name, party) %>%
-  summarise(Mean = mean(prediction), SD = sd(prediction), .groups = "keep") %>%
-  mutate(lower.ci = Mean - 1.96*(SD/sqrt(n())),
-         upper.ci = Mean + 1.96*(SD/sqrt(n()))) 
+  summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), .groups = "keep") %>%
+  mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
+         mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
+         dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
+         dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) 
 
 
 
