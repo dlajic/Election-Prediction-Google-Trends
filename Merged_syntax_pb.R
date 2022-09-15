@@ -261,7 +261,7 @@ data_predictions_final <- data.frame()
 
 # NEW VERSION
 
-for(i in 1852:nrow(data_models)){ # Loop over datasamle turned of
+for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
   # Load GT datasets
   #name <- paste("2021-09-20 11-21-45",".RData",sep="")
   #load(name)
@@ -350,8 +350,8 @@ for(i in 1852:nrow(data_models)){ # Loop over datasamle turned of
     Sys.sleep(sample(seq(1,2,0.01),1)) # Not to overburden gtrends
     }}
 
-save(data_models, file = "data_models3.RData")
-# load(file = "data_models3.RData")
+# save(data_models, file = "data_models3.RData")
+load(file = "data_models3.RData")
 
 
 
@@ -481,7 +481,7 @@ save(data_models, file = "data_models3.RData")
   data_models$predictions_GT <- list(NA)
 
   for(i in 1:nrow(data_models)){
-
+  print(i)
 
     if(str_detect(data_models$datasource_weight[i], "GT")){ # Filter GT ONLY
 
@@ -804,7 +804,10 @@ data_predictions$party <-
 data_predictions$deviation_label <-
   round(data_predictions$deviation, 1)
 data_predictions$datasource_weight <-
-  factor(data_predictions$datasource_weight)
+  factor(data_predictions$datasource_weight) %>%
+  mutate()
+
+
 
 ## Figure X ####
 # predictions for different distances #
@@ -817,6 +820,14 @@ data_plot <- data_predictions %>%
   mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
   mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
   mutate(model_time_distance = election_date - GT_end_date)
+
+# Create average prediction error across all parties
+
+data_plot2 <- data_plot %>%
+  group_by(model_id) %>% 
+  summarise(mean(deviation, na.rm=TRUE)) # STRANGE THAT IT IS CONSTANT.. ERROR?
+# Why is the mean of deviations across models exactly the same?
+
 
 ggplot(data_plot,
        aes(x = GT_end_date,
