@@ -73,8 +73,8 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + polls weight",
                                                  "GT + weekly polls weight",
                                                  "Only polls"),
-                           model_time_interval = duration(seq(7,30, 7), "days"),
-                           model_time_distance = days(seq(1,30, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_interval = duration(seq(7,90, 7)[c(1:4, 6, 8, 10, 11)], "days"),
+                           model_time_distance = days(seq(1,90, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage
                            model_time_id = "days")
 
 
@@ -223,13 +223,13 @@ replace_searchterms <- function(x){
 
 # Using proxies ####
   # Check IP locally
-  sys <- system("ipconfig", intern=TRUE)    # save IP configuration
-  ip <- sys[grep("IPv4", sys)]              # extract IP
-  ip                                        # this is your IP
-
-  # Check web ip
-  library(rvest)                                           # a very common library for webscraping
-  html_text( read_html('http://checkip.amazonaws.com/') )  # this should give you the same IP as step 1 (ignore the "\n")
+  # sys <- system("ipconfig", intern=TRUE)    # save IP configuration
+  # ip <- sys[grep("IPv4", sys)]              # extract IP
+  # ip                                        # this is your IP
+  # 
+  # # Check web ip
+  # library(rvest)                                           # a very common library for webscraping
+  # html_text( read_html('http://checkip.amazonaws.com/') )  # this should give you the same IP as step 1 (ignore the "\n")
 
   # Tell R whicih proxy to use
   # proxies_list <- c("154.13.4.77:59394",   # these are 3 proxies from free-proxy-list.net
@@ -251,6 +251,24 @@ replace_searchterms <- function(x){
   # fromJSON("https://api.myip.com/")    # scraping a JSON that tells you the IP works, too
   #
 
+# Proxies: Oxylabs #####
+  # shell('curl -x pr.oxylabs.io:7777 -U "customer-ormar:e32EQvr!0XLruBW6cIBM" https://ipinfo.io')
+  # Below creates a new proxy each time
+  #Sys.setenv(http_proxy="http://customer-ormar:e32EQvr!0XLruBW6cIBM@pr.oxylabs.io:7777")
+
+  
+# Proxies: Rayobyte
+ # Import proxies (text file)
+  proxies_ips <- str_extract(readLines("../proxies.txt"), "^[0-9\\.]*")
+  proxies <- paste("http://", "a69d2a1f3b", ":", "ZNsMHoT9", "@", proxies_ips, ":",
+                   "4444", sep = "")
+  #Sys.setenv(http_proxy=proxies[2])
+  # add proxies to model data frame if it includes GT
+  data_models$proxy <- NA
+  proxy_length <- length(data_models$proxy[str_detect(data_models$datasource_weight, "GT")])
+  proxies_data_models <- rep(proxies, length.out = proxy_length) # repeat list of proxies
+  data_models$proxy[str_detect(data_models$datasource_weight, "GT")] <- rev(proxies_data_models)
+  
 ## Loop A: Create GT datasets ####
 # Create GT datasets for the different time periods for all models that include GT data (see filter below)
 data_models$data_GT <- list(NA)
@@ -259,24 +277,30 @@ data_models$data_GT <- list(NA)
 
 data_predictions_final <- data.frame()
 
-# NEW VERSION
+# CONTINUE HERE WHEN LOADING STORED DATAFRAME
 
-for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
+
+# Identify i's that don't have data yet!
+# data_models$model_id[is.na(data_models$data_GT)]
+
+for(i in 1:18000){ # take only NA cells: data_models$model_id[is.na(data_models$data_GT)]
   # Load GT datasets
   #name <- paste("2021-09-20 11-21-45",".RData",sep="")
   #load(name)
 
-  cat("\n\nModel ID: ", data_models$model_id[i], "\n")
+  cat("\n\n\n\nModel ID: ", data_models$model_id[i], "\n")
 
   # Prepare dataset(s) for model
   year_i <- year(data_models$election_date)[i]
-  cat("\n\n\n\n", year_i, "\n\n")
+  cat("\n Year:", year_i, "\n")
 
   # Detect models using GT data
   if(str_detect(data_models$datasource_weight[i], "GT")){
     # Filter rows/models using GT data
 
-
+    # Change proxy
+    Sys.setenv(http_proxy=data_models$proxy[i])
+    cat("\nProxy used:", data_models$proxy[i], "\n")
 
 
     # Show name of (previous) dataset and keywords
@@ -284,22 +308,41 @@ for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
     cat("\n\nDataset: ", name_GT_datasets_i, "\n")
     GT_keywords_i <- data_models$GT_keywords[i]
     print(GT_keywords_i)
-
-
+    
+    # Check if IP changes
+    # print(paste("\nIP:", html_text(read_html('http://checkip.amazonaws.com/')), "\n\n"))
 
     # Detect if 2005/2009 election
     if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2005/2009
+      print("\n2005/2009 election\n")
       # CHECK: This still needs the column with the dataset names (better would be dependency on year)
 
+      # setHandleParameters(
+      #   user = "customer-ormar",
+      #   password = "e32EQvr!0XLruBW6cIBM",
+      #   domain = "mydomain",
+      #   proxyhost = "pr.oxylabs.io",
+      #   proxyport = 7777,
+      #   proxyauth = 2)
 
 
-      df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
-              geo= "DE",
-              category = 19,
-              time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
-              gprop="web",
-              onlyInterest =  TRUE)$interest_over_time
 
+      # possibleError <- tryCatch(...,
+      #                           error=function(e) e
+      # )if(inherits(possibleError, "error")) print(possibleError); Sys.sleep(1); next
+      
+      skip_to_next <- FALSE# ERROR HANDLING
+      tryCatch({ # ERROR HANDLING
+        df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
+                       geo= "DE",
+                       category = 19,
+                       time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
+                       gprop="web",
+                       onlyInterest =  TRUE)$interest_over_time
+      }, 
+      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
+      
       data_models$data_GT[[i]] <- df1 %>%
         select(date, hits, keyword) %>%
         mutate(hits = str_replace(hits, "<1", "0"),
@@ -315,16 +358,23 @@ for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
       # Detect if NO 2005/2009 election
     }else{ # THIS PART 2013-2021
 
+      print("\n2013/2021 election\n")
 
-
-
-
+      skip_to_next <- FALSE# ERROR HANDLING
+      tryCatch({ # ERROR HANDLING
       df1 <- gtrends(keyword= GT_keywords_i[[1]][[1]], # dataset 1
                      geo= "DE",
                      category = 19,
                      time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
                      gprop="web",
                      onlyInterest =  TRUE)$interest_over_time # CDU
+      }, 
+      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
+      
+      
+      skip_to_next <- FALSE# ERROR HANDLING
+      tryCatch({ # ERROR HANDLING
       df2 <- gtrends(keyword= GT_keywords_i[[1]][[2]], # dataset 1
                      geo= "DE",
                      category = 19,
@@ -332,7 +382,9 @@ for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
                      gprop="web",
                      onlyInterest =  TRUE)$interest_over_time %>% # AFD
         filter(grepl("Afd.*", keyword) == TRUE)
-
+      }, 
+      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
 
 
 
@@ -347,11 +399,14 @@ for(i in 2870:nrow(data_models)){ # Loop over datasamle turned of
       print(table(data_models$data_GT[[i]]$keyword))
 
     }
-    Sys.sleep(sample(seq(1,2,0.01),1)) # Not to overburden gtrends
+
+      
+      
+    Sys.sleep(sample(seq(1,1.1,0.001),1)) # Not to overburden gtrends
     }}
 
-# save(data_models, file = "data_models3.RData")
-load(file = "data_models3.RData")
+#save(data_models, file = "data_models4.RData")
+#load(file = "data_models4.RData")
 
 
 
