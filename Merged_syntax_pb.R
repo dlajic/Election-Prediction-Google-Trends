@@ -1,15 +1,18 @@
 # Load packages ####
-library(gtrendsR)
-library(ggplot2)
-library(tidyverse)
-library(tidyr)
-library(rvest)
-library(xml2)
-library(data.table)
-library(patchwork)
-library(lubridate)
-library(ajfhelpR) # install.packages("remotes"); remotes::install_github("Ajfrick/ajfhelpR")
+  # install.packages("remotes"); remotes::install_github("Ajfrick/ajfhelpR")
 
+library(pacman)
+p_load(gtrendsR,
+       ggplot2,
+       tidyverse,
+       tidyr,
+       rvest,
+       xml2,
+       data.table,
+       patchwork,
+       lubridate,
+       ajfhelpR,
+       jsonlite)
 
 
 # Dataset: Election results ####
@@ -95,7 +98,8 @@ data_models <- data_models %>%
 ## Add GT data collection periods ####
 data_models <- data_models %>%
   mutate(GT_end_date = election_date - model_time_distance, # time ends one day before election
-         GT_start_date = as.Date(GT_end_date - model_time_interval)) # time period starts 1 or 3 months earlier
+         GT_start_date = as.Date(GT_end_date - model_time_interval),
+         GT_identifier = paste(GT_start_date, GT_end_date, sep="-")) # time period starts 1 or 3 months earlier
 
 ## Add vars for coloring ####
 data_models <- data_models %>%
@@ -221,56 +225,210 @@ replace_searchterms <- function(x){
 }
 
 
-# Using proxies ####
-  # Check IP locally
-  # sys <- system("ipconfig", intern=TRUE)    # save IP configuration
-  # ip <- sys[grep("IPv4", sys)]              # extract IP
-  # ip                                        # this is your IP
-  # 
-  # # Check web ip
-  # library(rvest)                                           # a very common library for webscraping
-  # html_text( read_html('http://checkip.amazonaws.com/') )  # this should give you the same IP as step 1 (ignore the "\n")
-
-  # Tell R whicih proxy to use
-  # proxies_list <- c("154.13.4.77:59394",   # these are 3 proxies from free-proxy-list.net
-  #                   "20.113.151.89:8000")    # all of them can do https
-  # # FREE proxies don't always work!! So you might need to test several
-  # # until you find one that works
-  # proxy <- sample(proxies_list, 1)          # pick a random proxy from the list above
-  # proxy                                     # this is the proxy we will use
-  #
-  # Sys.setenv(https_proxy = proxy,           # write in the system environment that R should
-  #            http_proxy = proxy)            # use this randomly picked proxy when accessing the internet
-  # Sys.getenv(c("https_proxy", "http_proxy"))# it should be your proxy here now
-  #
-  # #
-  # html_text(read_html('http://checkip.amazonaws.com/'))    # scrape the mini-website with rvest
-  #
-  # # it should also work with any other library, because we defined the proxy in the general R environment
-  # library(jsonlite)
-  # fromJSON("https://api.myip.com/")    # scraping a JSON that tells you the IP works, too
-  #
-
-# Proxies: Oxylabs #####
-  # shell('curl -x pr.oxylabs.io:7777 -U "customer-ormar:e32EQvr!0XLruBW6cIBM" https://ipinfo.io')
-  # Below creates a new proxy each time
-  #Sys.setenv(http_proxy="http://customer-ormar:e32EQvr!0XLruBW6cIBM@pr.oxylabs.io:7777")
 
   
-# Proxies: Rayobyte
- # Import proxies (text file)
-  proxies_ips <- str_extract(readLines("../proxies.txt"), "^[0-9\\.]*")
-  proxies <- paste("http://", "a69d2a1f3b", ":", "ZNsMHoT9", "@", proxies_ips, ":",
-                   "4444", sep = "")
-  #Sys.setenv(http_proxy=proxies[2])
-  # add proxies to model data frame if it includes GT
-  data_models$proxy <- NA
-  proxy_length <- length(data_models$proxy[str_detect(data_models$datasource_weight, "GT")])
-  proxies_data_models <- rep(proxies, length.out = proxy_length) # repeat list of proxies
-  data_models$proxy[str_detect(data_models$datasource_weight, "GT")] <- rev(proxies_data_models)
+
+
+  
+  
+## Proxies: Smartproxy ####
+  # Import proxies (text file)
+  # data_proxies <- data.frame(readLines("../data.txt")) %>%
+  # rename("proxy" = "readLines.....data.txt..") %>% #Used direct http out
+  #   separate(sep = ":",
+  #            col = "proxy",
+  #            into = c("ip", "port", "username", "passwort")) %>%
+  #   mutate(proxy = paste("http://",
+  #                        username,
+  #                        ":",
+  #                        passwort,
+  #                        "@", ip,
+  #                        ":",port, sep = ""))
+
+  # Test
+  # proxy_sampled <- sample(data_proxies$proxy, 1)
+  # Sys.setenv(http_proxy = proxy_sampled,
+  #            https_proxy = proxy_sampled)  
+  # Sys.getenv(c("https_proxy", "http_proxy"))# it should be your proxy here now
+  # 
+  # # Sys.setenv(no_proxy = "*") # turn off proxies
+
+  
+
+# Set rotating proxy (smartproxy) ####
+  Sys.setenv(http_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000",
+             https_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000") 
+ # Test if it works: IP should change everytime fromJSON() is called
+    # fromJSON("https://api.myip.com/")
+
+  
+## Loop A-1: Create GT datasets ####
+  # Idea: Collect GT datasets first then merge with data_model dataframe.
+  # 1. Create GT datasets for the different time periods for all 
+  # GT data definitions
+  # 2. Join with data for all models 
+  # Check number of models: length(unique(data_models$GT_identifier))
+
+  
+  
+  
+  
+  # Subset data_models to   
+    data_models_GT <- data_models %>%
+      filter(datasource_weight=="GT") %>% 
+    mutate(data_GT = list(NA)) %>%
+  mutate(row_nr = row_number())
+  
+  
+  
+  for(i in 1:nrow(data_models_GT)){ # 
+    
+    cat("\n\n\n\nModel ID: ", data_models_GT$model_id[i], "\n")
+    cat("\n\n\n\nrow_nr: ", data_models_GT$row_nr[i], "\n")
+    
+    # Prepare dataset(s) for model
+    year_i <- year(data_models_GT$election_date)[i]
+    cat("\n Year:", year_i, "\n")
+    
+
+      
+      # Sticky proxy: Use list of proxies of same length as datasets
+        # setHandleParameters(user = data_proxies$username[i],
+        #                     password = data_proxies$passwort[i],
+        #                     domain = "mydomain",
+        #                     proxyhost = data_proxies$ip[i],
+        #                     proxyport = as.numeric(data_proxies$port[i]))
+    
+      # Rotating smart proxy
+         #rotating_proxy <- str_split("http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000", ":|@")[[1]]
+#         setHandleParameters(user = gsub("//", "", rotating_proxy[2]),
+#                             password = rotating_proxy[3],
+#                             domain = "mydomain",
+#                             proxyhost = rotating_proxy[4],
+#                             proxyport = as.numeric(rotating_proxy[5]))
+         
+         
+         # setHandleParameters(user = "user-sp63125425",
+         #                     password = "n8sMsBOH49CP7fEy",
+         #                     domain = "mydomain",
+         #                     proxyhost = "us.smartproxy.com",
+         #                     proxyport = 10000)
+      
+        
+   
+         
+         
+         gtrends(keyword= "Merkel", # Ony 1 dataset
+                 geo= "DE",
+                 category = 19,
+                 time = "2005-09-10 2005-09-17",
+                 gprop="web",
+                 onlyInterest = TRUE)$interest_over_time
+         
+      # cat("\nProxy used:", proxy_i, "\n")
+
+      # Show name of (previous) dataset and keywords
+      name_GT_datasets_i <- as.character(data_models_GT$name_GT_datasets[i][[1]])
+      cat("\n\nDataset: ", name_GT_datasets_i, "\n")
+      GT_keywords_i <- data_models_GT$GT_keywords[i]
+      print(GT_keywords_i)
+      
+      # Detect if 2005/2009 election
+      if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2005/2009
+        print("\n2005/2009 election\n")
+     
+        skip_to_next <- FALSE# ERROR HANDLING
+        tryCatch({ # ERROR HANDLING
+          df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
+                         geo= "DE",
+                         category = 19,
+                         time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
+                         gprop="web",
+                         onlyInterest = TRUE)$interest_over_time
+        }, 
+        error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+        if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
+        
+        data_models_GT$data_GT[[i]] <- df1 %>%
+          select(date, hits, keyword) %>%
+          mutate(hits = str_replace(hits, "<1", "0"),
+                 hits = as.numeric(hits),
+                 date = as.Date(date))%>%
+          replace(is.na(.), 0) %>%
+          mutate(keyword = replace_searchterms(keyword)) # keywords is here party!
+        
+        print(table(data_models_GT$data_GT[[i]]$keyword))
+        
+        
+        
+        # Detect if NO 2005/2009 election
+      }else{ # THIS PART 2013-2021
+        
+        print("\n2013/2021 election\n")
+        
+        skip_to_next <- FALSE# ERROR HANDLING
+        tryCatch({ # ERROR HANDLING
+          df1 <- gtrends(keyword= GT_keywords_i[[1]][[1]], # dataset 1
+                         geo= "DE",
+                         category = 19,
+                         time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
+                         gprop="web",
+                         onlyInterest =  TRUE)$interest_over_time # CDU
+        }, 
+        error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+        if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
+        
+        
+        skip_to_next <- FALSE# ERROR HANDLING
+        tryCatch({ # ERROR HANDLING
+          df2 <- gtrends(keyword= GT_keywords_i[[1]][[2]], # dataset 1
+                         geo= "DE",
+                         category = 19,
+                         time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
+                         gprop="web",
+                         onlyInterest =  TRUE)$interest_over_time %>% # AFD
+            filter(grepl("Afd.*", keyword) == TRUE)
+        }, 
+        error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
+        if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
+        
+        
+        
+        data_models_GT$data_GT[[i]] <- bind_rows(df1, df2) %>%
+          select(date, hits, keyword) %>%
+          mutate(hits = str_replace(hits, "<1", "0"), # HIER WEITER
+                 hits = as.numeric(hits),
+                 date = as.Date(date))%>%
+          replace(is.na(.), 0) %>%
+          mutate(keyword = replace_searchterms(keyword))
+        
+        print(table(data_models_GT$data_GT[[i]]$keyword))
+        
+      }
+      
+      
+      
+      Sys.sleep(sample(seq(1,2,0.001),1)) # Not to overburden gtrends
+    }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
 ## Loop A: Create GT datasets ####
-# Create GT datasets for the different time periods for all models that include GT data (see filter below)
+# Create GT datasets for the different time periods for all 
+# models that include GT data (see filter below)
+  
+# GET datasets are defined by 
 data_models$data_GT <- list(NA)
 
 # Names of Google Trends datasets
@@ -405,7 +563,7 @@ for(i in 1:18000){ # take only NA cells: data_models$model_id[is.na(data_models$
     Sys.sleep(sample(seq(1,1.1,0.001),1)) # Not to overburden gtrends
     }}
 
-#save(data_models, file = "data_models4.RData")
+save(data_models, file = "data_models_rayobite.RData")
 #load(file = "data_models4.RData")
 
 
