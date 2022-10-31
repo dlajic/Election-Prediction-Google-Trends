@@ -256,13 +256,28 @@ replace_searchterms <- function(x){
   
 
 # Set rotating proxy (smartproxy) ####
-  Sys.setenv(http_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000",
-             https_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000") 
+  # Sys.setenv(http_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000",
+  #            https_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000") 
+# Sys.setenv(no_proxy = "*") # turn off proxies
  # Test if it works: IP should change everytime fromJSON() is called
     # fromJSON("https://api.myip.com/")
 
-  
-## Loop A-1: Create GT datasets ####
+ 
+# library(gtrendsR)
+# setHandleParameters(user = "user-sp63125425", 
+#                     password = "n8sMsBOH49CP7fEy", 
+#                     domain = "77.185.27.222", 
+#                     proxyhost = "us.smartproxy.com", 
+#                     proxyport = 10000)
+# res <- gtrends(c("nhl", "nba"), geo = c("CA", "US"))
+# gtrends(keyword= "Merkel", # Ony 1 dataset
+#         geo= "DE",
+#         category = 19,
+#         time = "2005-09-10 2005-09-17",
+#         gprop="web",
+#         onlyInterest = TRUE)$interest_over_time
+
+## Loop A: Collect GT data ####
   # Idea: Collect GT datasets first then merge with data_model dataframe.
   # 1. Create GT datasets for the different time periods for all 
   # GT data definitions
@@ -270,7 +285,7 @@ replace_searchterms <- function(x){
   # Check number of models: length(unique(data_models$GT_identifier))
 
   
-  
+
   
   
   # Subset data_models to   
@@ -279,9 +294,44 @@ replace_searchterms <- function(x){
     mutate(data_GT = list(NA)) %>%
   mutate(row_nr = row_number())
   
+# Steps
+# 1. Choose a new VPN (Proton vpn)
+# ". Go to smart proxy website anc copy IP address
+# 2. Set domain to own IP Proton VPN, e.g., domain <- "37.120.217.84"
+# If you don't you get 407 error.
+# 3. Turn of proxies: Sys.setenv(no_proxy = "*")
+# 4. Make sure other parameters are up to date.
+
+# Tips: You should experiment on it. Divide on different proxies, 
+# divide the queries or try using the code multiple times with different 
+# servers (like us.smartproxy.com) if multiple locations are possible
+# http code 407: Problem with proxy identification
+
+
+
+# Set proxy data
+  user <- "user-sp63125425"
+  password <- "8ffEGZmupe66Z2Y2"
+  domain <- "77.179.81.148"
+  proxyhost <- "us.smartproxy.com"
+  proxyport <- 10000
   
+  # Set rotating proxies: Get IP for "domain" with: fromJSON("https://api.myip.com/")
+  setHandleParameters(user = user,
+                      password = password,
+                      domain = domain,
+                      proxyhost = proxyhost,
+                      proxyport = proxyport)
   
-  for(i in 1:nrow(data_models_GT)){ # 
+  # Sys.setenv(http_proxy = "http://user-sp63125425:8ffEGZmupe66Z2Y2@fr.smartproxy.com:40000",
+  #            https_proxy = "http://user-sp63125425:8ffEGZmupe66Z2Y2@fr.smartproxy.com:40000") 
+  # Show proxies: Sys.getenv(c("https_proxy", "http_proxy"))
+  # Sys.setenv(no_proxy = "*")
+
+  # load(file = "data_models_GT.RData")
+  # rows_missing_data <- data_models_GT$row_nr[is.na(data_models_GT$data_GT)]
+  
+  for(i in rows_missing_data){ # 1:nrow(data_models_GT)
     
     cat("\n\n\n\nModel ID: ", data_models_GT$model_id[i], "\n")
     cat("\n\n\n\nrow_nr: ", data_models_GT$row_nr[i], "\n")
@@ -291,40 +341,6 @@ replace_searchterms <- function(x){
     cat("\n Year:", year_i, "\n")
     
 
-      
-      # Sticky proxy: Use list of proxies of same length as datasets
-        # setHandleParameters(user = data_proxies$username[i],
-        #                     password = data_proxies$passwort[i],
-        #                     domain = "mydomain",
-        #                     proxyhost = data_proxies$ip[i],
-        #                     proxyport = as.numeric(data_proxies$port[i]))
-    
-      # Rotating smart proxy
-         #rotating_proxy <- str_split("http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000", ":|@")[[1]]
-#         setHandleParameters(user = gsub("//", "", rotating_proxy[2]),
-#                             password = rotating_proxy[3],
-#                             domain = "mydomain",
-#                             proxyhost = rotating_proxy[4],
-#                             proxyport = as.numeric(rotating_proxy[5]))
-         
-         
-         # setHandleParameters(user = "user-sp63125425",
-         #                     password = "n8sMsBOH49CP7fEy",
-         #                     domain = "mydomain",
-         #                     proxyhost = "us.smartproxy.com",
-         #                     proxyport = 10000)
-      
-        
-   
-         
-         
-         gtrends(keyword= "Merkel", # Ony 1 dataset
-                 geo= "DE",
-                 category = 19,
-                 time = "2005-09-10 2005-09-17",
-                 gprop="web",
-                 onlyInterest = TRUE)$interest_over_time
-         
       # cat("\nProxy used:", proxy_i, "\n")
 
       # Show name of (previous) dataset and keywords
@@ -339,6 +355,7 @@ replace_searchterms <- function(x){
      
         skip_to_next <- FALSE# ERROR HANDLING
         tryCatch({ # ERROR HANDLING
+          
           df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
                          geo= "DE",
                          category = 19,
@@ -368,6 +385,7 @@ replace_searchterms <- function(x){
         
         skip_to_next <- FALSE# ERROR HANDLING
         tryCatch({ # ERROR HANDLING
+
           df1 <- gtrends(keyword= GT_keywords_i[[1]][[1]], # dataset 1
                          geo= "DE",
                          category = 19,
@@ -381,6 +399,7 @@ replace_searchterms <- function(x){
         
         skip_to_next <- FALSE# ERROR HANDLING
         tryCatch({ # ERROR HANDLING
+
           df2 <- gtrends(keyword= GT_keywords_i[[1]][[2]], # dataset 1
                          geo= "DE",
                          category = 19,
@@ -412,171 +431,37 @@ replace_searchterms <- function(x){
     }
   
   
+  # Check how many datasets were collected 
+    table(is.na(data_models_GT$data_GT))
+    #save(data_models_GT, file = "data_models_GT.RData")
+    #load(file = "data_models_GT_2022_10_31.RData") # Load for several runs
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-## Loop A: Create GT datasets ####
-# Create GT datasets for the different time periods for all 
-# models that include GT data (see filter below)
-  
-# GET datasets are defined by 
-data_models$data_GT <- list(NA)
-
-# Names of Google Trends datasets
-
-data_predictions_final <- data.frame()
-
-# CONTINUE HERE WHEN LOADING STORED DATAFRAME
-
-
-# Identify i's that don't have data yet!
-# data_models$model_id[is.na(data_models$data_GT)]
-
-for(i in 1:18000){ # take only NA cells: data_models$model_id[is.na(data_models$data_GT)]
-  # Load GT datasets
-  #name <- paste("2021-09-20 11-21-45",".RData",sep="")
-  #load(name)
-
-  cat("\n\n\n\nModel ID: ", data_models$model_id[i], "\n")
-
-  # Prepare dataset(s) for model
-  year_i <- year(data_models$election_date)[i]
-  cat("\n Year:", year_i, "\n")
-
-  # Detect models using GT data
-  if(str_detect(data_models$datasource_weight[i], "GT")){
-    # Filter rows/models using GT data
-
-    # Change proxy
-    Sys.setenv(http_proxy=data_models$proxy[i])
-    cat("\nProxy used:", data_models$proxy[i], "\n")
-
-
-    # Show name of (previous) dataset and keywords
-    name_GT_datasets_i <- as.character(data_models$name_GT_datasets[i][[1]])
-    cat("\n\nDataset: ", name_GT_datasets_i, "\n")
-    GT_keywords_i <- data_models$GT_keywords[i]
-    print(GT_keywords_i)
     
-    # Check if IP changes
-    # print(paste("\nIP:", html_text(read_html('http://checkip.amazonaws.com/')), "\n\n"))
-
-    # Detect if 2005/2009 election
-    if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2005/2009
-      print("\n2005/2009 election\n")
-      # CHECK: This still needs the column with the dataset names (better would be dependency on year)
-
-      # setHandleParameters(
-      #   user = "customer-ormar",
-      #   password = "e32EQvr!0XLruBW6cIBM",
-      #   domain = "mydomain",
-      #   proxyhost = "pr.oxylabs.io",
-      #   proxyport = 7777,
-      #   proxyauth = 2)
-
-
-
-      # possibleError <- tryCatch(...,
-      #                           error=function(e) e
-      # )if(inherits(possibleError, "error")) print(possibleError); Sys.sleep(1); next
-      
-      skip_to_next <- FALSE# ERROR HANDLING
-      tryCatch({ # ERROR HANDLING
-        df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
-                       geo= "DE",
-                       category = 19,
-                       time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
-                       gprop="web",
-                       onlyInterest =  TRUE)$interest_over_time
-      }, 
-      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-      
-      data_models$data_GT[[i]] <- df1 %>%
-        select(date, hits, keyword) %>%
-        mutate(hits = str_replace(hits, "<1", "0"),
-               hits = as.numeric(hits),
-               date = as.Date(date))%>%
-        replace(is.na(.), 0) %>%
-        mutate(keyword = replace_searchterms(keyword)) # keywords is here party!
-
-      print(table(data_models$data_GT[[i]]$keyword))
-
-
-
-      # Detect if NO 2005/2009 election
-    }else{ # THIS PART 2013-2021
-
-      print("\n2013/2021 election\n")
-
-      skip_to_next <- FALSE# ERROR HANDLING
-      tryCatch({ # ERROR HANDLING
-      df1 <- gtrends(keyword= GT_keywords_i[[1]][[1]], # dataset 1
-                     geo= "DE",
-                     category = 19,
-                     time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
-                     gprop="web",
-                     onlyInterest =  TRUE)$interest_over_time # CDU
-      }, 
-      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-      
-      
-      skip_to_next <- FALSE# ERROR HANDLING
-      tryCatch({ # ERROR HANDLING
-      df2 <- gtrends(keyword= GT_keywords_i[[1]][[2]], # dataset 1
-                     geo= "DE",
-                     category = 19,
-                     time = paste(data_models$GT_start_date[i], data_models$GT_end_date[i]),
-                     gprop="web",
-                     onlyInterest =  TRUE)$interest_over_time %>% # AFD
-        filter(grepl("Afd.*", keyword) == TRUE)
-      }, 
-      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-
-
-
-      data_models$data_GT[[i]] <- bind_rows(df1, df2) %>%
-        select(date, hits, keyword) %>%
-        mutate(hits = str_replace(hits, "<1", "0"), # HIER WEITER
-               hits = as.numeric(hits),
-               date = as.Date(date))%>%
-        replace(is.na(.), 0) %>%
-        mutate(keyword = replace_searchterms(keyword))
-
-      print(table(data_models$data_GT[[i]]$keyword))
-
-    }
-
-      
-      
-    Sys.sleep(sample(seq(1,1.1,0.001),1)) # Not to overburden gtrends
-    }}
-
-save(data_models, file = "data_models_rayobite.RData")
-#load(file = "data_models4.RData")
-
-
-
-
-
+    
+    
+    
+# START HERE ####
+    load(file = "data_models_GT_2022_10_31.RData")
+    table(is.na(data_models_GT$data_GT)) # Check whether there are missings
+  
+# Merge data_models with data_models_GT
+  data_models <- left_join(data_models,
+                           data_models_GT %>% select(data_GT, GT_identifier),
+                           by = "GT_identifier")  
+  
+  # Check that matching worked (for one model type)
+  # data_models %>% 
+  #   filter(GT_identifier == "2005-04-04-2005-06-20") %>%
+  #   select(model_id, datasource_weight, GT_identifier, data_GT)
 
 
   ## Loop B: Create Poll average datasets ####
+  # Can we optimize this loop? 
   # For each model: Create poll datasets (averages)
   data_models$data_polls_average <- list(NA)
 
   for(i in 1:nrow(data_models)){
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(grepl("2005", data_models$model_name[i])){
       next
@@ -686,7 +571,7 @@ save(data_models, file = "data_models_rayobite.RData")
       }
 
   }
-
+  save(data_models, file = "data_models_B.RData")
 
   ## Loop C: ADD Predictions (GT) ####
   # Use the GT data, summarize it to create predictions
@@ -694,7 +579,7 @@ save(data_models, file = "data_models_rayobite.RData")
   data_models$predictions_GT <- list(NA)
 
   for(i in 1:nrow(data_models)){
-  print(i)
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(str_detect(data_models$datasource_weight[i], "GT")){ # Filter GT ONLY
 
@@ -707,7 +592,7 @@ save(data_models, file = "data_models_rayobite.RData")
         select(party, prediction)
 
     }}
-
+  save(data_models, file = "data_models_C.RData")
 
 
 
@@ -721,6 +606,7 @@ save(data_models, file = "data_models_rayobite.RData")
   data_models$Weight_Model_2 <- list(NA)
 
   for(i in 1:nrow(data_models)){
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(!grepl("2005", data_models$model_name[[i]]) == TRUE){
 
@@ -758,13 +644,15 @@ save(data_models, file = "data_models_rayobite.RData")
       }
     }
   }
-
-
-
-
+  save(data_models, file = "data_models_D.RData")
   # CHANGES: DOES NOT WORK TO TAKE AVERAGE OF PREVIOUS GT DATA (BECAUSE WOULD NEED TO BE RECOLLECTED)
 
 
+  
+  
+  
+  
+  
   ## Loop E: ADD Predictions (GT + polls weight) ####
 
   #data_models$predictions_GT_before_int <- list(NA)  # OLD
@@ -773,7 +661,7 @@ save(data_models, file = "data_models_rayobite.RData")
   data_models$avg_polls_before_int <- list(NA)
 
   for(i in 1:nrow(data_models)){
-    print(i)
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(grepl("2005", data_models$model_name[i])){
       next
@@ -870,7 +758,7 @@ save(data_models, file = "data_models_rayobite.RData")
 
     }
   }
-
+  save(data_models, file = "data_models_E.RData")
 
 
 
@@ -881,6 +769,7 @@ save(data_models, file = "data_models_rayobite.RData")
   data_models$predictions_only_polls <- list(NA)
 
   for(i in 1:nrow(data_models)){
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(grepl("2005", data_models$model_name[i])){
       next
@@ -896,7 +785,7 @@ save(data_models, file = "data_models_rayobite.RData")
         select(party, prediction)
 
     }}
-
+  save(data_models, file = "data_models_G.RData")
 
 
 
@@ -906,7 +795,7 @@ save(data_models, file = "data_models_rayobite.RData")
   data_models$predictions <- list(NA)
 
   for(i in 1:nrow(data_models)){
-    print(i)
+    cat("\nRow ", i, " out of", nrow(data_models))
 
     if(grepl("2005", data_models$model_name[i])){
       next
@@ -935,7 +824,7 @@ save(data_models, file = "data_models_rayobite.RData")
       data_models$predictions[[i]] <- data_models$predictions_only_polls[[i]] %>% rename(party_pred=party)
     }
   }
-
+  save(data_models, file = "data_models_H.RData")
 
 
   # Dataset: Predictions ####
@@ -956,12 +845,9 @@ save(data_models, file = "data_models_rayobite.RData")
     mutate(deviation = prediction - share)
 
   nrow(data_predictions) # number of predictions (40 models for each party)
-
-  # data_predictions_final <- rbind(data_predictions_final, data_predictions)
-
-# } Loop over data samples (turned of)
-
-
+  save(data_predictions, file = "data_predictions.RData")
+  
+ 
 
 # CLEAN data_models ####
 
@@ -991,7 +877,7 @@ data_predictions <- data_predictions %>%
   group_by(model_name) %>%
   mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
   ungroup()
-
+ save(data_predictions, file = "data_predictions_cleaned.RData")
 
 
 
@@ -1016,16 +902,20 @@ data_predictions$party <-
                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
 data_predictions$deviation_label <-
   round(data_predictions$deviation, 1)
-data_predictions$datasource_weight <-
-  factor(data_predictions$datasource_weight) %>%
-  mutate()
+
+
+
+# data_predictions$datasource_weight <-
+#   factor(data_predictions$datasource_weight) %>%
+#   mutate()
 
 
 
 ## Figure X ####
 # predictions for different distances #
+# BEWARE - NO PREDICTION FOR 2021
 data_plot <- data_predictions %>%
-  filter(election_date=="2021-09-26") %>% # filter election
+  filter(election_date=="2017-09-24"|election_date=="2013-09-22") %>% # filter election - somehow not prediction for 2021
   filter(datasource_weight =="GT",
          # party == "CDU",
          #model_time_interval == "604800s"
@@ -1034,34 +924,63 @@ data_plot <- data_predictions %>%
   mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
   mutate(model_time_distance = election_date - GT_end_date)
 
-# Create average prediction error across all parties
 
+# Create average prediction error (across all parties
+# THIS DOES NOT WORK...
 data_plot2 <- data_plot %>%
-  group_by(model_id) %>% 
-  summarise(mean(deviation, na.rm=TRUE)) # STRANGE THAT IT IS CONSTANT.. ERROR?
+  group_by(model_name) %>% 
+  summarise(deviation_mean = mean(deviation, na.rm=TRUE)) # STRANGE THAT IT IS CONSTANT.. ERROR?
 # Why is the mean of deviations across models exactly the same?
 
 
-ggplot(data_plot,
+data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
+                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
+                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
+                                                       "Interval: 70 days", "Interval: 77 days"),
+                                            ordered = TRUE)
+
+x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
+x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+
+cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
+          "FDP" = "orange", "Link" = "pink", "Grüne" = "green")
+
+p <- ggplot(data_plot,
        aes(x = GT_end_date,
            y = deviation,
            color = party)) +
-  geom_point() +
+  geom_point(size = 0.5) +
   geom_line() +
   theme_minimal() +
-  facet_wrap(~model_time_interval_fac, ncol = 1) +
-  xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = unique(data_plot$GT_end_date),
-               labels = paste("Distance: ",  unique(data_plot$model_time_distance), " day(s)\n",
-                              "Date: ", unique(data_plot$GT_end_date)
-                              )) +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free_x") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+                labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                               "Date: ", x_labels_date
+                               )
+               ) +
+  scale_color_manual(values = cols) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
              linetype="dashed") +
   ylab("Deviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
   labs(colour = "Party")
 
+
+p
+ggsave(plot = p,
+       filename = "plot_predictions.pdf", # e.g. change to pdf
+       width = 14,
+       height = 10,
+       device = "pdf", # e.g. change to pdf
+       dpi = 300)  
 
 
 
