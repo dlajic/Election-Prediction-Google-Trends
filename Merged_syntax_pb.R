@@ -231,62 +231,15 @@ replace_searchterms <- function(x){
 
   
   
-## Proxies: Smartproxy ####
-  # Import proxies (text file)
-  # data_proxies <- data.frame(readLines("../data.txt")) %>%
-  # rename("proxy" = "readLines.....data.txt..") %>% #Used direct http out
-  #   separate(sep = ":",
-  #            col = "proxy",
-  #            into = c("ip", "port", "username", "passwort")) %>%
-  #   mutate(proxy = paste("http://",
-  #                        username,
-  #                        ":",
-  #                        passwort,
-  #                        "@", ip,
-  #                        ":",port, sep = ""))
 
-  # Test
-  # proxy_sampled <- sample(data_proxies$proxy, 1)
-  # Sys.setenv(http_proxy = proxy_sampled,
-  #            https_proxy = proxy_sampled)  
-  # Sys.getenv(c("https_proxy", "http_proxy"))# it should be your proxy here now
-  # 
-  # # Sys.setenv(no_proxy = "*") # turn off proxies
-
-  
-
-# Set rotating proxy (smartproxy) ####
-  # Sys.setenv(http_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000",
-  #            https_proxy = "http://user-sp63125425:n8sMsBOH49CP7fEy@us.smartproxy.com:10000") 
-# Sys.setenv(no_proxy = "*") # turn off proxies
- # Test if it works: IP should change everytime fromJSON() is called
-    # fromJSON("https://api.myip.com/")
-
- 
-# library(gtrendsR)
-# setHandleParameters(user = "user-sp63125425", 
-#                     password = "n8sMsBOH49CP7fEy", 
-#                     domain = "77.185.27.222", 
-#                     proxyhost = "us.smartproxy.com", 
-#                     proxyport = 10000)
-# res <- gtrends(c("nhl", "nba"), geo = c("CA", "US"))
-# gtrends(keyword= "Merkel", # Ony 1 dataset
-#         geo= "DE",
-#         category = 19,
-#         time = "2005-09-10 2005-09-17",
-#         gprop="web",
-#         onlyInterest = TRUE)$interest_over_time
 
 ## Loop A: Collect GT data ####
-  # Idea: Collect GT datasets first then merge with data_model dataframe.
-  # 1. Create GT datasets for the different time periods for all 
-  # GT data definitions
+  # Idea: collect GT datasets first then merge with data_model dataframe.
+  # 1. Create GT datasets for the different time periods for all GT data definitions
   # 2. Join with data for all models 
   # Check number of models: length(unique(data_models$GT_identifier))
 
-  
 
-  
   
   # Subset data_models to   
     data_models_GT <- data_models %>%
@@ -327,6 +280,14 @@ replace_searchterms <- function(x){
   #            https_proxy = "http://user-sp63125425:8ffEGZmupe66Z2Y2@fr.smartproxy.com:40000") 
   # Show proxies: Sys.getenv(c("https_proxy", "http_proxy"))
   # Sys.setenv(no_proxy = "*")
+  
+  # CHECK IF PROXY WORKS
+  # gtrends(keyword= "Merkel", # Ony 1 dataset
+  #         geo= "DE",
+  #         category = 19,
+  #         time = "2005-09-10 2005-09-17",
+  #         gprop="web",
+  #         onlyInterest = TRUE)$interest_over_time
 
   # load(file = "data_models_GT.RData")
   # rows_missing_data <- data_models_GT$row_nr[is.na(data_models_GT$data_GT)]
