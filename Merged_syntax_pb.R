@@ -911,7 +911,13 @@ p <- ggplot(data_plot,
        aes(x = GT_end_date,
            y = deviation,
            color = party)) +
-  geom_point(size = 0.5) +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
   geom_line() +
   theme_minimal() +
   facet_grid(vars(model_time_interval_fac),
@@ -926,10 +932,6 @@ p <- ggplot(data_plot,
                ) +
   scale_color_manual(values = cols) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
   ylab("Deviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
   labs(colour = "Party")
