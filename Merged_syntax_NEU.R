@@ -15,7 +15,7 @@ p_load(gtrendsR,
        jsonlite)
 
 
-setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends-main")
+setwd("C:/Users/janbe/Desktop/Uni/02_Master Sociology/FSS 2021/Research Methods/Publikation/Election-Prediction-Google-Trends")
 
 # Dataset: Election results ####
 # Creates a list
@@ -78,8 +78,8 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + weekly polls weight",
                                                  "Only polls",
                                                  "Last polls"),
-                           model_time_interval = duration(seq(7,91, 7)[c( 8, 10, 13)], "days"),
-                           model_time_distance = days(seq(36,92, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_interval = duration(seq(7 ,7, 7)[1], "days"),
+                           model_time_distance = days(seq(77,160, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
                            model_time_id = "days")
 
 
@@ -667,7 +667,7 @@ names_df <- list.files(dir)
     
     
     
-    if(nrow(f) >= 1){
+    if(nrow(f2) >= 1){
       
       if(grepl("M_\\d+_2009", data_models$model_name[i])){
         
@@ -690,7 +690,7 @@ names_df <- list.files(dir)
     }
     
     
-    if(nrow(f) >= 1){
+    if(nrow(f2) >= 1){
       
       if(!grepl("M_\\d+_2009", data_models$model_name[i])){
         
@@ -726,7 +726,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-        mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
         select(party, prediction)
 
     }}
@@ -805,7 +805,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% 
-        mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
         select(party, prediction)
       
       
@@ -852,7 +852,7 @@ names_df <- list.files(dir)
           group_by(keyword) %>%
           rename(party=keyword) %>%
           summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-          mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
           select(party, prediction)
         
         next
@@ -870,7 +870,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-        mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
         select(party, prediction) %>%
         mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_3[[i]][2])))
       
@@ -1928,8 +1928,9 @@ cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue",
 
 ######### Plot1
 data_plot1 <- data_plot %>%
-  filter(datasource_weight =="GT"
-  )
+  filter(datasource_weight =="GT") %>%
+  group_by(model_name) %>%
+  mutate(group_mean_deviation = mean(abs(Mean_dev)))
 
 p <- ggplot(data_plot1,
             aes(x = GT_end_date,
@@ -1962,7 +1963,8 @@ p <- ggplot(data_plot1,
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("Deviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Party")
+  labs(colour = "Party") + 
+  stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
   #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 
