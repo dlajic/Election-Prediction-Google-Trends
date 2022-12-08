@@ -78,8 +78,10 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + weekly polls weight",
                                                  "Only polls",
                                                  "Last polls"),
-                           model_time_interval = duration(seq(7 ,7, 7)[1], "days"),
-                           model_time_distance = days(seq(77,160, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           #model_time_interval = duration(seq(7,14, 7)[c(1:2)], "days"),
+                           #model_time_distance = days(seq(1, 35, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
+                           model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
                            model_time_id = "days")
 
 
@@ -513,11 +515,11 @@ names_df <- list.files(dir)
 
         data_models$data_polls_average[[i]] <- infra_dimap_all %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
-                                             data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
+                                             data_models$GT_start_date[i], onlypre = T)) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          na.omit(.) %>%
+          na.omit(.) %>% # here the AFD gets removed
           group_by(party) %>%
           summarize(perc_mean = mean(perc, na.rm=TRUE),
                     SD = sd(perc, na.rm=TRUE), # CHECK THIS DOES NOT WORK IF ONLY ONE POLL IN INTERVAL
@@ -537,7 +539,8 @@ names_df <- list.files(dir)
 
           data_models$data_polls_average[[i]] <- infra_dimap_all %>%
             mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+            filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
+                                               data_models$GT_start_date[i], onlypre = T)) %>%          
             mutate_if(is.character, as.numeric) %>%
             pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
             group_by(party) %>%
@@ -559,12 +562,11 @@ names_df <- list.files(dir)
 
         if(grepl("M_\\d+_2009", data_models$model_name[i])){
 
-          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+          data_models$data_polls_average[[i]] <- f %>%
             mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
             mutate_if(is.character, as.numeric) %>%
             pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-            na.omit(.) %>%
+            na.omit(.) %>% # here the AFD gets removed
             group_by(party) %>%
             summarize(perc_mean = mean(perc, na.rm=TRUE),
                       SD = sd(perc, na.rm=TRUE),
@@ -583,9 +585,8 @@ names_df <- list.files(dir)
 
         if(!grepl("M_\\d+_2009", data_models$model_name[i])){
 
-          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
+          data_models$data_polls_average[[i]] <- f %>%
             mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
             mutate_if(is.character, as.numeric) %>%
             pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
             group_by(party) %>%
@@ -632,11 +633,11 @@ names_df <- list.files(dir)
         
         data_models$data_polls_last[[i]] <- infra_dimap_all %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
-                                             data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
+                                             data_models$GT_start_date[i], onlypre = T)) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          na.omit(.) %>%
+          na.omit(.) %>% # here the AFD gets removed
           group_by(party) %>%
           summarize(perc_mean = mean(perc, na.rm=TRUE),
                     SD = sd(perc, na.rm=TRUE),
@@ -652,7 +653,8 @@ names_df <- list.files(dir)
         
         data_models$data_polls_last[[i]] <- infra_dimap_all %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
+          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
+                                             data_models$GT_start_date[i], onlypre = T)) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
           group_by(party) %>%
@@ -667,17 +669,15 @@ names_df <- list.files(dir)
     
     
     
-    if(nrow(f2) >= 1){
+    if(nrow(f2) == 1){
       
       if(grepl("M_\\d+_2009", data_models$model_name[i])){
         
-        data_models$data_polls_last[[i]] <- infra_dimap_all %>%
+        data_models$data_polls_last[[i]] <- f2 %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
           mutate_if(is.character, as.numeric) %>%
-          slice(1) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          na.omit(.) %>%
+          na.omit(.) %>% # here the AFD gets removed
           group_by(party) %>%
           summarize(perc_mean = mean(perc, na.rm=TRUE),
                     SD = sd(perc, na.rm=TRUE),
@@ -690,15 +690,13 @@ names_df <- list.files(dir)
     }
     
     
-    if(nrow(f2) >= 1){
+    if(nrow(f2) == 1){
       
       if(!grepl("M_\\d+_2009", data_models$model_name[i])){
         
-        data_models$data_polls_last[[i]] <- infra_dimap_all %>%
+        data_models$data_polls_last[[i]] <- f2 %>%
           mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T) & Date <= data_models$GT_end_date[i]) %>%
           mutate_if(is.character, as.numeric) %>%
-          slice(1) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
           group_by(party) %>%
           summarize(perc_mean = mean(perc, na.rm=TRUE),
@@ -726,7 +724,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
         select(party, prediction)
 
     }}
@@ -761,7 +759,7 @@ names_df <- list.files(dir)
         if(grepl("M_\\d+_2013", data_models$model_name[[i]]) == TRUE){
 
           data_models$Weight_Model_2[[i]] <-  data_models$Weight_Model_2[[i]] %>%
-            add_row(party = "AFD", share = 1, .before = 1)
+            add_row(party = "AFD", share = 1, .before = 1) # In 2009, the AFD did not yet exist, so we weight the data for the AFD in 2013 with a weighting factor of 1 (no weighting)
 
 
         }
@@ -773,7 +771,7 @@ names_df <- list.files(dir)
           group_by(keyword) %>%
           rename(party=keyword) %>%
           summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-          mutate(prediction = hits_sum/sum(hits_sum)*100) %>%
+          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
           select(party, prediction) %>%
           mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_2[[i]][2])))
 
@@ -805,7 +803,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% 
-        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
         select(party, prediction)
       
       
@@ -852,7 +850,7 @@ names_df <- list.files(dir)
           group_by(keyword) %>%
           rename(party=keyword) %>%
           summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
           select(party, prediction)
         
         next
@@ -870,7 +868,7 @@ names_df <- list.files(dir)
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
         select(party, prediction) %>%
         mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_3[[i]][2])))
       
@@ -913,7 +911,7 @@ names_df <- list.files(dir)
         # The if command ensures that the following code is only executed for the data from the year 2009 (the party AFD did not yet exist in 2009)
         if (grepl("M_\\d+_2009", data_models$model_name[i])){
           
-          # Search for the two polls that lie before our interval (second poll (k) to specify the Google data that will be used to calculate the weighting factor with the first poll (b), which will then be used to weight the Google data in our specified interval).
+          # Search for the two polls that lie before our interval (first poll (b) to specify the Google data that will be used to calculate the weighting factor with the second poll (k), which will then be used to weight the Google data in our specified interval).
           b <- ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T)
           k <- which(grepl(b, as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
           infra_dimap_all$Date[k]
@@ -925,10 +923,10 @@ names_df <- list.files(dir)
             filter(Date >= Date[k]+1  &  Date <= data_models$GT_end_date[i])
           
           
-          # now get Google data 1 day before second poll until that lies before our interval until the end of our interval 
+          # now get Google data 1 day before first poll (k) until the end of our interval 
           data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
             filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
-            group_by(keyword)
+            group_by(keyword) 
           
           
           # prepare first poll for calculation of weighting factor
@@ -940,19 +938,20 @@ names_df <- list.files(dir)
                                mean(Grüne), mean(Linke), mean(SPD))) %>%
             mutate(party = c("CDU", "FDP", "Grüne", "Linke", "SPD")) %>%
             select(party, perc)
+
           
           
-          # get google data until first poll outside of interval and calculate weighting factor
+          # get google data until second poll outside of interval and calculate weighting factor
           Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
             filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(weight_beginning = ifelse(infra_dimap_first$perc == 1, 1, infra_dimap_first$perc/perc)) # make sure that if a party had no value in the poll, that party gets a weighting factor of 1 
-          
+                
           
           # Apply weighting factor to the interval starting with the start date and ending with the end date of the set interval
           Model4_4_beginning <-  data_models$GT_data_weekly_weighting[[i]] %>% 
@@ -961,7 +960,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted. 
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1013,7 +1012,7 @@ names_df <- list.files(dir)
             filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
@@ -1027,7 +1026,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1084,7 +1083,7 @@ names_df <- list.files(dir)
             filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
@@ -1098,7 +1097,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1121,7 +1120,7 @@ names_df <- list.files(dir)
             filter(date >= data_models$GT_start_date[i] & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][2]) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
@@ -1136,7 +1135,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc= Model4_3_first$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1188,7 +1187,7 @@ names_df <- list.files(dir)
             filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
@@ -1202,7 +1201,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1225,7 +1224,7 @@ names_df <- list.files(dir)
             filter(date >= data_models$GT_start_date[i] & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][2]) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
-            mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
             mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
             rename(party = keyword) %>%
             select(party, perc) %>%
@@ -1239,7 +1238,7 @@ names_df <- list.files(dir)
             summarize(hits_sum = sum(hits)) %>%
             mutate(hits_sum2 = sum(hits_sum)) %>%
             mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-            mutate(perc = hits_sum/hits_sum2*100) %>%
+            mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
             rename(party = keyword) %>%
             select(party, perc) %>%
             mutate(perc= Model4_3_first$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1298,7 +1297,7 @@ names_df <- list.files(dir)
                 filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                 group_by(keyword) %>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1311,7 +1310,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1334,7 +1333,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$GT_start_date[i] & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][j]) %>%
                 group_by(keyword) %>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1348,7 +1347,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_3_first$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1381,7 +1380,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$Poll_dates_weekly_weighting[[i]][[1]][j-1]+1 & date <= last(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
                 group_by(keyword)%>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0,  infra_dimap_weekly_weighting$perc[keyword ==  infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1395,7 +1394,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_2_ending$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1433,7 +1432,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$Poll_dates_weekly_weighting[[i]][[1]][j-1]+1 & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][j]) %>%
                 group_by(keyword)%>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1447,7 +1446,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_2$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1485,7 +1484,7 @@ names_df <- list.files(dir)
                 filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                 group_by(keyword) %>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_first$perc[keyword == infra_dimap_first$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1498,7 +1497,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc = Weighting_factor_beginning$weight_beginning*perc) %>%
@@ -1521,7 +1520,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$GT_start_date[i] & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][j]) %>%
                 group_by(keyword) %>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1535,7 +1534,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_3_first$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1569,7 +1568,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$Poll_dates_weekly_weighting[[i]][[1]][j-1]+1 & date <= last(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
                 group_by(keyword)%>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0,  infra_dimap_weekly_weighting$perc[keyword ==  infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1583,7 +1582,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_2_ending$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
@@ -1621,7 +1620,7 @@ names_df <- list.files(dir)
                 filter(date >= data_models$Poll_dates_weekly_weighting[[i]][[1]][j-1]+1 & date <= data_models$Poll_dates_weekly_weighting[[i]][[1]][j]) %>%
                 group_by(keyword)%>%
                 summarize(hits_sum = sum(hits)) %>%
-                mutate(perc = hits_sum/sum(hits_sum)*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
                 mutate(perc = ifelse(perc == 0, infra_dimap_weekly_weighting$perc[keyword == infra_dimap_weekly_weighting$party] , perc)) %>% # If a party has the value 0 in the Google Proportion, then replace the 0 with the value the party has in the poll. If the values of the survey are then divided by the Google Proportion, the weighting factor is 1 (no weighting takes place).
                 rename(party = keyword) %>%
                 select(party, perc) %>%
@@ -1635,7 +1634,7 @@ names_df <- list.files(dir)
                 summarize(hits_sum = sum(hits)) %>%
                 mutate(hits_sum2 = sum(hits_sum)) %>%
                 mutate(hits_sum = ifelse(hits_sum == 0, hits_sum2/100, hits_sum)) %>% # If a party has only 0 values, then divide the sum of the total hits across all parties by 100, so that this party receives the value 1 in the calculation of the Google Proportion and can be weighted.
-                mutate(perc = hits_sum/hits_sum2*100) %>%
+                mutate(perc = ifelse(hits_sum >= 1, hits_sum/hits_sum2*100, 1)) %>%
                 rename(party = keyword) %>%
                 select(party, perc) %>%
                 mutate(perc= Model4_2$weight_weekly * perc, perc=round(perc, digits = 2)) %>%
