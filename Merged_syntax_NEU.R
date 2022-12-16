@@ -846,7 +846,7 @@ names_df <- list.files(dir)
       if(nrow(data_models$avg_polls_before_int[[i]]) == 0){
         
         data_models$predictions_GT_polls[[i]] <- data_models$data_GT_year[[i]] %>%
-          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i], "%d.%m.%y")) %>%
+          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
           group_by(keyword) %>%
           rename(party=keyword) %>%
           summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
@@ -1873,8 +1873,8 @@ data_predictions <- data_predictions %>%
     mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
            mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
            dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) %>%
-    replace_na(.,0)
+           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
+   # replace_na(.,0)
   
   ######### Kann man nuch besser lösen ????????  ################
   #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
@@ -1922,7 +1922,7 @@ x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(
 x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
 
 cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
-          "FDP" = "orange", "Link" = "pink", "Grüne" = "green")
+          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
 
 
 ######### Plot1
@@ -1962,8 +1962,8 @@ p <- ggplot(data_plot1,
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("Deviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Party") + 
-  stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
+  labs(colour = "Party")
+  # stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
   #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 
@@ -2142,4 +2142,80 @@ ggsave(plot = p4,
 
 
 
-load("2022-11-25 12-01-12.RData")
+
+
+
+setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Data_plots")
+
+readRDS("data_plot_sonst.RDS")
+readRDS("data_plot_WC.RDS")
+
+
+#### plot GT WC/sonst/normal #########
+
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE))
+
+data_plot_sonst2 <- data_plot_sonst %>%
+  filter(datasource_weight =="GT"
+  ) %>%
+  mutate(datasource_weight = "GTsonst") %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE))
+
+data_plot_WC2 <- data_plot_WC %>%
+  filter(datasource_weight =="GT"
+  ) %>%
+  mutate(datasource_weight = "GTWC") %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE))
+
+
+cols2 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue", "GTsonst" = "Green",  "GTWC" = "Orange")
+
+#Plot GT vs. Polls
+p5 <- ggplot() +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line(data=data_plot_sonst2, aes(x = GT_end_date, y = deviation_mean, color = datasource_weight)) +
+  geom_line(data= data_plot2,aes(x = GT_end_date,y = deviation_mean, color = datasource_weight)) +
+  #geom_line(data= data_plot_WC2,aes(x = GT_end_date,y = deviation_mean, color = datasource_weight)) +
+  theme_minimal() +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free_x") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                              "Date: ", x_labels_date
+               )
+  ) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("MeanDeviation in %\n(prediction error)") +
+  xlab("Enddate of interval\n(= distance)") +
+  labs(colour = "datasource_weight")
+#+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+p5
+
+ggsave(plot = p5,
+       filename = "plot_Compare_GT_polls.pdf", # e.g. change to pdf
+       width = 14,
+       height = 10,
+       device = "pdf", # e.g. change to pdf
+       dpi = 300)
