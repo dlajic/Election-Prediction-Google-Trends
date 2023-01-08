@@ -178,26 +178,32 @@ data_models$name_GT_datasets[grepl("GT", data_models$model_name) & grepl("M_\\d+
 
 
 ## Add GT keywords for each year
-#data_models$GT_keywords <- NULL
-#data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2005", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Gerhard Schröder', 'Grüne + Joschka Fischer', 'PDS + Linkspartei + Gregor Gysi',
-#                                                                                                               'FDP + Guido Westerwelle'), c('CDU + CSU + Angela Merkel', 'SPD + Gerhard Schröder', 'Grüne + Joschka Fischer', 'NPD + REP + Graue', 
-#                                                                                                                                             'FDP + Guido Westerwelle')))
-#data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2009", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Frank Walter Steinmeier', 'Grüne + Jürgen Trittin + Renate Künast', 'Linke + Gregor Gysi',
-#                                                                                                               'FDP + Guido Westerwelle'), c('CDU + CSU + Angela Merkel', 'SPD + Frank Walter Steinmeier', 'Grüne + Jürgen Trittin + Renate Künast', 'REP + Piraten + Tierschutzpartei + NPD', 
-#                                                                                                                                             'FDP + Guido Westerwelle'))) #
-#data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2013", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Peer Steinbrück', 'Jürgen Trittin + Katrin Göring Eckardt + Grüne + ', 'Linke + Sarah Wagenknecht + Gregor Gysi',
-#                                                                                                               'FDP + Philipp Rösler'),
-#                                                                                                             c('Bernd Lucke + Afd', 'CDU + CSU + Angela Merkel', 'SPD + Peer Steinbrück', 'Jürgen Trittin + Katrin Göring Eckardt + Grüne',
-#                                                                                                               'FDP + Philipp Rösler')))
-#data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2017", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Martin Schulz', 'Cem Özdemir + Katrin Göring Eckardt + Grüne', 'Linke + Sarah Wagenknecht + Dietmar Bartsch',
-#                                                                                                                    'FDP + Christian Lindner'),
-#                                                                                                                  c('Alice Weidel + Alexander Gauland + Afd', 'CDU + CSU + Angela Merkel', 'SPD + Martin Schulz', 'Cem Özdemir + Katrin Göring Eckardt + Grüne',
-#                                                                                                                    'FDP + Christian Lindner')))
-#data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2021", data_models$model_name)] <- list(list(c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch',
-#                                                                                                               'FDP + Christian Lindner'),
-#                                                                                                             c('Alice Weidel + Tino Chrupalla + Afd', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne',
-#                                                                                                               'FDP + Christian Lindner')))
-#
+data_models$GT_keywords <- NULL
+data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2005", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Gerhard Schröder', 'Grüne + Joschka Fischer', 'PDS + Linkspartei + Gregor Gysi',
+                                                                                                                    'FDP + Guido Westerwelle'), 
+                                                                                                                    c('CDU + CSU + Angela Merkel', 'SPD + Gerhard Schröder', 'Grüne + Joschka Fischer', 'NPD + REP + Graue', 
+                                                                                                                    'FDP + Guido Westerwelle')))
+data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2009", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Frank Walter Steinmeier', 'Grüne + Jürgen Trittin + Renate Künast', 'Linke + Gregor Gysi',
+                                                                                                                    'FDP + Guido Westerwelle'), 
+                                                                                                                    c('CDU + CSU + Angela Merkel', 'SPD + Frank Walter Steinmeier', 'Grüne + Jürgen Trittin + Renate Künast', 'REP + Piraten + Tierschutzpartei + NPD', 
+                                                                                                                    'FDP + Guido Westerwelle')))
+data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2013", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Peer Steinbrück', 'Jürgen Trittin + Katrin Göring Eckardt + Grüne + ', 'Linke + Sarah Wagenknecht + Gregor Gysi',
+                                                                                                                    'FDP + Philipp Rösler'),
+                                                                                                                  c('Bernd Lucke + Afd', 'CDU + CSU + Angela Merkel', 'SPD + Peer Steinbrück', 'Jürgen Trittin + Katrin Göring Eckardt + Grüne',
+                                                                                                                    'FDP + Philipp Rösler'), 
+                                                                                                                  c('Freie Wähler + Piraten + NPD', 'CDU + CSU + Angela Merkel', 'SPD + Peer Steinbrück', 'Jürgen Trittin + Katrin Göring Eckardt + Grüne', 
+                                                                                                                    'FDP + Philipp Rösler')))
+data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2017", data_models$model_name)] <- list(list(c('CDU + CSU + Angela Merkel', 'SPD + Martin Schulz', 'Cem Özdemir + Katrin Göring Eckardt + Grüne', 'Linke + Sarah Wagenknecht + Dietmar Bartsch',
+                                                                                                                    'FDP + Christian Lindner'),
+                                                                                                                  c('Alice Weidel + Alexander Gauland + Afd', 'CDU + CSU + Angela Merkel', 'SPD + Martin Schulz', 'Cem Özdemir + Katrin Göring Eckardt + Grüne',
+                                                                                                                    'FDP + Christian Lindner'), 
+                                                                                                                  c('Freie Wähler + Die Partei + Tierschutzpartei', 'CDU + CSU + Angela Merkel', 'SPD + Martin Schulz', 'Cem Özdemir + Katrin Göring Eckardt + Grüne',
+                                                                                                                    'FDP + Christian Lindner')))
+data_models$GT_keywords[grepl("GT", data_models$model_name) & grepl("M_\\d+_2021", data_models$model_name)] <- list(list(c('CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'Linke + Janine Wissler + Dietmar Bartsch',
+                                                                                                                    'FDP + Christian Lindner'),
+                                                                                                                  c('Alice Weidel + Tino Chrupalla + Afd', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne','FDP + Christian Lindner'),
+                                                                                                                  c('Freie Wähler + Tierschutzpartei + dieBasis + Die Partei', 'CDU + CSU + Armin Laschet', 'SPD + Olaf Scholz', 'Annalena Baerbock + Grüne', 'FDP + Christian Lindner')))
+
 
 
 
