@@ -120,17 +120,24 @@ data_comparisons <- data_comparisons %>%
   unite("check", contains("identical"), 
         na.rm = TRUE, 
         remove = FALSE) %>% 
-  mutate(check2 = ifelse(str_detect(check, "FALSE"), FALSE, TRUE))%>% 
-  mutate(check_number = str_count(check, "FALSE"))
+  mutate(check2 = ifelse(str_detect(check, "TRUE"), "BAD", "GOOD"))%>% 
+  mutate(how_bad = str_count(check, "TRUE"))
 
 
-View(data_comparisons %>% select(name, contains("identical"), check, check2, check_number))
+View(data_comparisons %>% select(name, contains("identical"), check, check2, how_bad))
 
 
-# Select one .Rdata from one date -> go to next day and 
+
+View(data_comparisons %>% select(name, check, check2, how_bad) %>% filter(check2=="GOOD"))
+
+# FALSE IT UNGLEICH!
+# Select one .Rdata from one day (= date) -> go to next day and 
 # pick one where all are TRUE (because datasets are all different)
-# Keep only the 2 datasets from the two dates move to the 3rd
+# Keep only the 2 datasets from the two dates move to the 3rd date/day
 
+# Nimm so lange bis Reference bis am nächsten Tag ein FULL TRUE -> 
+# KEEP Reference and FULL -> move to the next
+# Loopen über Tage und Datensätze innerhalb von Tage
 
 compareDF::compare_df(
   data.frame(data_comparisons[[26]][[2]]),
