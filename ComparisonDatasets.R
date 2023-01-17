@@ -8,63 +8,133 @@ p_load(gtrendsR,
        xml2,
        stringr)
 
+
+### Function: Replace search terms ####
+replace_searchterms <- function(x){
+  
+  # CDU
+  x <- gsub('CDU.*', 'CDU', x)
+  
+  # SPD
+  x <- gsub('SPD.*', 'SPD', x)
+  
+  # GREENS
+  x <- gsub('Jürgen.*', 'Grüne', x)
+  x <- gsub('Annalena.*', 'Grüne', x)
+  x <- gsub('Cem.*', 'Grüne', x)
+  x <- gsub('Katrin.*', 'Grüne', x)
+  x <- gsub('Grüne.*', 'Grüne', x)
+  
+  
+  
+  # LINKE
+  x <- gsub('Linke.*', 'Linke',  x)
+  x <- gsub('PDS.*', 'Linke',  x)
+  
+  # FDP
+  x <- gsub('FDP.*', 'FDP', x)
+  
+  # AFD
+  x <- gsub('Bernd.*', 'AFD', x)
+  x <- gsub('Alice.*', 'AFD', x)
+  
+  #Sontige
+  x <- gsub('NPD.*', 'Sonstige', x)
+  x <- gsub('REP.*', 'Sonstige', x)
+  x <- gsub('Freie.*', 'Sonstige', x)
+}
+
+
 #all Datsets
 dir <- setwd("/cloud/project/Data_raw")
+df_names <- list.files(dir, full.names = FALSE)
 df <- list.files(dir, full.names = TRUE)
 
+# Dataframe
+data_comparisons <- data.frame(matrix(NA,    # Create empty data frame
+                                      nrow = length(df),
+                                      ncol = 27))
+
+names(data_comparisons) <- c("name", "trend_05", "trend_09", "trend_AFD_13", "trend_AFD_17", "trend_AFD_21", 
+                             "trend_CDU_13", "trend_CDU_17", "trend_CDU_21", "trend_sonst_05", 
+                             "trend_sonst_09", "trend_sonst_13", "trend_sonst_17", "trend_sonst_21",
+                             
+                             "trend_05_identical", "trend_09_identical", "trend_AFD_13_identical", 
+                             "trend_AFD_17_identical", "trend_AFD_21_identical", "trend_CDU_13_identical", 
+                             "trend_CDU_17_identical", "trend_CDU_21_identical", "trend_sonst_05_identical", 
+                             "trend_sonst_09_identical", "trend_sonst_13_identical", "trend_sonst_17_identical", 
+                             "trend_sonst_21_identical")
+data_comparisons$name <- df_names
+
+data_comparisons <- as_tibble(data_comparisons)
+data_comparisons <- data_comparisons %>% mutate_at(2:14, list)
+
 #creating a list where the results of Model1_09 of every Dataset is stored, to compare these
-List <- list()
-i<-1
-for (name in df){
+
+
+for (y in 1:length(df)){ # 
+  #y <- 1
   
-  load("/cloud/project/Data_raw/2022-12-22 17-31-12.RData")
+  load(df[y])
   
-  df_09 <- trend_09$interest_over_time
+  objects <- ls()[str_detect(ls(), "trend")]
   
-  df_final09 <- df_09 %>%
-    select(date, hits, keyword) %>%
-    mutate(hits = as.numeric(hits), date = as.Date(date))%>% 
-    replace(is.na(.), 0) %>%
-    mutate(keyword = gsub('CDU.*', 'CDU', gsub('SPD.*', 'SPD', gsub('Grüne.*', 'Grüne', 
-                                                                    gsub('Linke.*', 'Linke', gsub('FDP.*', 'FDP', keyword))))))
-  
-  name <- ls()[str_detect(ls(), "trend")]
-  
-  for (i in name){
+  for (i in objects){
+    #i <- "trend_05"
+    object_i <- get(i)$interest_over_time %>%
+      select(date, hits, keyword) %>%
+      mutate(hits = as.numeric(hits), date = as.Date(date))%>% 
+      replace(is.na(.), 0) %>%
+      mutate(keyword =  replace_searchterms(keyword))
     
+    data_comparisons[y, i][i][[1]][[1]] <- as_tibble(object_i)
     
-    
-    
-    
-    
+    print(y)
+    print(i)
     
   }
-  df_final09 <- df_09 %>%
-    select(date, hits, keyword) %>%
-    mutate(hits = as.numeric(hits), date = as.Date(date))%>% 
-    replace(is.na(.), 0) %>%
-    mutate(keyword = gsub('CDU.*', 'CDU', gsub('SPD.*', 'SPD', gsub('Grüne.*', 'Grüne', 
-                                                                    gsub('Linke.*', 'Linke', gsub('FDP.*', 'FDP', keyword))))))
   
-  
-  Model1_09_1 <-  df_final09 %>%
-    filter(date >= "2009-09-19" &  date <= "2009-09-26")%>%
-    group_by(keyword)%>%
-    summarize_at(vars(hits),list(mean = mean)) %>%
-    mutate(summarized_mean = sum(mean), perc = (mean/summarized_mean)*100, perc=round(perc, digits = 2))
-  
-  List[[name]] <- Model1_09_1
-  
-  i= i+1
-}
 
-#Compare if the results od the Datsets are the same
-for(i in 2:length(List)){
+  
+  }
+  
+x <- names(data_comparisons)[str_detect(names(data_comparisons), "trend")]
+x <- x[!str_detect(x, "identical")]
 
-if(identical(List[[i]], List[[i-1]]) == TRUE){
-  print(paste("equal",names(List[i])))
-} else{
-  print(paste("unequal",names(List[i])))
+for(y in 2:nrow(data_comparisons)){ # 
+
+  for (i in x){
+
+  data_comparisons[paste0(i, "_identical")][[1]][y] <-
+  identical(
+    data_comparisons[y-1, i][i][[1]][[1]],
+  data_comparisons[y, i][i][[1]][[1]])
+  print(y)
+  print(i)
   }
 }
+  
+data_comparisons <- data_comparisons %>% select(sort(names(data_comparisons)))
+
+data_comparisons <- data_comparisons %>% 
+  unite("check", contains("identical"), 
+        na.rm = TRUE, 
+        remove = FALSE) %>% 
+  mutate(check2 = ifelse(str_detect(check, "FALSE"), FALSE, TRUE))%>% 
+  mutate(check_number = str_count(check, "FALSE"))
+
+
+View(data_comparisons %>% select(name, contains("identical"), check, check2, check_number))
+
+
+# Select one .Rdata from one date -> go to next day and 
+# pick one where all are TRUE (because datasets are all different)
+# Keep only the 2 datasets from the two dates move to the 3rd
+
+
+compareDF::compare_df(
+  data.frame(data_comparisons[[26]][[2]]),
+  data.frame(data_comparisons[[26]][[1]]))
+
+
 
