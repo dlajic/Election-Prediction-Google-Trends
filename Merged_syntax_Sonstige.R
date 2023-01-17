@@ -45,25 +45,31 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 # To be able to weight Google trends data with data from opinion polls,
 # polling results of infratest dimap polling institute were scraped from their website on 5th August 2022
 
-#url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
-#
-#html <- read_html(url)
-#tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
-#infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
-#
-### Sum up mcolums "Freie Wähler" and "Sonstige", delete Freie Wähler afterwards
-#infra_dimap_all$X8[infra_dimap_all$X8 == "-"] <- 0
-#infra_dimap_all$X9 <- as.numeric(infra_dimap_all$X9) + as.numeric(infra_dimap_all$X8)
-#
-#infra_dimap_all$X8 <- NULL
-##infra_dimap_all$X9 <- NULL
-#
-### assign names of parties to columns and delete first row of data set (contains names of political parties)
-#colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke","Sonstige")
-#infra_dimap_all <- infra_dimap_all[-1,]
+# url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
+# 
+# html <- read_html(url)
+# tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
+# infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
+# 
+# ## Sum up mcolums "Freie Wähler" and "Sonstige", delete Freie Wähler afterwards
+# infra_dimap_all$X8[infra_dimap_all$X8 == "-"] <- 0
+# infra_dimap_all$X9 <- as.numeric(infra_dimap_all$X9) + as.numeric(infra_dimap_all$X8)
+# 
+# infra_dimap_all$X8 <- NULL
+# #infra_dimap_all$X9 <- NULL
+# 
+# ## assign names of parties to columns and delete first row of data set (contains names of political parties)
+# colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke","Sonstige")
+# infra_dimap_all <- infra_dimap_all[-1,]
+# infra_dimap_all <- infra_dimap_all %>% 
+#   mutate(Date = as.Date(Date, format = "%d.%m.%y")) %>% 
+#   filter(Date <= "2022-08-04")
+# save(infra_dimap_all, file = "infratest_dimap_polls_sonstige.RData")
+
 
 # Load poll data set, scraped on 5th August 2022
-load("infratest_dimap_polls.RData")
+load("infratest_dimap_polls_sonstige.RData")
+
 
 
 # Dataset: Models ####
