@@ -1,21 +1,23 @@
-library(gtrendsR)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(rvest)
-library(xml2)
+library(pacman)
 
+p_load(gtrendsR,
+       ggplot2,
+       dplyr,
+       tidyr,
+       rvest,
+       xml2,
+       stringr)
 
 #all Datsets
-dir <- setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/TermPaper/RMarkdown/Data")
-df <- list.files(dir)
+dir <- setwd("/cloud/project/Data_raw")
+df <- list.files(dir, full.names = TRUE)
 
 #creating a list where the results of Model1_09 of every Dataset is stored, to compare these
 List <- list()
 i<-1
 for (name in df){
   
-  load(name)
+  load("/cloud/project/Data_raw/2022-12-22 17-31-12.RData")
   
   df_09 <- trend_09$interest_over_time
   
@@ -25,6 +27,25 @@ for (name in df){
     replace(is.na(.), 0) %>%
     mutate(keyword = gsub('CDU.*', 'CDU', gsub('SPD.*', 'SPD', gsub('Grüne.*', 'Grüne', 
                                                                     gsub('Linke.*', 'Linke', gsub('FDP.*', 'FDP', keyword))))))
+  
+  name <- ls()[str_detect(ls(), "trend")]
+  
+  for (i in name){
+    
+    
+    
+    
+    
+    
+    
+  }
+  df_final09 <- df_09 %>%
+    select(date, hits, keyword) %>%
+    mutate(hits = as.numeric(hits), date = as.Date(date))%>% 
+    replace(is.na(.), 0) %>%
+    mutate(keyword = gsub('CDU.*', 'CDU', gsub('SPD.*', 'SPD', gsub('Grüne.*', 'Grüne', 
+                                                                    gsub('Linke.*', 'Linke', gsub('FDP.*', 'FDP', keyword))))))
+  
   
   Model1_09_1 <-  df_final09 %>%
     filter(date >= "2009-09-19" &  date <= "2009-09-26")%>%
