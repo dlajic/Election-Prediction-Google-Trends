@@ -15,7 +15,7 @@ p_load(gtrendsR,
        jsonlite)
 
 
-setwd("C:/Users/janbe/Desktop/Uni/02_Master Sociology/FSS 2021/Research Methods/Publikation/Election-Prediction-Google-Trends")
+setwd("/cloud/project")
 
 # Dataset: Election results ####
 # Creates a list
@@ -78,11 +78,12 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "GT + weekly polls weight",
                                                  "Only polls",
                                                  "Last polls"),
-                           #model_time_interval = duration(seq(7,14, 7)[c(1:2)], "days"),
-                           #model_time_distance = days(seq(1, 35, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
-                           model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
-                           model_time_distance = days(seq(1, 150, 7)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
-                           model_time_id = "days")
+                           model_time_interval = duration(seq(7,14, 7), "days"),
+                           model_time_distance = days(seq(1, 3, 1))) # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           #model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
+                           #model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           #model_time_id = "days")
+
 
 
 data_models$election_date
