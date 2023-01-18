@@ -92,12 +92,16 @@ for (y in 1:length(df)){ #
     print(y)
     print(i)
     
-  }
-  
+  }}
 
-  
-  }
-  
+
+
+
+
+
+# LOGIC 1 (dataset selection)
+  # Compare datasets in Rdata with those of Rdata in previous row
+
 x <- names(data_comparisons)[str_detect(names(data_comparisons), "trend")]
 x <- x[!str_detect(x, "identical")]
 
@@ -128,7 +132,110 @@ View(data_comparisons %>% select(name, contains("identical"), check, check2, how
 
 
 
-View(data_comparisons %>% select(name, check, check2, how_bad) %>% filter(check2=="GOOD"))
+datasets_good <- data_comparisons %>% select(name, check, check2, how_bad) %>% filter(check2=="GOOD") %>%
+       filter(name!="WK")
+# GOOD = ALL datasets in .Rdata in this row are different from the .Rdata in the row before
+
+# Filter out one RDate per day
+
+datasets_good$date <- as.Date(str_extract(datasets_good$name, 
+                                             pattern = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"))
+dates <- na.omit(unique(datasets_good$date))
+
+datasets_good <- datasets_good %>%
+                      group_by(date) %>%
+                        filter(row_number()==1) %>%
+                  filter(date <= "2022-12-16" & date > "2022-12-06")
+
+datasets_we_can_use <- datasets_good$name
+# Copy datasets from "Data_raw" to "Data"
+
+for(i in datasets_we_can_use){
+  #i <- "2022-12-07 04-31-13.RData"
+  file.copy(from = paste0("/cloud/project/Data_raw/", i), 
+            to = paste0("/cloud/project/Data/", i),
+            overwrite = TRUE)
+}
+
+
+
+
+# JAN: Do the same for DataWC
+# IGNORE THE BELOW
+
+
+# Pick 
+
+
+
+
+# compareDF::compare_df(
+#   data.frame(data_comparisons[[26]][[2]]),
+#   data.frame(data_comparisons[[26]][[1]]))
+
+
+
+
+
+# NEW LOGIC 2 (dataset selection)
+  # 1. Take one .Rdata from day/date
+  # 2. Compare all Rdata of next day/date to this one
+  # 3. Keep one Rdata of next day/date that it different across all datasets in Rdata
+  # 4. Move to next day/date
+
+
+  # Extract dates to filter on them
+
+  data_comparisons$date <- as.Date(str_extract(data_comparisons$name, 
+                                        pattern = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"))
+  dates <- unique(data_comparisons$date)
+  
+  
+  
+  
+  
+  x <- names(data_comparisons)[str_detect(names(data_comparisons), "trend")]
+  x <- x[!str_detect(x, "identical")]
+  
+  
+  
+  data_datasets <- NULL
+  
+  for(y in dates[-1]){
+    
+    y <- as.Date("2022-11-28")
+
+    data_1 <- data_comparisons %>% 
+      filter(date == y - 1) %>% 
+      slice(1)
+    
+    
+    data_2 <- data_comparisons %>% 
+      filter(date == y)
+    
+    for (i in x){
+      #i <- "trend_05"
+      
+      for(z in 1:nrow(data_2)){
+      #z <- 1
+
+              result <- identical(
+          data_1[,i][[1]][[1]],
+          data_2[z,i][[1]][[1]])
+      print(result)
+      
+      data_2[z, paste0(i, "_identical")] <- result
+      print(z)
+      print(i)
+    }}
+    
+  # NOT FINISHED
+  
+  
+  
+  
+  
+
 
 # FALSE IT UNGLEICH!
 # Select one .Rdata from one day (= date) -> go to next day and 
@@ -139,9 +246,6 @@ View(data_comparisons %>% select(name, check, check2, how_bad) %>% filter(check2
 # KEEP Reference and FULL -> move to the next
 # Loopen über Tage und Datensätze innerhalb von Tage
 
-compareDF::compare_df(
-  data.frame(data_comparisons[[26]][[2]]),
-  data.frame(data_comparisons[[26]][[1]]))
 
 
 
