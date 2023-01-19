@@ -418,7 +418,7 @@ replace_searchterms <- function(x){
   data_models$data_GT_year <- list(NA)
   
   # Names of Google Trends datasets
-setwd("./DataWC")
+setwd("./Data_WC")
 dir <- getwd()
 names_df <- list.files(dir)  
 
