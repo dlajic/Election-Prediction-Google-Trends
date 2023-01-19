@@ -424,6 +424,8 @@ names_df <- list.files(dir)
 
   data_predictions_final <- data.frame()
   
+  start_time <- Sys.time()
+  
   
   for(y in names_df){
     
@@ -2145,6 +2147,14 @@ names_df <- list.files(dir)
   
   }
   
+  
+  end_time <- Sys.time()
+  end_time - start_time
+  
+  # Save environment
+  save.image(file = paste('/cloud/project/Env_Merged_syntax_WC', 
+                          gsub("\\s", "_", gsub(":", "-",Sys.time())), 
+                          '.RData'))
   
   
   nrow(data_predictions) # number of predictions (40 models for each party)
