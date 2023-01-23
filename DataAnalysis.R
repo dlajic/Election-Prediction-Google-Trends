@@ -78,8 +78,32 @@ data_predictions <- data_predictions %>%
 #save(data_predictions_final_mean, file = "data_predictions_final_mean_Dean.RData")
 
 
+# TABLES ####
 
-# Graphs ####
+
+# Table 1: Search terms ####
+
+data_models %>%
+  select(model_name, election_date, GT_keywords) %>%
+  group_by(election_date) %>%
+  filter(row_number()==1) %>%
+  select(election_date, GT_keywords) %>%
+  mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
+  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
+  rename("Date of election" = "election_date",
+         "Final search queries" = "GT_keywords") %>%
+  kable(format = "html",
+        caption = "Table 1: Final search queries", 
+        table.attr = "style = \"color: black;\"") %>%
+  #kable_classic(full_width = F) %>%
+  save_kable("../table_1_search_queries.html")
+
+
+
+# GRAPHS ####
+
+
+
 
 # Prepare data for graph
 data_predictions$party <-
@@ -378,9 +402,9 @@ ggsave(plot = p4,
 setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Environments")
 load("Env_Merged_syntax_WC 2023-01-22_14-09-15 .RData")
 
-#######
+
 #### delete 2005 rows (just needed for Model2_2009)
-#######
+
 data_models_WC <- data_models
 
 data_models_WC <- data_models_WC %>% 
@@ -417,7 +441,7 @@ data_models_WC <- data_models_WC %>%
 
 
 #### delete 2005 rows (just needed for Model2_2009)
-#######
+
 data_predictions_final_WC <- data_predictions_final
 
 data_predictions_final_WC <- data_predictions_final_WC %>% 
@@ -807,22 +831,6 @@ ggsave(plot = p5,
 
 
 
-# Table: Search terms ####
-
-data_models %>%
-  select(model_name, election_date, GT_keywords) %>%
-  group_by(election_date) %>%
-  filter(row_number()==1) %>%
-  select(election_date, GT_keywords) %>%
-  mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
-  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
-  rename("Date of election" = "election_date",
-         "Final search queries" = "GT_keywords") %>%
-  kable(format = "html",
-        caption = "Table 1: Final search queries", 
-        table.attr = "style = \"color: black;\"") %>%
-  #kable_classic(full_width = F) %>%
-  save_kable("../table_1_search_queries.html")
 
 
 
