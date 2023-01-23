@@ -9,12 +9,13 @@ p_load(gtrendsR,
        patchwork,
        lubridate,
        ajfhelpR,
-       jsonlite)
+       jsonlite,
+       kableExtra)
 
 
 ### For normal Data
 
-setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Environments")
+setwd("Environments")
 load("Env_Merged_syntax_NEU 2023-01-22_09-06-42 .RData")
 
 #######
@@ -192,7 +193,7 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "plot_predictions_GT_parties.pdf", # e.g. change to pdf
+       filename = "../plot_predictions_GT_parties.pdf", # e.g. change to pdf
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
@@ -803,3 +804,26 @@ ggsave(plot = p5,
        height = 10,
        device = "pdf", # e.g. change to pdf
        dpi = 300)
+
+
+
+# Table: Search terms ####
+
+data_models %>%
+  select(model_name, election_date, GT_keywords) %>%
+  group_by(election_date) %>%
+  filter(row_number()==1) %>%
+  select(election_date, GT_keywords) %>%
+  mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
+  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
+  rename("Date of election" = "election_date",
+         "Final search queries" = "GT_keywords") %>%
+  kable(format = "html",
+        caption = "Table 1: Final search queries", 
+        table.attr = "style = \"color: black;\"") %>%
+  #kable_classic(full_width = F) %>%
+  save_kable("../table_1_search_queries.html")
+
+
+
+
