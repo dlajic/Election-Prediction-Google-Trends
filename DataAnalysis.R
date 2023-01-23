@@ -18,9 +18,9 @@ p_load(gtrendsR,
 setwd("Environments")
 load("Env_Merged_syntax_NEU 2023-01-22_09-06-42 .RData")
 
-#######
+
 #### delete 2005 rows (just needed for Model2_2009)
-#######
+
 data_models <- data_models %>% 
   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
 
@@ -55,7 +55,7 @@ data_models <- data_models %>%
 
 
 #### delete 2005 rows (just needed for Model2_2009)
-#######
+
 data_predictions_final <- data_predictions_final %>% 
   filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
 
@@ -100,9 +100,6 @@ data_models %>%
 
 
 
-# GRAPHS ####
-
-
 
 
 # Prepare data for graph
@@ -124,7 +121,7 @@ data_predictions_final_mean <- data_predictions_final %>%
          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
 # replace_na(.,0)
 
-######### Kann man nuch besser lösen ????????  ################
+# Kann man nuch besser lösen ????????
 #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
 data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
 data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
@@ -136,21 +133,19 @@ data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,2
 #   mutate()
 
 
+# GRAPHS ####
 
-## Figure X ####
 
-############################################################################################
-############################## now with more Datasets Confidence Intervals #################
 
-#In Progress
+# now with more Datasets Confidence Intervals ###
 
-# Graphs ####
+
 # data_predictions$datasource_weight <-
 #   factor(data_predictions$datasource_weight) %>%
 #   mutate()
 
 
-## Figure X ####
+## Figure 1 ####
 # predictions for different distances #
 data_plot <- data_predictions_final_mean %>%
   #filter(election_date=="2017-09-24"|election_date=="2013-09-22") %>% #can filter for better overview
@@ -165,15 +160,15 @@ data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
                                                        "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
                                             ordered = TRUE)
 
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+breaks_labels_nr <- 30
+x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), breaks_labels_nr)]
+x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), breaks_labels_nr)]
+x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), breaks_labels_nr)]
 
 cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
           "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
 
 
-######### Plot1
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
@@ -195,7 +190,7 @@ p <- ggplot(data_plot1,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal() +
+  theme_minimal(base_size = 18) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
@@ -208,7 +203,7 @@ p <- ggplot(data_plot1,
   ) +
   scale_color_manual(values = cols) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("Deviation in %\n(prediction error)") +
+  ylab("Deviation on % scale\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
   labs(colour = "Party")
 # stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
@@ -217,14 +212,19 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "../plot_predictions_GT_parties.pdf", # e.g. change to pdf
+       filename = "../Figure_1_predictions_GT_parties.png", # e.g. change to pdf
        width = 14,
        height = 10,
-       device = "pdf", # e.g. change to pdf
+       device = "png", # e.g. change to pdf
        dpi = 300)  
 
 
-######################### Create average prediction error (across all parties) ########################
+
+# Figure 2 ####
+
+
+
+# Create average prediction error (across all parties) ###
 ###Plot GT vs. Polls
 
 data_plot2 <- data_plot %>%
@@ -252,7 +252,7 @@ p2 <- ggplot(data_plot2,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal() +
+  theme_minimal(base_size = 18) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
@@ -273,14 +273,19 @@ p2 <- ggplot(data_plot2,
 
 p2
 
+
+
 ggsave(plot = p2,
-       filename = "plot_moreSamp_meanDeviations_GT_polls.pdf", # e.g. change to pdf
+       filename = "../Figure_2_average_prediction_error.png", # e.g. change to pdf
        width = 14,
        height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
 
 
+
+
+# Figure 3 ####
 #### Plot average Deviation all Models
 data_plot3 <- data_plot %>%
   group_by(model_name) %>% 
@@ -306,7 +311,7 @@ p3 <- ggplot(data_plot3,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal() +
+  theme_minimal(base_size = 18) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
@@ -328,13 +333,16 @@ p3 <- ggplot(data_plot3,
 p3
 
 ggsave(plot = p3,
-       filename = "plot_meanDeviations_allModels.pdf", # e.g. change to pdf
+       filename = "../Figure_3_deviation_all_models.png", # e.g. change to pdf
        width = 14,
        height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
 
 
+
+
+# Figure 4 ####
 
 ##### comparison weekly weighting
 data_plot4 <- data_plot %>%
@@ -362,7 +370,7 @@ p4 <- ggplot(data_plot4,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal() +
+  theme_minimal(base_size = 18) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
@@ -382,22 +390,20 @@ p4 <- ggplot(data_plot4,
 
 p4
 
-ggsave(plot = p4,
-       filename = "plot_meanDeviations_CompareWeekly.pdf", # e.g. change to pdf
+
+ggsave(plot = p3,
+       filename = "../Figure_4_meanDeviations_CompareWeekly.png", # e.g. change to pdf
        width = 14,
        height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
 
 
 
 
 
 
-
-
-#########################################
-### Without Category ###################
+# Without Category ####
 
 setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Environments")
 load("Env_Merged_syntax_WC 2023-01-22_14-09-15 .RData")
