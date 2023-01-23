@@ -220,6 +220,70 @@ ggsave(plot = p,
 
 
 
+
+
+## Figure 1 - alternative####
+
+data_plot1 <- data_plot %>%
+  filter(datasource_weight =="GT") %>%
+  group_by(model_name) %>%
+  mutate(group_mean_deviation = mean(abs(Mean_dev))) %>%
+  filter(election_date == "2017-09-24" | election_date == "2021-09-26")
+
+p <- ggplot(data_plot1,
+            aes(x = GT_end_date,
+                y = Mean_dev,
+                color = party)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 18) +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free_x") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                              "Date: ", x_labels_date
+               )
+  ) +
+  scale_color_manual(values = cols) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("Deviation on % scale\n(prediction error)") +
+  xlab("Enddate of interval\n(= distance)") +
+  labs(colour = "Party")
+# stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
+#+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+p
+ggsave(plot = p,
+       filename = "../Figure_1_alternative_predictions_GT_parties.png", # e.g. change to pdf
+       width = 14,
+       height = 14,
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
+
+
+
+
+
+
+
+
+
+
+
 # Figure 2 ####
 
 
