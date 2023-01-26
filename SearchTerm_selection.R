@@ -20,7 +20,10 @@ elec_vlines <- as.Date(c("2005-09-18", "2009-09-27", "2013-09-18", "2017-09-24",
 ###############################  CDU #############################
 #result: CDU + Angela Merkel + CSU
 
-termsCDU <- gtrends(keyword=c("CDU", "CSU", "Angela Merkel", "Christlich demokratische Union"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsCDU <- gtrends(keyword=c("CDU", "CSU", "Angela Merkel", "Christlich demokratische Union"), 
+                    geo= "DE" , category=19, 
+                    time = "2004-01-01 2021-12-31", 
+                    gprop="web")
 
 termsCDU_df <- termsCDU$interest_over_time
 termsCDU_df <- termsCDU_df %>%
@@ -53,11 +56,11 @@ ggplot(termsCSU_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
 
 
 ###############################  SPD #############################
-#Kanzlerkandidaten: Gerhard Schröder (2005), Frank-Walter Steinmeier (2009), Peer Steinbrück(2013), Martin Schulz(2017)
+#Kanzlerkandidaten: Gerhard Schr?der (2005), Frank-Walter Steinmeier (2009), Peer Steinbr?ck(2013), Martin Schulz(2017)
 
 #result: SPD + Candidates
 
-termsSPD <- gtrends(keyword=c("SPD", "Sozialdemokratische Partei Deutschlands", "Frank Walter Steinmeier", "Peer Steinbrück", "Martin Schulz", "Olaf Scholz"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsSPD <- gtrends(keyword=c("SPD", "Sozialdemokratische Partei Deutschlands", "Frank Walter Steinmeier", "Peer Steinbr?ck", "Martin Schulz", "Olaf Scholz"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
 
 termsSPD_df <- termsSPD$interest_over_time
 termsSPD_df <- termsSPD_df %>%
@@ -72,10 +75,10 @@ ggplot(termsSPD_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
 
 
 ###############################  FDP #############################
-#Parteivorsitzende: Guido Westerwelle (-2011), Philipp Rösler (2011-2013), Christian Linder (2013-)
+#Parteivorsitzende: Guido Westerwelle (-2011), Philipp R?sler (2011-2013), Christian Linder (2013-)
 #result: FDP + Candidate
 
-termsFDP <- gtrends(keyword=c("FDP", "Freie demokratische Partei Deutschlands", "Guido Westerwelle", "Philipp Rösler", "Christian Lindner"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsFDP <- gtrends(keyword=c("FDP", "Freie demokratische Partei Deutschlands", "Guido Westerwelle", "Philipp R?sler", "Christian Lindner"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
 
 termsFDP_df <- termsFDP$interest_over_time
 termsFDP_df <- termsFDP_df %>%
@@ -89,31 +92,31 @@ ggplot(termsFDP_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted")
 
 
-###############################  Die Grünen #############################
-#top candidates: Joschka Fischer(2005), Jürgen Trittin + Renate Künast (2009), Jürgen Trittin + Katrin Göring Eckardt (2013), Katrin Göring-Eckardt + Cem Özdemir (2017)
-#result: Grüne (includes "Die Grünen" and "Bündnis 90 die Grünen") + top candidates
+###############################  Die Gr?nen #############################
+#top candidates: Joschka Fischer(2005), J?rgen Trittin + Renate K?nast (2009), J?rgen Trittin + Katrin G?ring Eckardt (2013), Katrin G?ring-Eckardt + Cem ?zdemir (2017)
+#result: Gr?ne (includes "Die Gr?nen" and "B?ndnis 90 die Gr?nen") + top candidates
 
-termsGrün <- gtrends(keyword=c('"Grüne"',"Die Grünen", "Bündnis 90 die Grünen"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsGr?n <- gtrends(keyword=c('"Gr?ne"',"Die Gr?nen", "B?ndnis 90 die Gr?nen"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
 
-termsGrün_df <- termsGrün$interest_over_time
-termsGrün_df <- termsGrün_df %>%
+termsGr?n_df <- termsGr?n$interest_over_time
+termsGr?n_df <- termsGr?n_df %>%
   mutate(hits = as.numeric(hits), date = as.Date(date)) %>%
   replace(is.na(.), 0)
 
-ggplot(termsGrün_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
+ggplot(termsGr?n_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
   scale_x_date(date_breaks = "years" , date_labels = "%y") +
   scale_y_continuous( breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted")
 
 
-termsGrün_Cand <- gtrends(keyword=c("Grüne","Jürgen Trittin + Renate Künast", "Jürgen Trittin + Katrin Göring Eckardt", "Katrin Göring Eckardt + Cem Özdemir", "Baerbock"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
-termsGrün_Cand_df <- termsGrün_Cand$interest_over_time
-termsGrün_Cand_df <- termsGrün_Cand_df %>%
+termsGr?n_Cand <- gtrends(keyword=c("Gr?ne","J?rgen Trittin + Renate K?nast", "J?rgen Trittin + Katrin G?ring Eckardt", "Katrin G?ring Eckardt + Cem ?zdemir", "Baerbock"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsGr?n_Cand_df <- termsGr?n_Cand$interest_over_time
+termsGr?n_Cand_df <- termsGr?n_Cand_df %>%
   mutate(hits = as.numeric(hits), date = as.Date(date)) %>%
   replace(is.na(.), 0)
 
-ggplot(termsGrün_Cand_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
+ggplot(termsGr?n_Cand_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
   scale_x_date(date_breaks = "years" , date_labels = "%y") +
   scale_y_continuous( breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100)) +
@@ -176,7 +179,7 @@ ggplot(termsLinke2_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
 #Spitzenkandidaten:  Bernd Lucke (2013),Alice Weidel + Alexander Gauland (2017),Alice Weidel + Tino Chrupalla (2021)
 #result: AFD + candidates
 
-termsAFD <- gtrends(keyword=c("AFD", "Alternative für Deutschland", "Bernd Lucke", "Alice Weidel + Alexander Gauland", "Alice Widel + Tino Chrupalla"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+termsAFD <- gtrends(keyword=c("AFD", "Alternative f?r Deutschland", "Bernd Lucke", "Alice Weidel + Alexander Gauland", "Alice Widel + Tino Chrupalla"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
 
 termsAFD_df <- termsAFD$interest_over_time
 termsAFD_df <- termsAFD_df %>%
@@ -193,10 +196,10 @@ ggplot(termsAFD_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
 
 
 # data frame for table 1 (all used search queries)
-sq_final <- data.frame(Party = c("CDU","SPD","FDP","Grüne","Linke","AfD"), FinalSearchQuerries = c("CDU + CSU + top candidate","SPD + top candidate","FDP + top candidate","Grüne + top candidate","PDS + Linkspartei + top candidate",""), 
-                       topcandidate05 = c("Angela Merkel","Gerhard Schröder","Guido Westerwelle","Joschka Fischer","Gregor Gysi",""),
-                       topcandidate09 = c("Angela Merkel","Frank Walter Steinmeier","Guido Westerwelle","Jürgen Trittin + Renate Künast","Gregor Gysi",""),
-                       topcandidate13 = c("Angela Merkel","Peer Steinbrück","Philipp Rösler","Jürgen Trittin + Katrin Göring Eckardt","Sarah Wagenknecht + Gregor Gysi","Bernd Lucke"),
-                       topcandidate17 = c("Angela Merkel","Martin Schulz","Christian Lindner","Cem Özdemir + Katrin Göring Eckardt","Sarah Wagenknecht + Dietmar Bartsch","Alice Weidel + Alexander Gauland"),
+sq_final <- data.frame(Party = c("CDU","SPD","FDP","Gr?ne","Linke","AfD"), FinalSearchQuerries = c("CDU + CSU + top candidate","SPD + top candidate","FDP + top candidate","Gr?ne + top candidate","PDS + Linkspartei + top candidate",""), 
+                       topcandidate05 = c("Angela Merkel","Gerhard Schr?der","Guido Westerwelle","Joschka Fischer","Gregor Gysi",""),
+                       topcandidate09 = c("Angela Merkel","Frank Walter Steinmeier","Guido Westerwelle","J?rgen Trittin + Renate K?nast","Gregor Gysi",""),
+                       topcandidate13 = c("Angela Merkel","Peer Steinbr?ck","Philipp R?sler","J?rgen Trittin + Katrin G?ring Eckardt","Sarah Wagenknecht + Gregor Gysi","Bernd Lucke"),
+                       topcandidate17 = c("Angela Merkel","Martin Schulz","Christian Lindner","Cem ?zdemir + Katrin G?ring Eckardt","Sarah Wagenknecht + Dietmar Bartsch","Alice Weidel + Alexander Gauland"),
                        topcandidate21 = c("Armin Laschet","Olaf Scholz","Christian Lindner","Annalena Baerbock","Janine Wissler + Dietmar Bartsch","Alice Weidel + Tino Chrupalla")
 )
