@@ -145,90 +145,47 @@ data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,2
 #   mutate()
 
 
-## Figure 1 ####
+## Figure 2 ####
 # predictions for different distances #
 data_plot <- data_predictions_final_mean %>%
   #filter(election_date=="2017-09-24"|election_date=="2013-09-22") %>% #can filter for better overview
   mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
-  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
+  mutate(model_time_interval_fac = paste(model_time_interval_fac, " days", sep="")) %>%
   mutate(model_time_distance = election_date - GT_end_date)
 
 
 data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
-                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
-                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
-                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
+                                            levels = c("7 days", "14 days", "21 days", 
+                                                       "28 days", "42 days", "56 days", 
+                                                       "70 days", "77 days", "84 days", "91 days"),
                                             ordered = TRUE)
 
-breaks_labels_nr <- 30
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), breaks_labels_nr)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), breaks_labels_nr)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), breaks_labels_nr)]
 
 cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
           "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
 
 
-data_plot1 <- data_plot %>%
-  filter(datasource_weight =="GT") %>%
-  group_by(model_name) %>%
-  mutate(group_mean_deviation = mean(abs(Mean_dev)))
-
-p <- ggplot(data_plot1,
-            aes(x = GT_end_date,
-                y = Mean_dev,
-                color = party)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal(base_size = 18) +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("Deviation on % scale\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Party")
-# stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
-#+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-
-p
-ggsave(plot = p,
-       filename = "../Figure_1_predictions_GT_parties.png", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "png", # e.g. change to pdf
-       dpi = 300)  
 
 
 
 
-
-## Figure 1 - alternative####
 
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
   mutate(group_mean_deviation = mean(abs(Mean_dev))) %>%
-  filter(election_date == "2017-09-24" | election_date == "2021-09-26")
+  filter(election_date == "2021-09-26")
+
+# Create x-axis tick labels
+
+x_tick_labels <- data_plot1 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
+  
+
 
 p <- ggplot(data_plot1,
             aes(x = GT_end_date,
@@ -236,6 +193,67 @@ p <- ggplot(data_plot1,
                 color = party)) +
   geom_vline(xintercept = as.Date("2021-09-26"),
              linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 22) +
+  facet_grid(vars(model_time_interval_fac),
+             #vars(election_date), 
+             scales = "free_x") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_tick_labels$GT_end_date,
+               labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
+  ) +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank()) +
+  ylab("Deviation on % scale\n(prediction error)") +
+  xlab("Distance of data window [end date of window]") +
+  labs(colour = "Party")
+# stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
+#+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+p
+ggsave(plot = p,
+       filename = "../Figure_2.png", # e.g. change to pdf
+       width = 14,
+       height = 14,
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
+
+
+
+## Figure 2-appendix ####
+
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT") %>%
+  group_by(model_name) %>%
+  mutate(group_mean_deviation = mean(abs(Mean_dev))) %>%
+  filter(election_date != "2021-09-26")
+
+# Create x-axis tick labels
+
+x_tick_labels <- data_plot2 %>%
+  #filter(election_date == "2017-09-24") %>% # Just use one election
+  group_by(election_date, GT_end_date) %>%
+  filter(row_number()==1) %>%
+  group_by(election_date) %>%
+  slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
+  ungroup() %>%
+  select(GT_start_date, GT_end_date, model_time_distance)
+
+
+
+p <- ggplot(data_plot2,
+            aes(x = GT_end_date,
+                y = Mean_dev,
+                color = party)) +
   geom_vline(xintercept = as.Date("2017-09-24"),
              linetype="dashed") +
   geom_vline(xintercept = as.Date("2013-09-22"),
@@ -246,21 +264,21 @@ p <- ggplot(data_plot1,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
+  scale_x_date(breaks = x_tick_labels$GT_end_date,
+               labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
   ) +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
   scale_color_manual(values = cols) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank()) +
   ylab("Deviation on % scale\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
+  xlab("Distance of data window [end date of window]") +
   labs(colour = "Party")
 # stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
 #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
@@ -268,7 +286,7 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_1_alternative_predictions_GT_parties.png", # e.g. change to pdf
+       filename = "../Figure_2_appendix.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -278,13 +296,7 @@ ggsave(plot = p,
 
 
 
-
-
-
-
-
-
-# Figure 2 ####
+# Figure 3 ####
 
 
 
@@ -349,7 +361,7 @@ ggsave(plot = p2,
 
 
 
-# Figure 3 ####
+# Figure 4 ####
 #### Plot average Deviation all Models
 data_plot3 <- data_plot %>%
   group_by(model_name) %>% 
@@ -406,7 +418,7 @@ ggsave(plot = p3,
 
 
 
-# Figure 4 ####
+# Figure 5 ####
 
 ##### comparison weekly weighting
 data_plot4 <- data_plot %>%
