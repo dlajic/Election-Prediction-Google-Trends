@@ -196,7 +196,7 @@ p <- ggplot(data_plot1,
              linetype="dashed") +
   geom_hline(yintercept = 0,
              linetype="solid") +  
-  #geom_point(size = 0.5) +
+  geom_point(size = 0.5) +
   geom_line() +
   theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
