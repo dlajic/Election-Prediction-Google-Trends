@@ -10,7 +10,8 @@ p_load(gtrendsR,
        lubridate,
        ajfhelpR,
        jsonlite,
-       kableExtra)
+       kableExtra,
+       gt)
 
 
 ### For normal Data
@@ -227,6 +228,48 @@ ggsave(plot = p,
        device = "png", # e.g. change to pdf
        dpi = 300)  
 
+
+
+# Figure 2-table ####
+# LM for Figure 2
+data_plot1 <- data_plot1 %>%
+  mutate(Mean_dev_absolute = abs(Mean_dev),
+         model_time_distance_num = abs(as.numeric(model_time_distance)-150))
+# model_time_distance_num: Distance reversed so that higher values are lower distance!
+# Check: View(data_plot1 %>% select(model_time_distance, model_time_distance_num))# 
+# View(data_plot1 %>% select(model_time_interval_fac, model_time_interval_fac_num))
+
+M1 <- lm(Mean_dev_absolute ~ model_time_distance_num + model_time_interval_fac_num, data = data_plot1)
+M2 <- lm(Mean_dev_absolute ~ model_time_distance_num + model_time_interval_fac +
+           model_time_distance_num*model_time_interval_fac, data = data_plot1)
+
+
+library(modelsummary)
+models <- list("M1" = M1, "M2" = M2)
+
+
+library(gt)
+# additionally we want to change the font, font size and spacing
+modelsummary(models,
+             title = 'Linear regression',
+             output = 'gt',
+             notes = "Notes: some notes...",
+             estimate  = "{estimate} [{conf.low}, {conf.high}]",
+             statistic = "{std.error} ({p.value}){stars}") %>%
+  tab_spanner(label = 'Dependent variable: Deviations (absolute)', columns =2:3) %>%
+  tab_options(
+    table.font.size = 10,
+    data_row.padding = px(1),
+    table.border.top.color = "white",
+    heading.border.bottom.color = "black",
+    row_group.border.top.color = "black",
+    row_group.border.bottom.color = "white",
+    table.border.bottom.color = "white",
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table_body.hlines.color = "white"
+  )  %>% gtsave("../tab3.docx")
 
 
 ## Figure 2-appendix ####
