@@ -1,12 +1,18 @@
-library(gtrendsR)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(rvest)
-library(xml2)
 
-
-rm(list = ls())
+library(pacman)
+p_load(gtrendsR,
+       ggplot2,
+       tidyverse,
+       tidyr,
+       rvest,
+       xml2,
+       data.table,
+       patchwork,
+       lubridate,
+       ajfhelpR,
+       jsonlite,
+       kableExtra,
+       grid)
 
 ###############################  CDU #############################
 #result: CDU + Angela Merkel + CSU
@@ -74,8 +80,7 @@ termsAFD <- gtrends(keyword=c("AFD", "Alternative für Deutschland", "Bernd Luck
 
 #Preperation + Plots
 # Load data
-
-load(file = "Data_SearchTerms/ 2023-01-22 14-33-21.RData")
+#load(file = "Data_SearchTerms/  2023-02-06 15-01-24.RData")
 
 # display all available category numbers
 df_cat <- data("categories")
@@ -181,12 +186,12 @@ p3 <- ggplot(termsSPD_df, aes(x=date, y=hits, group=keyword, col=keyword)) +
 p3
 
 #SPD Candidates
-termsSPD_Cand_df <- termsSPD_Cand$interest_over_time
-termsSPD_Cand_df <- termsSPD_Cand_df %>%
+termSPD_Cand_df <- termSPD_Cand$interest_over_time
+termSPD_Cand_df <- termSPD_Cand_df %>%
   mutate(hits = as.numeric(hits), date = as.Date(date)) %>%
   replace(is.na(.), 0)
 
-p4 <- ggplot(termsSPD_Cand_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
+p4 <- ggplot(termSPD_Cand_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
   scale_y_continuous( breaks = seq(0,100, 10)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
@@ -375,7 +380,7 @@ termsLinke2_df <- termsLinke2_df %>%
   replace(is.na(.), 0)
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Plot nur bis 2005  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Plot nur bis Wahl 2005  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 p10 <- ggplot(termsLinke2_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
   scale_y_continuous( breaks = seq(0,100, 10)) +
