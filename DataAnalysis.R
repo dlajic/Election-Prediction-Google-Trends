@@ -159,18 +159,24 @@ data_plot <- data_predictions_final_mean %>%
                                           ordered = TRUE))
 
 
-cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
-          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green",
-          "Av." = "darkgray")
+cols <- c("SPD" = "red", 
+          "CDU" = "black", 
+          "AFD" = "blue", 
+          "FDP" = "orange", 
+          "Linke" = "purple", 
+          "Grüne" = "green")
 
 
-linetypes <- c("SPD" = "solid", "CDU" = "solid", "AFD" = "solid", 
-          "FDP" = "solid", "Linke" = "solid", "Grüne" = "solid",
-          "Av." = "dashed")
+linetypes <- c("SPD" = "solid", 
+               "CDU" = "solid", 
+               "AFD" = "solid", 
+               "FDP" = "solid", 
+               "Linke" = "solid", 
+               "Grüne" = "solid")
 
 
 
-
+# COMPARISON: DATA WINDOWS ####
 ## Figure 2 - less intervals ####
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
@@ -183,22 +189,25 @@ data_plot1 <- data_plot %>%
            model_time_interval_fac == "91 days") %>% 
   ungroup()
 
-data_plot1_average <- data_plot1 %>%
-  group_by(model_name) %>%
-  summarize(Mean_dev = mean(Mean_dev),
-            GT_end_date = first(GT_end_date),
-            model_time_interval_fac = first(model_time_interval_fac),
-            GT_start_date = first(GT_start_date),
-            model_time_distance = first(model_time_distance)) %>%
-  mutate(party = "Av.",
-         model_time_distance = as.duration(model_time_distance)) %>%
-  ungroup()
 
-# Whey is the mean constant? Logic if they sum to one?
+# ADD AVERAGE
+    # data_plot1_average <- data_plot1 %>%
+    #   group_by(model_name) %>%
+    #   summarize(Mean_dev = mean(Mean_dev),
+    #             GT_end_date = first(GT_end_date),
+    #             model_time_interval_fac = first(model_time_interval_fac),
+    #             GT_start_date = first(GT_start_date),
+    #             model_time_distance = first(model_time_distance)) %>%
+    #   mutate(party = "Av.",
+    #          model_time_distance = as.duration(model_time_distance)) %>%
+    #   ungroup()
+    # data_plot1 <- data_plot1 %>%
+    #   select(model_name, GT_start_date, GT_end_date, model_time_distance, model_time_interval_fac, Mean_dev, party) %>%
+    #   bind_rows(data_plot1_average)
 
-data_plot1 <- data_plot1 %>%
-  select(model_name, GT_start_date, GT_end_date, model_time_distance, model_time_interval_fac, Mean_dev, party) %>%
-  bind_rows(data_plot1_average)
+
+    # cols <- c(cols, c("Av." = "darkgray"))
+    # linetypes <- c(linetypes, c("Av." = "dashed"))
 
 # Create x-axis tick labels
 x_tick_labels <- data_plot1 %>%
@@ -213,8 +222,9 @@ x_tick_labels <- data_plot1 %>%
 p <- ggplot(data_plot1,
             aes(x = GT_end_date,
                 y = Mean_dev,
-                color = party,
-                linetype = party)) +
+                color = party#,
+                #linetype = party
+                )) +
   geom_vline(xintercept = as.Date("2021-09-26"),
              linetype="dashed") +
   geom_hline(yintercept = 0,
@@ -255,7 +265,7 @@ ggsave(plot = p,
 
 
 
-## Figure 2 ####
+## Figure A1 (Figure 2 for appendix) ####
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
@@ -306,7 +316,7 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_2.png", # e.g. change to pdf
+       filename = "../Figure_A1_2_all_intervalls.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -314,51 +324,12 @@ ggsave(plot = p,
 
 
 
-# Figure 2-table: Trends ####
-# LM for Figure 2 - trends
-data_plot1 <- data_plot1 %>%
-  mutate(Mean_dev_absolute = abs(Mean_dev),
-         model_time_distance_num = abs(as.numeric(model_time_distance)-150))
-# model_time_distance_num: Distance reversed so that higher values are lower distance!
-# Check: View(data_plot1 %>% select(model_time_distance, model_time_distance_num))# 
-# View(data_plot1 %>% select(model_time_interval_fac, model_time_interval_fac_num))
-
-M1 <- lm(Mean_dev_absolute ~ model_time_distance_num + model_time_interval_fac_num, data = data_plot1)
-M2 <- lm(Mean_dev_absolute ~ model_time_distance_num + model_time_interval_fac +
-           model_time_distance_num*model_time_interval_fac, data = data_plot1)
-
-
-library(modelsummary)
-models <- list("M1" = M1, "M2" = M2)
-
-
-library(gt)
-# additionally we want to change the font, font size and spacing
-modelsummary(models,
-             title = 'Linear regression',
-             output = 'gt',
-             notes = "Notes: Outcome is the absolute mean deviation across parties.",
-             estimate  = "{estimate} [{conf.low}, {conf.high}]",
-             statistic = "{std.error} ({p.value}){stars}") %>%
-  tab_spanner(label = 'Dependent variable: Deviations (absolute)', columns=2:3) %>%
-  tab_options(
-    table.font.size = 10,
-    data_row.padding = px(1),
-    table.border.top.color = "white",
-    heading.border.bottom.color = "black",
-    row_group.border.top.color = "black",
-    row_group.border.bottom.color = "white",
-    table.border.bottom.color = "white",
-    column_labels.border.top.color = "black",
-    column_labels.border.bottom.color = "black",
-    table_body.border.bottom.color = "black",
-    table_body.hlines.color = "white"
-  )  %>% gtsave("../tab3.docx")
-
 
 
 # Figure 2-table: Party variation ####
-# Summarize across parties (variation across time)
+# Summarize across parties (variation across models)
+# Table basically shows for which models + parties there is the highest variation
+# of predictions across difference distances
 data_plot1_party <- data_plot1 %>% 
   group_by(party, model_time_interval) %>%
   select(party, model_time_interval, Mean_dev) %>%
@@ -366,11 +337,11 @@ data_plot1_party <- data_plot1 %>%
             Mean_dev_party_sd = sd(Mean_dev),
             Mean_dev_party_max = max(Mean_dev), 
             Mean_dev_party_min = min(Mean_dev)) %>%
-  arrange(party, model_time_interval)
+  arrange(desc(Mean_dev_party_sd), party)
 
 
 
-## Figure 2-appendix ####
+## Figure A2 (Figure 2-appendix) ####
 
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
@@ -427,7 +398,7 @@ p <- ggplot(data_plot2,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_2_appendix.png", # e.g. change to pdf
+       filename = "../Figure_A2_figure2_appendix.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -435,13 +406,79 @@ ggsave(plot = p,
 
 
 
+# Modelling distance/width/elections ####
+
+# Figure A1-2-table: Trends ####
+# LM for all GT models BUT ONLY 14 days
+
+# First model distance
+data_modelling <- data_plot %>%
+  filter(datasource_weight =="GT") %>%
+  mutate(Mean_dev_absolute = abs(Mean_dev),
+         model_time_distance_num = abs(as.numeric(model_time_distance)-150))  %>%
+  filter(model_time_interval_fac == "14 days")
+
+# model_time_distance_num: Distance reversed so that higher values are lower distance!
+# Check: View(data_plot1 %>% select(model_time_distance, model_time_distance_num))# 
+# View(data_plot1 %>% select(model_time_interval_fac, model_time_interval_fac_num))
+
+M1 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling)
+M2 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling %>% 
+           filter(election_date=="2009-09-27"))
+M3 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling %>% 
+           filter(election_date=="2013-09-22"))
+M4 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling %>% 
+           filter(election_date=="2017-09-24"))
+M5 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling %>% 
+           filter(election_date=="2021-09-26"))
+
+library(modelsummary)
+models <- list("M1 (all elections)" = M1, 
+               "M2 (2009-09-27)" = M2, 
+               "M3 (2013-09-22)" = M3, 
+               "M4 (2017-09-24)" = M4, 
+               "M5 (2021-09-26)" = M5)
 
 
+library(gt)
+# additionally we want to change the font, font size and spacing
+modelsummary(models,
+             title = 'Linear regression',
+             output = 'gt',
+             notes = "Notes: Outcome is the absolute mean deviation across parties.",
+             estimate  = "{estimate} [{conf.low}, {conf.high}]",
+             statistic = "{std.error} ({p.value}){stars}") %>%
+  tab_spanner(label = 'Dependent variable: Deviations (absolute)', columns=2:6) %>%
+  tab_options(
+    table.font.size = 10,
+    data_row.padding = px(1),
+    table.border.top.color = "white",
+    heading.border.bottom.color = "black",
+    row_group.border.top.color = "black",
+    row_group.border.bottom.color = "white",
+    table.border.bottom.color = "white",
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table_body.hlines.color = "white"
+  )  %>% gtsave("../tabA1.docx")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# COMPARISON: Models ####
 # Figure 3 ####
-
-
-# HIER WEITER!!!
-
+# prediction error averaged across all parties for the GT data + other datasources
 
 # Create average prediction error (across all parties) ###
 ###Plot GT vs. Polls
@@ -455,10 +492,30 @@ data_plot2 <- data_plot %>%
   ) %>%
   group_by(model_name) %>% 
   mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
-  filter(election_date == "2021-09-26")
+  filter(election_date == "2021-09-26") %>%
+  filter(model_time_interval_fac == "7 days" |
+           model_time_interval_fac == "14 days" |
+           model_time_interval_fac == "28 days" |
+           model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
+
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
 
 
-
+# Number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
 
 # Create x-axis tick labels
 # 
@@ -470,11 +527,11 @@ data_plot2 <- data_plot %>%
 #   select(GT_start_date, GT_end_date, model_time_distance)
 
 
-cols2 <- c("GT" = "#e41a1c", 
+cols2 <- c("MC1: GT" = "#e41a1c", 
            #"Only polls" = "black", 
            "Last polls" = "black",
-           "GT + election weight" = "#984ea3",
-           "GT + weekly polls weight" = "#ff7f00")
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
 
 #Plot GT vs. Polls
 p2 <- ggplot(data_plot2,
@@ -491,27 +548,26 @@ p2 <- ggplot(data_plot2,
              linetype="dashed") +
   geom_hline(yintercept = 0,
              linetype="solid") +  
-  #geom_point(size = 0.5) +
+  geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
+             #vars(election_date), 
              scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  # scale_x_date(breaks = x_breaks,
-  #              labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-  #                             "Date: ", x_labels_date
-  #              )
-  # ) +
+  scale_x_date(breaks = x_tick_labels$GT_end_date,
+               labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
+  ) +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
   scale_color_manual(values = cols2) + 
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.position="top",
         axis.text.y.right = element_blank()) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight")
+  labs(colour = "Model class")
 #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
 
 
 p2
@@ -519,11 +575,11 @@ p2
 ggsave(plot = p2,
        filename = "../Figure_3_model_comparison.png", # e.g. change to pdf
        width = 14,
-       height = 20,
+       height = 14,
        device = "png", # e.g. change to pdf
        dpi = 300)  
 
-
+# WEITER HIER!
 
 
 # Figure 4 ####
