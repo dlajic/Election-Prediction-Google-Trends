@@ -9,7 +9,8 @@ p_load(gtrendsR,
        tidyr,
        rvest,
        xml2,
-       stringr)
+       stringr,
+       data.table)
 
 
 ### Function: Replace search terms ####
@@ -50,7 +51,7 @@ replace_searchterms <- function(x){
 
 # Datasets with category ####
 #all Datsets
-dir <- setwd("/cloud/project/Data_raw")
+dir <- setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Data_raw_table")
 df_names <- list.files(dir, full.names = FALSE)
 df <- list.files(dir, full.names = TRUE)
 
@@ -184,6 +185,25 @@ for(i in datasets_we_can_use){
 # compareDF::compare_df(
 #   data.frame(data_comparisons[[26]][[2]]),
 #   data.frame(data_comparisons[[26]][[1]]))
+
+
+# Table: Datasets ####
+
+datasets_good %>%
+  select(name) %>%
+  #group_by(election_date) %>%
+  #filter(row_number()==1) %>%
+  #select(election_date, GT_keywords) %>%
+  #mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
+  #mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
+  #rename("Date of election" = "election_date",
+  #       "Final search queries" = "GT_keywords") %>%
+  kable(format = "html",
+        caption = "Table 1: Overview different Datasets", 
+        table.attr = "style = \"color: black;\"") %>%
+  kable_classic(full_width = F)
+  #save_kable("table_22.html")
+
 
 
 
