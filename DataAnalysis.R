@@ -11,13 +11,130 @@ p_load(gtrendsR,
        ajfhelpR,
        jsonlite,
        kableExtra,
-       gt)
+       gt,
+       grid)
+
+
+
+
+
+
+# Figure 1: Search terms ####
+
+load(file = "./Data_SearchTerms/2023-01-22 14-33-21.RData")
+
+# display all available category numbers
+df_cat <- data("categories")
+summary(df_cat)
+
+######### Search terms + period
+#Bundestagswahlen: 26.09.2021; 24.09.2017; 22.09.2013; 27.09.2009; 18.09.2005
+# Specifying vertical X intercepts for election dates
+elec_vlines <- as.Date(c("2005-09-18", "2009-09-27", "2013-09-18", "2017-09-24", "2021-09-26"))
+
+# CDU
+
+termsCDU_df <- termsCDU$interest_over_time
+termsCDU_df <- termsCDU_df %>%
+  mutate(hits = as.numeric(hits), date = as.Date(date)) %>%
+  replace(is.na(.), 0)
+
+###Used in Paper
+p1 <- ggplot(termsCDU_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
+  geom_line(size=0.5)  +
+  scale_y_continuous( breaks = seq(0,100, 10)) +
+  geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
+  theme_minimal(base_size = 22) +
+  ylab("Searches (100 = max. interest in time period/territory)") +
+  xlab("Date") +
+  labs(colour = "Search terms (below)") +
+  scale_x_date(date_labels = paste0("%y", "'"),
+               date_breaks = "1 year") +
+  theme(legend.position = "top",
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank()) +
+  annotate(geom = "text", 
+           label = paste0("Election: ", elec_vlines), 
+           x=elec_vlines+60, 
+           y=rep(100, 5),
+           angle = 90,
+           hjust = 1,
+           size = 5)
+
+
+
+
+
+# Linke
+termsLinke_df <- termsLinke$interest_over_time
+termsLinke_df <- termsLinke_df %>%
+  mutate(hits = as.numeric(hits), date = as.Date(date)) %>%
+  replace(is.na(.), 0)
+
+###Used in Paper
+p2 <- ggplot(termsLinke_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
+  geom_line(size=0.5)  +
+  scale_y_continuous( breaks = seq(0,100, 10)) +
+  geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
+  theme_minimal(base_size = 22) +
+  ylab("Searches (100 = max. interest in time period/territory)") +
+  xlab("Date") +
+  labs(colour = "Search terms (below)") +
+  scale_x_date(date_labels = paste0("%y", "'"),
+               date_breaks = "1 year") +
+  theme(legend.position = "top",
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank()) +
+  annotate(geom = "text", 
+           label = paste0("Election: ", elec_vlines), 
+           x=elec_vlines+60, 
+           y=rep(100, 5),
+           angle = 90,
+           hjust = 1,
+           size = 5)
+
+
+
+p1 + p2 + 
+  plot_layout(ncol = 1) + 
+  plot_layout(guides="collect")
+
+
+result <- p1 + p2 + 
+  plot_layout(ncol = 1)
+gt <- patchwork::patchworkGrob(result)
+plot_searchterms <- gridExtra::grid.arrange(gt,
+                                            bottom=textGrob("Date", gp=gpar(fontsize=22)), 
+                                            left=textGrob("Searches (100 = max. interest in time period/territory)", gp=gpar(fontsize=22), rot=90))
+ggsave(plot = plot_searchterms,
+       filename = "Figure_1_searchterms.png", # e.g. change to pdf
+       width = 14,
+       height = 10,
+       device = "png", # e.g. change to pdf
+       dpi = 300) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### For normal Data
 
-setwd("Environments")
-load("Env_Merged_syntax_NEU 2023-01-22_09-06-42 .RData")
+
+load(file  = "./Environments/Env_Merged_syntax_NEU 2023-01-22_09-06-42 .RData")
 
 
 #### delete 2005 rows (just needed for Model2_2009)
@@ -26,7 +143,7 @@ data_models <- data_models %>%
   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
 
 #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number ####
+## Add model index/number
 data_models <- data_models %>% 
   mutate(model_id = row_number()) %>%
   select(model_id, everything())
@@ -35,7 +152,7 @@ data_models <- data_models %>%
 data_models <- data_models %>%
   select(model_id, model_name, everything())
 
-## Add unique model name ####
+## Add unique model name
 #data_models <- data_models %>%
 #mutate(model_name  = paste("M", 
 #                           model_id, 
@@ -61,14 +178,14 @@ data_predictions_final <- data_predictions_final %>%
   filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
 
 #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number ####
+## Add model index/number
 data_predictions_final <- data_predictions_final %>% 
   mutate(model_id = row_number()) %>%
   select(model_id, everything())
 
 
 
-# CLEAN data_predictions ####
+# CLEAN data_predictions
 
 data_predictions <- data_predictions %>%
   filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
@@ -79,8 +196,6 @@ data_predictions <- data_predictions %>%
 #save(data_predictions_final_mean, file = "data_predictions_final_mean_Dean.RData")
 
 
-# TABLES ####
-
 
 # Table 1: Search terms ####
 
@@ -90,14 +205,19 @@ data_models %>%
   filter(row_number()==1) %>%
   select(election_date, GT_keywords) %>%
   mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
-  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
+  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c\\(", "\\(")) %>%
+  mutate(election_date = paste0("Election: ", election_date)) %>%
   rename("Date of election" = "election_date",
          "Final search queries" = "GT_keywords") %>%
-  kable(format = "html",
-        caption = "Table 1: Final search queries", 
-        table.attr = "style = \"color: black;\"") %>%
-  #kable_classic(full_width = F) %>%
-  save_kable("../table_1_search_queries.html")
+  gt() %>% 
+  tab_options(table.font.size = px(10),
+              column_labels.hidden = TRUE) %>%
+  opt_table_font(
+    font = list(
+      google_font(name = "Helvetica Neue")
+    )
+  ) %>%
+  gtsave("table_1_search_queries.docx")
 
 
 
@@ -133,8 +253,6 @@ data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,2
 #   factor(data_predictions$datasource_weight) %>%
 #   mutate()
 
-
-# GRAPHS ####
 
 
 
@@ -177,7 +295,7 @@ linetypes <- c("SPD" = "solid",
 
 
 # COMPARISON: DATA WINDOWS ####
-## Figure 2 - less intervals ####
+## Figure 3: Comparison data windows ####
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
@@ -257,7 +375,7 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_2_less_intervals.png", # e.g. change to pdf
+       filename = "Figure_3_less_intervals.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -316,7 +434,7 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_A1_2_all_intervalls.png", # e.g. change to pdf
+       filename = "Figure_A1_2_all_intervalls.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -326,7 +444,7 @@ ggsave(plot = p,
 
 
 
-# Figure 2-table: Party variation ####
+# Figure 3-table: Party variation ####
 # Summarize across parties (variation across models)
 # Table basically shows for which models + parties there is the highest variation
 # of predictions across difference distances
@@ -398,7 +516,7 @@ p <- ggplot(data_plot2,
 
 p
 ggsave(plot = p,
-       filename = "../Figure_A2_figure2_appendix.png", # e.g. change to pdf
+       filename = "Figure_A2_figure2_appendix.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
@@ -406,9 +524,8 @@ ggsave(plot = p,
 
 
 
-# Modelling distance/width/elections ####
 
-# Figure A1-2-table: Trends ####
+# Table-A1-2 (Figure 2 trends) ####
 # LM for all GT models BUT ONLY 14 days
 
 # First model distance
@@ -461,7 +578,7 @@ modelsummary(models,
     column_labels.border.bottom.color = "black",
     table_body.border.bottom.color = "black",
     table_body.hlines.color = "white"
-  )  %>% gtsave("../tabA1.docx")
+  )  %>% gtsave("tabA1.docx")
 
 
 
@@ -475,24 +592,22 @@ modelsummary(models,
 
 
 
-
-# COMPARISON: Models ####
-# Figure 3 ####
+# Figure 4: Comparison models ####
 # prediction error averaged across all parties for the GT data + other datasources
 
 # Create average prediction error (across all parties) ###
 ###Plot GT vs. Polls
-
-data_plot2 <- data_plot %>%
+for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
+  print(i)
+  data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
-           #datasource_weight =="Only polls" | 
            datasource_weight =="Last polls" |
            datasource_weight =="GT + election weight" |
            datasource_weight =="GT + weekly polls weight"
   ) %>%
   group_by(model_name) %>% 
   mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
-  filter(election_date == "2021-09-26") %>%
+  filter(election_date == i) %>%
   filter(model_time_interval_fac == "7 days" |
            model_time_interval_fac == "14 days" |
            model_time_interval_fac == "28 days" |
@@ -514,17 +629,10 @@ x_tick_labels <- data_plot2 %>%
   select(GT_start_date, GT_end_date, model_time_distance)
 
 
-# Number of models
+# Count number of models
 # data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
 
-# Create x-axis tick labels
-# 
-# x_tick_labels <- data_plot2 %>%
-#   group_by(GT_end_date) %>%
-#   filter(row_number()==1) %>%
-#   ungroup() %>%
-#   slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
-#   select(GT_start_date, GT_end_date, model_time_distance)
+
 
 
 cols2 <- c("MC1: GT" = "#e41a1c", 
@@ -562,10 +670,13 @@ p2 <- ggplot(data_plot2,
   scale_color_manual(values = cols2) + 
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.position="top",
-        axis.text.y.right = element_blank()) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Model class")
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0)) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models for ",i," election."),
+       title = paste0("Election: ", i))
 #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 
@@ -573,85 +684,162 @@ p2 <- ggplot(data_plot2,
 p2
 
 ggsave(plot = p2,
-       filename = "../Figure_3_model_comparison.png", # e.g. change to pdf
+       filename = paste0("Figure_4_model_comparison_",i,".png"), # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
        dpi = 300)  
 
-# WEITER HIER!
-
-
-# Figure 4 ####
-#### Plot average Deviation all Models
-data_plot3 <- data_plot %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
-
-cols3 <- c("GT" = "red", "Only polls" = "black", "GT + election weight" = "purple", 
-           "GT + polls weight" = "orange", "GT + weekly polls weight" = "green", "Last polls" = "blue")
-
-
-p3 <- ggplot(data_plot3,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal(base_size = 18) +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols3) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight") +
-  ylim(0,10)
-#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-p3
-
-ggsave(plot = p3,
-       filename = "../Figure_3_deviation_all_models.png", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "png", # e.g. change to pdf
-       dpi = 300)  
+}
 
 
 
 
-# Figure 5 ####
-
-##### comparison weekly weighting
-data_plot4 <- data_plot %>%
-  group_by(model_name) %>% 
-  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls" | datasource_weight =="GT + weekly polls weight"
+# Figure 5_appendix: Comparison elections ####
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT" | 
+           datasource_weight =="Last polls" |
+           datasource_weight =="GT + election weight" |
+           datasource_weight =="GT + weekly polls weight"
   ) %>%
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
+  #filter(election_date == i) %>%
+  filter(model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
 
-cols4 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue", "GT + weekly polls weight" = "green")
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,50, 100, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
 
 
-p4 <- ggplot(data_plot4,
+
+# Count number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+
+
+
+
+cols2 <- c("MC1: GT" = "#e41a1c", 
+           #"Only polls" = "black", 
+           "Last polls" = "black",
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
+
+#Plot GT vs. Polls
+p2 <- ggplot(data_plot2,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+   geom_vline(xintercept = as.Date("2021-09-26"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2017-09-24"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2013-09-22"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2009-09-27"),
+              linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 22) +
+  # scale_x_date(breaks = x_tick_labels$GT_end_date,
+  #              labels = paste0(x_tick_labels$model_time_distance, 
+  #                              " day(s)\n[", 
+  #                              x_tick_labels$GT_end_date, "]")
+  # ) +
+  
+  
+
+    facet_grid2(rows = vars(election_date), 
+             scales = "free",
+             independent = "x") +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0)) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models across all four elections holding the data window width constant at 91 days."),
+       title = paste0("Election: All elections"))
+
+
+
+p2
+
+ggsave(plot = p2,
+       filename = paste0("Figure_5_election_comparison.png"), # e.g. change to pdf
+       width = 14,
+       height = 14,
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
+
+
+
+
+
+
+# Figure 5_appendix: Comparison elections ####
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT" | 
+           datasource_weight =="Last polls" |
+           datasource_weight =="GT + election weight" |
+           datasource_weight =="GT + weekly polls weight"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
+  #filter(election_date == i) %>%
+  filter(model_time_interval_fac == "7 days" |
+           model_time_interval_fac == "14 days" |
+           model_time_interval_fac == "28 days" |
+           model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
+
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,50, 100, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
+
+
+
+# Count number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+
+
+
+
+cols2 <- c("MC1: GT" = "#e41a1c", 
+           #"Only polls" = "black", 
+           "Last polls" = "black",
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
+
+#Plot GT vs. Polls
+p2 <- ggplot(data_plot2,
              aes(x = GT_end_date,
                  y = deviation_mean,
                  color = datasource_weight)) +
@@ -667,31 +855,36 @@ p4 <- ggplot(data_plot4,
              linetype="solid") +  
   #geom_point(size = 0.5) +
   geom_line() +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 22) +
+  # scale_x_date(breaks = x_tick_labels$GT_end_date,
+  #              labels = paste0(x_tick_labels$model_time_distance, 
+  #                              " day(s)\n[", 
+  #                              x_tick_labels$GT_end_date, "]")
+  # ) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols4) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight")
-#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-p4
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0)) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models across all four elections."),
+       title = paste0("Election: All elections"))
 
 
-ggsave(plot = p3,
-       filename = "../Figure_4_meanDeviations_CompareWeekly.png", # e.g. change to pdf
+
+p2
+
+ggsave(plot = p2,
+       filename = paste0("Figure_5_election_comparison_appendix.png"), # e.g. change to pdf
        width = 14,
-       height = 10,
+       height = 14,
        device = "png", # e.g. change to pdf
        dpi = 300)  
 
@@ -700,7 +893,26 @@ ggsave(plot = p3,
 
 
 
-# Without Category ####
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# WITHOUT CATEGORY ####
+
 
 setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Environments")
 load("Env_Merged_syntax_WC 2023-01-22_14-09-15 .RData")
