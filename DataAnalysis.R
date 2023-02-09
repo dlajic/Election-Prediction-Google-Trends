@@ -695,9 +695,106 @@ ggsave(plot = p2,
 
 
 
-# Figure 5: Comparison elections ####
+# Figure 5_appendix: Comparison elections ####
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT" | 
+           datasource_weight =="Last polls" |
+           datasource_weight =="GT + election weight" |
+           datasource_weight =="GT + weekly polls weight"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
+  #filter(election_date == i) %>%
+  filter(model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
+
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,50, 100, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
 
 
+
+# Count number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+
+
+
+
+cols2 <- c("MC1: GT" = "#e41a1c", 
+           #"Only polls" = "black", 
+           "Last polls" = "black",
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
+
+#Plot GT vs. Polls
+p2 <- ggplot(data_plot2,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+   geom_vline(xintercept = as.Date("2021-09-26"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2017-09-24"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2013-09-22"),
+              linetype="dashed") +
+   geom_vline(xintercept = as.Date("2009-09-27"),
+              linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 22) +
+  # scale_x_date(breaks = x_tick_labels$GT_end_date,
+  #              labels = paste0(x_tick_labels$model_time_distance, 
+  #                              " day(s)\n[", 
+  #                              x_tick_labels$GT_end_date, "]")
+  # ) +
+  
+  
+
+    facet_grid2(rows = vars(election_date), 
+             scales = "free",
+             independent = "x") +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0)) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models across all four elections holding the data window width constant at 91 days."),
+       title = paste0("Election: All elections"))
+
+
+
+p2
+
+ggsave(plot = p2,
+       filename = paste0("Figure_5_election_comparison.png"), # e.g. change to pdf
+       width = 14,
+       height = 14,
+       device = "png", # e.g. change to pdf
+       dpi = 300)  
+
+
+
+
+
+
+# Figure 5_appendix: Comparison elections ####
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
            datasource_weight =="Last polls" |
@@ -785,7 +882,7 @@ p2 <- ggplot(data_plot2,
 p2
 
 ggsave(plot = p2,
-       filename = paste0("Figure_5_election_comparison.png"), # e.g. change to pdf
+       filename = paste0("Figure_5_election_comparison_appendix.png"), # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
