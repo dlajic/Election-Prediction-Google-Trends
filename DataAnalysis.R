@@ -205,14 +205,19 @@ data_models %>%
   filter(row_number()==1) %>%
   select(election_date, GT_keywords) %>%
   mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " + ")) %>%
-  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c", "")) %>%
+  mutate(GT_keywords = str_replace_all(str_replace_all(GT_keywords, '"', ''), "c\\(", "\\(")) %>%
+  mutate(election_date = paste0("Election: ", election_date)) %>%
   rename("Date of election" = "election_date",
          "Final search queries" = "GT_keywords") %>%
-  kable(format = "html",
-        caption = "Table 1: Final search queries", 
-        table.attr = "style = \"color: black;\"") %>%
-  #kable_classic(full_width = F) %>%
-  save_kable("table_1_search_queries.html")
+  gt() %>% 
+  tab_options(table.font.size = px(10),
+              column_labels.hidden = TRUE) %>%
+  opt_table_font(
+    font = list(
+      google_font(name = "Helvetica Neue")
+    )
+  ) %>%
+  gtsave("table_1_search_queries.docx")
 
 
 
