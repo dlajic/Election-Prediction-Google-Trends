@@ -87,12 +87,12 @@ forsa_23 <- forsa_23 %>%
 
 
 
-forsa_all <- bind_rows(forsa_23, forsa_13)
+Forsa_all <- bind_rows(forsa_23, forsa_13)
 
 
 
 
-save(forsa_all, file = "forsa_polls.RData")
+save(Forsa_all, file = "Forsa_polls.RData")
 
 
 # Load poll data set, scraped on 5th August 2022
