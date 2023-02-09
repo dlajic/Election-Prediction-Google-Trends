@@ -69,5 +69,5 @@ for(y in dates[-1]){
   # KEEP Reference and FULL -> move to the next
   # Loopen über Tage und Datensätze innerhalb von Tage
   
-  
+
   
