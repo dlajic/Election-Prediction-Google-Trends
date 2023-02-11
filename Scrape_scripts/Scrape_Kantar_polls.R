@@ -98,7 +98,10 @@ Kantar_23 <- Kantar_23 %>%
 
 Kantar_all <- bind_rows(Kantar_23, Kantar_13)
 
-
+Kantar_all <- Kantar_all %>%
+  rename(Grüne = GRÜNE, 
+         Linke = LINKE,
+         AFD = AfD)
 
 
 save(Kantar_all, file = "Kantar_polls.RData")

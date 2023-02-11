@@ -2503,6 +2503,7 @@ p3 <- ggplot(data_plot_sonst3,
   ) +
   scale_color_manual(values = cols3) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 10) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
   labs(colour = "datasource_weight") 

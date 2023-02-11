@@ -168,7 +168,10 @@ FGW_09 <- FGW_09 %>%
 
 FGW_all <- bind_rows(FGW_23, FGW_17, FGW_13, FGW_09)
 
-
+FGW_all <- FGW_all %>%
+  rename(Grüne = GRÜNE, 
+         Linke = LINKE,
+         AFD = AfD)
 
 
 save(FGW_all, file = "FGW_polls.RData")

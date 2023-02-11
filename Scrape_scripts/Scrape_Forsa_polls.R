@@ -89,11 +89,13 @@ forsa_23 <- forsa_23 %>%
 
 Forsa_all <- bind_rows(forsa_23, forsa_13)
 
-
+Forsa_all <- Forsa_all %>%
+  rename(Grüne = GRÜNE, 
+         Linke = LINKE,
+         AFD = AfD)
 
 
 save(Forsa_all, file = "Forsa_polls.RData")
 
 
-# Load poll data set, scraped on 5th August 2022
-load("infratest_dimap_polls_sonstige.RData")
+

@@ -155,6 +155,10 @@ Allens_09 <- Allens_09 %>%
 
 Allens_all <- bind_rows(Allens_23, Allens_17, Allens_13, Allens_09)
 
+Allens_all <- Allens_all %>%
+                rename(Grüne = GRÜNE, 
+                       Linke = LINKE,
+                       AFD = AfD)
 
 
 
