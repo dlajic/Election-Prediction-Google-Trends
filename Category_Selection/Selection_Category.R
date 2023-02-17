@@ -2,7 +2,8 @@ library(gtrendsR)
 library(dplyr)
 library(stringr)
 library(tidyverse)
-
+library(htmlTable)
+library(forcats)
 
 
 ##### Run the following code if you want to draw a sample for each category for all four election years ####
@@ -368,10 +369,10 @@ save.image(paste0("./Category_Selection/Samples", (filename)))
 setwd("./Category_Selection/Samples")
 
 
-load("./Category_Selection/Samples/Selection_category_all_2023-02-01 16-28-15.RData")
+load("Selection_category_all_2023-02-01 16-28-15.RData")
 
 # prep for loops
-names <- dir("C:/Users/janbe/Documents/Data")
+names <- dir("./")
 names <- names[!names %in% "Selection_category_all_2023-02-01 16-28-15.RData"]
 names2 <- c("Data_2021", "Data_2017", "Data_2013", "Data_2009")
 names3 <- c("Dev09", "Dev13", "Dev17", "Dev21")
@@ -513,14 +514,23 @@ final <- final_df %>%
 
 
 
-ggplot(final_df, 
-       aes(y = Mean_dev_gprop, x = Category_Name)) +
-  scale_y_continuous(limits = c(0, 150), breaks = seq(0,150,10)) +
-  geom_point(aes(x = Category_Name, 
+# Reorder the data for the plot
+final_p <- final_df %>%
+  select(Category_Name, Mean_dev_gprop, Mean_gprop_lower.ci, Mean_gprop_upper.ci) %>%
+  arrange(Mean_dev_gprop) %>%
+  mutate(Category_Name = as.factor(Category_Name))
+
+
+ggplot(final_p, aes(y = Mean_dev_gprop, x = fct_rev(fct_inorder(Category_Name)))) +
+  scale_y_continuous(limits = c(0, 135), breaks = seq(0,135,5)) +
+  geom_point(aes(x = fct_rev(fct_inorder(Category_Name)), 
                  y = Mean_dev_gprop)) + 
+  #geom_text(aes(label = round(Mean_dev_gprop, digits = 2)), hjust = -3) +
   geom_linerange(aes(x = Category_Name, 
                      ymin = Mean_gprop_lower.ci,
                      ymax = Mean_gprop_upper.ci),
                  lwd = 1) + 
-  ggtitle("Avg. absolute deviation of Gprop over all election years") +
+  #ggtitle("Avg. absolute deviation of Gprop over all election years") +
+  ylab("Avg. absolute deviation of Google Proportion from all four election years (Samples n = 10)") +
+  xlab("Google Trends supercategories") +
   coord_flip()
