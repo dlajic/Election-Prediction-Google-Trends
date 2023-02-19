@@ -521,16 +521,28 @@ final_p <- final_df %>%
   mutate(Category_Name = as.factor(Category_Name))
 
 
-ggplot(final_p, aes(y = Mean_dev_gprop, x = fct_rev(fct_inorder(Category_Name)))) +
+p <- ggplot(final_p, aes(y = Mean_dev_gprop, x = fct_rev(fct_inorder(Category_Name)))) +
   scale_y_continuous(limits = c(0, 135), breaks = seq(0,135,5)) +
   geom_point(aes(x = fct_rev(fct_inorder(Category_Name)), 
-                 y = Mean_dev_gprop)) + 
+                 y = Mean_dev_gprop),
+             color = ifelse(final_p$Category_Name == "Law & Government", "green2", ifelse(final_p$Category_Name == "All categories", "orange",  "black"))) + 
   #geom_text(aes(label = round(Mean_dev_gprop, digits = 2)), hjust = -3) +
   geom_linerange(aes(x = Category_Name, 
                      ymin = Mean_gprop_lower.ci,
                      ymax = Mean_gprop_upper.ci),
+                 color = ifelse(final_p$Category_Name == "Law & Government", "green2", ifelse(final_p$Category_Name == "All categories", "orange",  "black")),
                  lwd = 1) + 
   #ggtitle("Avg. absolute deviation of Gprop over all election years") +
   ylab("Avg. absolute deviation of Google Proportion from all four election years (Samples n = 10)") +
   xlab("Google Trends supercategories") +
   coord_flip()
+
+
+p + annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "Law & Government"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2) + 16,
+             label = paste0(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2)),
+             color = "black") +
+    annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "All categories"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2) + 28,
+             label = paste0(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2)),
+             color = "black")
+  
+
