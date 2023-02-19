@@ -641,6 +641,45 @@ cols2 <- c("MC1: GT" = "#e41a1c",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
+
+# Compare predictions across models
+# Table profide the number/percentage of models where MC1-3 beat polls
+
+model_comparison <- data_plot2 %>% 
+  select(model_time_interval, model_time_distance, datasource_weight, deviation_mean) %>%
+  group_by(datasource_weight) %>% 
+  mutate(id = row_number()) %>%
+  pivot_wider(names_from = datasource_weight, values_from =  deviation_mean) %>%
+  group_by(model_time_interval, model_time_distance) %>%
+  slice(1) %>% 
+  ungroup() %>%
+  mutate(id = row_number()) %>% # Recreate ID (aggregated)
+  mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+
+table(model_comparison$polls_vs_GT)
+prop.table(table(model_comparison$polls_vs_GT))
+table(model_comparison$polls_vs_GTE)
+prop.table(table(model_comparison$polls_vs_GTE))
+table(model_comparison$polls_vs_GTP)
+prop.table(table(model_comparison$polls_vs_GTP))
+
+# Comparison only for large width
+
+model_comparison_large_width <- model_comparison %>% 
+  filter(model_time_interval == "7862400s (~13 weeks)")
+table(model_comparison_large_width$polls_vs_GT)
+prop.table(table(model_comparison_large_width$polls_vs_GT))
+table(model_comparison_large_width$polls_vs_GTE)
+prop.table(table(model_comparison_large_width$polls_vs_GTE))
+table(model_comparison_large_width$polls_vs_GTP)
+prop.table(table(model_comparison_large_width$polls_vs_GTP))
+
+
+
+
+
 #Plot GT vs. Polls
 p2 <- ggplot(data_plot2,
              aes(x = GT_end_date,
