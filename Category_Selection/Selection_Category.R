@@ -538,11 +538,16 @@ p <- ggplot(final_p, aes(y = Mean_dev_gprop, x = fct_rev(fct_inorder(Category_Na
   coord_flip()
 
 
-p + annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "Law & Government"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2) + 16,
-             label = paste0(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2)),
+q <- p + annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "Law & Government"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2) + 42,
+             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2), "(Lower ci:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), "/","Upper ci:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), ")"),
              color = "black") +
-    annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "All categories"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2) + 28,
-             label = paste0(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2)),
+    annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "All categories"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2) + 53,
+             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2), "(Lower ci:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "All categories")], digits = 2), "/","Upper ci:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "All categories")], digits = 2), ")"),
              color = "black")
   
-
+ggsave(plot = q,
+       filename = "Selection_Category_Plot.png", # e.g. change to pdf
+       width = 8,
+       height = 4,
+       device = "png", # e.g. change to pdf
+       dpi = 300)
