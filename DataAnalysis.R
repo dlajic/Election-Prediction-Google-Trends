@@ -30,7 +30,7 @@ summary(df_cat)
 ######### Search terms + period
 #Bundestagswahlen: 26.09.2021; 24.09.2017; 22.09.2013; 27.09.2009; 18.09.2005
 # Specifying vertical X intercepts for election dates
-elec_vlines <- as.Date(c("2005-09-18", "2009-09-27", "2013-09-18", "2017-09-24", "2021-09-26"))
+elec_vlines <- as.Date(c("2009-09-27", "2013-09-18", "2017-09-24", "2021-09-26")) # "2005-09-18", 
 
 # CDU
 
@@ -42,21 +42,22 @@ termsCDU_df <- termsCDU_df %>%
 ###Used in Paper
 p1 <- ggplot(termsCDU_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
-  scale_y_continuous( breaks = seq(0,100, 10)) +
+  scale_y_continuous(breaks = seq(0,100, 10)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
   theme_minimal(base_size = 22) +
   ylab("Searches (100 = max. interest in time period/territory)") +
   xlab("Date") +
   labs(colour = "Search terms (below)") +
   scale_x_date(date_labels = paste0("%y", "'"),
-               date_breaks = "1 year") +
+               date_breaks = "1 year",
+               limits = as.Date(c("2006-01-01", "2021-12-01"))) +
   theme(legend.position = "top",
         axis.title.x=element_blank(),
         axis.title.y=element_blank()) +
   annotate(geom = "text", 
            label = paste0("Election: ", elec_vlines), 
            x=elec_vlines+60, 
-           y=rep(100, 5),
+           y=rep(100, length(elec_vlines)),
            angle = 90,
            hjust = 1,
            size = 5)
@@ -74,21 +75,22 @@ termsLinke_df <- termsLinke_df %>%
 ###Used in Paper
 p2 <- ggplot(termsLinke_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
   geom_line(size=0.5)  +
-  scale_y_continuous( breaks = seq(0,100, 10)) +
+  scale_y_continuous(breaks = seq(0,100, 10)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
   theme_minimal(base_size = 22) +
   ylab("Searches (100 = max. interest in time period/territory)") +
   xlab("Date") +
   labs(colour = "Search terms (below)") +
   scale_x_date(date_labels = paste0("%y", "'"),
-               date_breaks = "1 year") +
+               date_breaks = "1 year",
+               limits = as.Date(c("2006-01-01", "2021-12-01"))) +
   theme(legend.position = "top",
         axis.title.x=element_blank(),
         axis.title.y=element_blank()) +
   annotate(geom = "text", 
            label = paste0("Election: ", elec_vlines), 
            x=elec_vlines+60, 
-           y=rep(100, 5),
+           y=rep(100, length(elec_vlines)),
            angle = 90,
            hjust = 1,
            size = 5)
@@ -111,7 +113,7 @@ ggsave(plot = plot_searchterms,
        width = 14,
        height = 10,
        device = "png", # e.g. change to pdf
-       dpi = 300) 
+       dpi = 600) 
 
 
 
