@@ -12,7 +12,8 @@ p_load(gtrendsR,
        jsonlite,
        kableExtra,
        gt,
-       grid)
+       grid,
+       ggh4x)
 
 
 
@@ -297,7 +298,7 @@ linetypes <- c("SPD" = "solid",
 
 
 # COMPARISON: DATA WINDOWS ####
-## Figure 3: Comparison data windows ####
+## Figure 4: Comparison data windows ####
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
@@ -307,7 +308,12 @@ data_plot1 <- data_plot %>%
          model_time_interval_fac == "14 days" |
          model_time_interval_fac == "28 days" |
            model_time_interval_fac == "91 days") %>% 
-  ungroup()
+  ungroup() %>%
+  mutate(model_time_interval_fac = recode(model_time_interval_fac,
+                                          "7 days" = "Plot 1:\n7 days",
+                                          "14 days" = "Plot 2:\n14 days",
+                                          "28 days" = "Plot 3:\n28 days",
+                                          "91 days" = "Plot 4:\n91 days"))
 
 
 # ADD AVERAGE
@@ -354,10 +360,7 @@ p <- ggplot(data_plot1,
   geom_line() +
   theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
-             #vars(election_date), 
              scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
   scale_x_date(breaks = x_tick_labels$GT_end_date,
                labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
   ) +
@@ -367,7 +370,8 @@ p <- ggplot(data_plot1,
   scale_linetype_manual(values = linetypes) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.position="top",
-        axis.text.y.right = element_blank()) +
+        axis.text.y.right = element_blank(),
+        strip.background =element_rect(fill="white")) +
   ylab("Deviation on % scale\n(prediction error)") +
   xlab("Distance of data window [end date of window]") +
   labs(colour = "Party")
@@ -377,11 +381,11 @@ p <- ggplot(data_plot1,
 
 p
 ggsave(plot = p,
-       filename = "Figure_3_less_intervals.png", # e.g. change to pdf
+       filename = "Figure_4_less_intervals.png", # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 
 
@@ -440,13 +444,13 @@ ggsave(plot = p,
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 
 
 
 
-# Figure 3-table: Party variation ####
+# Figure 4-table: Party variation ####
 # Summarize across parties (variation across models)
 # Table basically shows for which models + parties there is the highest variation
 # of predictions across difference distances
@@ -522,7 +526,7 @@ ggsave(plot = p,
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 
 
@@ -594,7 +598,7 @@ modelsummary(models,
 
 
 
-# Figure 4: Comparison models ####
+# Figure 5: Comparison models ####
 # prediction error averaged across all parties for the GT data + other datasources
 
 # Create average prediction error (across all parties) ###
@@ -660,6 +664,7 @@ model_comparison <- data_plot2 %>%
          polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
          polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
 table(model_comparison$polls_vs_GT)
 prop.table(table(model_comparison$polls_vs_GT))
 table(model_comparison$polls_vs_GTE)
@@ -668,7 +673,7 @@ table(model_comparison$polls_vs_GTP)
 prop.table(table(model_comparison$polls_vs_GTP))
 
 # Comparison only for large width
-
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
 model_comparison_large_width <- model_comparison %>% 
   filter(model_time_interval == "7862400s (~13 weeks)")
 table(model_comparison_large_width$polls_vs_GT)
@@ -678,6 +683,14 @@ prop.table(table(model_comparison_large_width$polls_vs_GTE))
 table(model_comparison_large_width$polls_vs_GTP)
 prop.table(table(model_comparison_large_width$polls_vs_GTP))
 
+
+# Add Plot X labels
+data_plot2 <- data_plot2 %>%
+  mutate(model_time_interval_fac = recode(model_time_interval_fac,
+                                          "7 days" = "Plot 1:\n7 days",
+                                          "14 days" = "Plot 2:\n14 days",
+                                          "28 days" = "Plot 3:\n28 days",
+                                          "91 days" = "Plot 4:\n91 days"))
 
 
 
@@ -712,7 +725,8 @@ p2 <- ggplot(data_plot2,
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.position="top",
         axis.text.y.right = element_blank(),
-        plot.caption=element_text(hjust = 0)) +
+        plot.caption=element_text(hjust = 0),
+        strip.background =element_rect(fill="white")) +
   labs(x = "Enddate of interval\n(= distance)",
        y = "MeanDeviation in %\n(prediction error)",
        colour = "Model class",
@@ -725,18 +739,18 @@ p2 <- ggplot(data_plot2,
 p2
 
 ggsave(plot = p2,
-       filename = paste0("Figure_4_model_comparison_",i,".png"), # e.g. change to pdf
+       filename = paste0("Figure_5_model_comparison_",i,".png"), # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 }
 
 
 
 
-# Figure 5_appendix: Comparison elections ####
+# Figure 6: Comparison elections ####
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
            datasource_weight =="Last polls" |
@@ -751,7 +765,17 @@ data_plot2 <- data_plot %>%
   mutate(datasource_weight = recode(datasource_weight, 
                                     "GT" = "MC1: GT",
                                     "GT + election weight" = "MC2: GT + election weight",
-                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight")) %>%
+  mutate(election = factor(election, levels = c("18 Sep, 2005", 
+                                                "27 Sep, 2009", "22 Sep, 2013", "24 Sep, 2017", "26 Sep, 2021"),
+                           ordered = TRUE)) %>%
+  mutate(election = recode(election, 
+                           "18 Sep, 2005" = "18 Sep, 2005", 
+                           "27 Sep, 2009" = "Plot 1:\nElection\n27 Sep, 2009", 
+                           "22 Sep, 2013" = "Plot 2:\nElection\n22 Sep, 2013", 
+                           "24 Sep, 2017" = "Plot 3:\nElection\n24 Sep, 2017", 
+                           "26 Sep, 2021" = "Plot 4:\nElection\n26 Sep, 2021"))
+
 
 #  WHY NOT AGGREGATE DATASET?
 
@@ -765,9 +789,32 @@ x_tick_labels <- data_plot2 %>%
 
 
 
-# Count number of models
-# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+# Compare predictions across models
+# Table profide the number/percentage of models where MC1-3 beat polls
 
+model_comparison <- data_plot2 %>% 
+  select(model_time_interval, model_time_distance, election, datasource_weight, deviation_mean) %>%
+  group_by(datasource_weight, election) %>% 
+  mutate(id = row_number()) %>%
+  pivot_wider(names_from = datasource_weight, values_from =  deviation_mean) %>%
+  group_by(model_time_interval, model_time_distance, election) %>%
+  slice(1) %>% 
+  ungroup() %>%
+  group_by(election) %>%
+  arrange(election, model_time_interval, model_time_distance) %>%
+  mutate(id = row_number()) %>% # Recreate ID (aggregated)
+  ungroup() %>%
+  mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
+table(model_comparison$election, model_comparison$polls_vs_GT)
+prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
+table(model_comparison$election, model_comparison$polls_vs_GTE)
+prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
+table(model_comparison$election, model_comparison$polls_vs_GTP)
+prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
 
 
 
@@ -776,6 +823,8 @@ cols2 <- c("MC1: GT" = "#e41a1c",
            "Last polls" = "black",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
+
+add_election_word <- function(x){paste0("Election:\n",x)}
 
 #Plot GT vs. Polls
 p2 <- ggplot(data_plot2,
@@ -795,24 +844,17 @@ p2 <- ggplot(data_plot2,
   geom_point(size = 0.5) +
   geom_line() +
   theme_minimal(base_size = 22) +
-  # scale_x_date(breaks = x_tick_labels$GT_end_date,
-  #              labels = paste0(x_tick_labels$model_time_distance, 
-  #                              " day(s)\n[", 
-  #                              x_tick_labels$GT_end_date, "]")
-  # ) +
-  
-  
-
-    facet_grid2(rows = vars(election_date), 
+      facet_grid2(rows = vars(election), 
              scales = "free",
-             independent = "x") +
+             independent = "x") + # labeller = labeller(election = add_election_word)
   scale_y_continuous(sec.axis = dup_axis(
-    name = "Width of data window")) +
+    name = "Election")) +
   scale_color_manual(values = cols2) + 
   theme(axis.text.x = element_text(angle = 30, hjust = 1),
         legend.position="top",
         axis.text.y.right = element_blank(),
-        plot.caption=element_text(hjust = 0)) +
+        plot.caption=element_text(hjust = 0),
+        strip.background =element_rect(fill="white")) +
   labs(x = "Enddate of interval\n(= distance)",
        y = "MeanDeviation in %\n(prediction error)",
        colour = "Model class",
@@ -820,15 +862,14 @@ p2 <- ggplot(data_plot2,
        title = paste0("Election: All elections"))
 
 
-
 p2
 
 ggsave(plot = p2,
-       filename = paste0("Figure_5_election_comparison.png"), # e.g. change to pdf
+       filename = paste0("Figure_6_election_comparison.png"), # e.g. change to pdf
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 500)  
 
 
 
@@ -927,7 +968,7 @@ ggsave(plot = p2,
        width = 14,
        height = 14,
        device = "png", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 
 
@@ -1143,7 +1184,7 @@ ggsave(plot = p,
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
-       dpi = 300)  
+       dpi = 600)  
 
 
 ######################### Create average prediction error (across all parties) ########################
@@ -1200,7 +1241,7 @@ ggsave(plot = p2,
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       dpi = 600)
 
 
 #### Plot average Deviation all Models
@@ -1254,7 +1295,7 @@ ggsave(plot = p3,
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       dpi = 600)
 
 
 
@@ -1309,7 +1350,7 @@ ggsave(plot = p4,
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       dpi = 600)
 
 
 
@@ -1383,7 +1424,7 @@ ggsave(plot = p5,
        width = 14,
        height = 10,
        device = "pdf", # e.g. change to pdf
-       dpi = 300)
+       dpi = 600)
 
 
 
