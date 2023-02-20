@@ -41,7 +41,7 @@ termsCDU_df <- termsCDU_df %>%
 
 ###Used in Paper
 p1 <- ggplot(termsCDU_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
-  geom_line(size=0.5)  +
+  geom_line(size=1)  +
   scale_y_continuous(breaks = seq(0,100, 10)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
   theme_minimal(base_size = 22) +
@@ -74,7 +74,7 @@ termsLinke_df <- termsLinke_df %>%
 
 ###Used in Paper
 p2 <- ggplot(termsLinke_df, aes(x=date, y=hits, group=keyword, col=keyword)) + 
-  geom_line(size=0.5)  +
+  geom_line(size=1)  +
   scale_y_continuous(breaks = seq(0,100, 10)) +
   geom_vline(xintercept = elec_vlines, col= "black", linetype="dotted", size = 1) +
   theme_minimal(base_size = 22) +
