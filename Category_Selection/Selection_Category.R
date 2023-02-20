@@ -525,29 +525,29 @@ p <- ggplot(final_p, aes(y = Mean_dev_gprop, x = fct_rev(fct_inorder(Category_Na
   scale_y_continuous(limits = c(0, 135), breaks = seq(0,135,5)) +
   geom_point(aes(x = fct_rev(fct_inorder(Category_Name)), 
                  y = Mean_dev_gprop),
-             color = ifelse(final_p$Category_Name == "Law & Government", "green2", ifelse(final_p$Category_Name == "All categories", "orange",  "black"))) + 
+             color = ifelse(final_p$Category_Name == "Law & Government", "green3", ifelse(final_p$Category_Name == "All categories", "orange",  "black"))) + 
   #geom_text(aes(label = round(Mean_dev_gprop, digits = 2)), hjust = -3) +
   geom_linerange(aes(x = Category_Name, 
                      ymin = Mean_gprop_lower.ci,
                      ymax = Mean_gprop_upper.ci),
-                 color = ifelse(final_p$Category_Name == "Law & Government", "green2", ifelse(final_p$Category_Name == "All categories", "orange",  "black")),
+                 color = ifelse(final_p$Category_Name == "Law & Government", "green3", ifelse(final_p$Category_Name == "All categories", "orange",  "black")),
                  lwd = 1) + 
   #ggtitle("Avg. absolute deviation of Gprop over all election years") +
-  ylab("Avg. absolute deviation of Google Proportion from all four election years (Samples n = 10)") +
+  ylab("Avg. absolute percentage deviation of the Google Proportion from all four election years (Samples n = 10)") +
   xlab("Google Trends supercategories") +
   coord_flip()
 
 
-q <- p + annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "Law & Government"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2) + 42,
-             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2), "(Lower ci:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), "/","Upper ci:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), ")"),
+q <- p + annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "Law & Government"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2) + 41,
+             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "Law & Government")], digits =2), "(Lower 95% CI:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), "/","Upper 95% CI:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "Law & Government")], digits = 2), ")"),
              color = "black") +
-    annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "All categories"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2) + 53,
-             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2), "(Lower ci:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "All categories")], digits = 2), "/","Upper ci:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "All categories")], digits = 2), ")"),
+    annotate(geom = "text", x = final_p$Category_Name[final_p$Category_Name == "All categories"], y = round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2) + 52,
+             label = paste(round(final_p$Mean_dev_gprop[which(final_p$Category_Name == "All categories")], digits =2), "(Lower 95% CI:",round(final_p$Mean_gprop_lower.ci[which(final_p$Category_Name == "All categories")], digits = 2), "/","Upper 95% CI:" , round(final_p$Mean_gprop_upper.ci[which(final_p$Category_Name == "All categories")], digits = 2), ")"),
              color = "black")
   
 ggsave(plot = q,
        filename = "Selection_Category_Plot.png", # e.g. change to pdf
-       width = 8,
-       height = 4,
+       width = 10,
+       height = 5,
        device = "png", # e.g. change to pdf
        dpi = 300)

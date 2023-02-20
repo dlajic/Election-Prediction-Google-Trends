@@ -124,32 +124,32 @@ mem2 <- rbind(get(names[1]), get(names[2]), get(names[3]), get(names[4]), get(na
       get(names[6]), get(names[7]), get(names[8]), get(names[9]), get(names[10]))
 
 
-# compute mean, sd, ci intervals over ten datasets for hits and Gprop
-plot21 <- mem2 %>%
-  rename(party=keyword) %>%
-  group_by(date, party) %>%
-  summarize(Mean_hits = mean(hits), hits_sum = sum(hits), SD = sd(hits)) %>% # Same as before but diff. code
-  mutate(Gprop = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
-  mutate(Mean_hits_lower.ci = Mean_hits - 1.96*(SD/sqrt(n())),
-         Mean_hits_upper.ci = Mean_hits + 1.96*(SD/sqrt(n())),
-         Gprop_lower.ci =  Gprop - 1.96*(SD/sqrt(n())),
-         Gprop_upper.ci =  Gprop + 1.96*(SD/sqrt(n()))) %>%
-  mutate(party = as.factor(party)) %>%
-  filter(party != "Sonstige")
-
-
-# hits (grid)
-grid_hits <-  plot21 %>%
-            filter(date > "2021-08-01") %>%
-            ggplot(aes(x = date, y = Mean_hits, group = party, color = party)) +
-            geom_line(size = 1) +
-            geom_ribbon(aes(ymin = Mean_hits_lower.ci, ymax = Mean_hits_upper.ci,  fill = party), alpha = 0.4) +
-            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
-            facet_grid(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
-            ggtitle("Google Trends Sample Error 2021") +
-            labs(y = "Mean of hits")
-
-grid_hits
+## compute mean, sd, ci intervals over ten datasets for hits and Gprop
+#plot21 <- mem2 %>%
+#  rename(party=keyword) %>%
+#  group_by(date, party) %>%
+#  summarize(Mean_hits = mean(hits), hits_sum = sum(hits), SD = sd(hits)) %>% # Same as before but diff. code
+#  mutate(Gprop = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+#  mutate(Mean_hits_lower.ci = Mean_hits - 1.96*(SD/sqrt(n())),
+#         Mean_hits_upper.ci = Mean_hits + 1.96*(SD/sqrt(n())),
+#         Gprop_lower.ci =  Gprop - 1.96*(SD/sqrt(n())),
+#         Gprop_upper.ci =  Gprop + 1.96*(SD/sqrt(n()))) %>%
+#  mutate(party = as.factor(party)) %>%
+#  filter(party != "Sonstige")
+#
+#
+## hits (grid)
+#grid_hits <-  plot21 %>%
+#            filter(date > "2021-08-01") %>%
+#            ggplot(aes(x = date, y = Mean_hits, group = party, color = party)) +
+#            geom_line(size = 1) +
+#            geom_ribbon(aes(ymin = Mean_hits_lower.ci, ymax = Mean_hits_upper.ci,  fill = party), alpha = 0.4) +
+#            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+#            facet_grid(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
+#            ggtitle("Google Trends Sample Error 2021") +
+#            labs(y = "Mean of hits")
+#
+#grid_hits
 
 # gprop (grid)
 grid_gprop <- plot21 %>%
@@ -157,58 +157,61 @@ grid_gprop <- plot21 %>%
             ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
             geom_line(size = 1) +
             geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.1) +
-            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
             facet_grid(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
-            ggtitle("Google Trends Sample Error 2021") +
-            labs(y = "Mean of Gprop")
+            labs(y = "Mean of Google Proportion over samples and 95% CI", x = "Time span", color = "Party", fill= "Party") + 
+            theme(legend.position="top", legend.direction = "horizontal")+
+            guides(color = guide_legend(nrow = 1)) + 
+            scale_x_date(date_breaks = "weeks" , date_labels = "%b %d")
+  
 
 grid_gprop
 
-# hits (wrap)
-wrap_hits <- plot21 %>% 
-            filter(date > "2021-08-01") %>%
-            ggplot(aes(x = date, y = Mean_hits, group = party, color = party)) +
-            geom_line(size = 1) +
-            geom_ribbon(aes(ymin = Mean_hits_lower.ci, ymax = Mean_hits_upper.ci,  fill = party), alpha = 0.4) +
-            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
-            facet_wrap(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
-            ggtitle("Google Trends Sample Error 2021") +
-            labs(y = "Mean of hits")
-
-wrap_hits
-
-# gprop (wrap)
-wrap_gprop <- plot21 %>% 
-            filter(date > "2021-08-01") %>%
-            ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
-            geom_line(size = 1) +
-            geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.4) +
-            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
-            facet_wrap(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
-            ggtitle("Google Trends Sample Error 2021") +
-            labs(y = "Mean of Gprop")
-
-wrap_gprop
-
-
-# gprop (all together)
-all_together_gprop <- plot21 %>% 
-  filter(date > "2021-08-01") %>%
-  ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
-  geom_line(size = 1) +
-  geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.4) +
-  scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow2","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
-  ggtitle("Google Trends Sample Error 2021") +
-  labs(y = "Mean of Gprop")
-
-all_together_gprop
-
-
+## hits (wrap)
+#wrap_hits <- plot21 %>% 
+#            filter(date > "2021-08-01") %>%
+#            ggplot(aes(x = date, y = Mean_hits, group = party, color = party)) +
+#            geom_line(size = 1) +
+#            geom_ribbon(aes(ymin = Mean_hits_lower.ci, ymax = Mean_hits_upper.ci,  fill = party), alpha = 0.4) +
+#            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+#            facet_wrap(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
+#            ggtitle("Google Trends Sample Error 2021") +
+#            labs(y = "Mean of hits")
+#
+#wrap_hits
+#
+## gprop (wrap)
+#wrap_gprop <- plot21 %>% 
+#            filter(date > "2021-08-01") %>%
+#            ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
+#            geom_line(size = 1) +
+#            geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.4) +
+#            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+#            facet_wrap(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
+#            ggtitle("Google Trends Sample Error 2021") +
+#            labs(y = "Mean of Gprop")
+#
+#wrap_gprop
+#
+#
+## gprop (all together)
+#all_together_gprop <- plot21 %>% 
+#  filter(date > "2021-08-01") %>%
+#  ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
+#  geom_line(size = 1) +
+#  geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.4) +
+#  scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+#  ggtitle("Google Trends Sample Error 2021") +
+#  labs(y = "Mean of Gprop")
+#
+#all_together_gprop
 
 
-ggsave(plot = all_together_gprop,
-       filename = "Variation_GT_Data_all_together_gprop.png", # e.g. change to pdf
-       width = 14,
-       height = 10,
+
+
+ggsave(plot = grid_gprop,
+       filename = "Variation_GT_Data_grid_gprop.png", # e.g. change to pdf
+       width = 10,
+       height = 8,
        device = "png", # e.g. change to pdf
        dpi = 300)  
