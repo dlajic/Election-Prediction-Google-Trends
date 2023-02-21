@@ -22,11 +22,17 @@ p_load(gtrendsR,
 
 # Figure 1: Search terms ####
 
-load(file = "./Data_SearchTerms/2023-01-22 14-33-21.RData")
+# Collect data
+# termsCDU <- gtrends(keyword=c("CDU", "CSU", "Angela Merkel", "Christlich demokratische Union","Armin Laschet"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+# termsLinke <- gtrends(keyword=c("Linke", "Die Linke","Die Linken"), geo= "DE" , category=19, time = "2004-01-01 2021-12-31", gprop="web")
+# save(termsCDU, file = paste0("termsCDU_", gsub(":|\\s", "_", Sys.time()), ".RData"))
+# save(termsLinke, file = paste0("termsLinke_", gsub(":|\\s", "_", Sys.time()), ".RData"))
 
-# display all available category numbers
-df_cat <- data("categories")
-summary(df_cat)
+# Load data
+load(file = "termsCDU_2023-02-21_12_18_40.RData")
+load(file = "termsLinke_2023-02-21_12_18_40.RData")
+
+
 
 ######### Search terms + period
 #Bundestagswahlen: 26.09.2021; 24.09.2017; 22.09.2013; 27.09.2009; 18.09.2005
