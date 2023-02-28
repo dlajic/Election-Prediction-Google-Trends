@@ -155,8 +155,10 @@ grid_gprop <- plot21 %>%
   filter(date > "2021-08-01") %>%
   ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
   geom_line(size = 1) +
-  geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.1) +
-  scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+  geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), 
+              alpha = 0.1,
+              linetype = "dashed") +
+  scale_color_manual(values = c("AFD" = "blue", "CDU" = "black", "FDP" = "orange","Grüne" = "green", "Linke" = "purple", "SPD" = "red")) +
   facet_grid(facets = vars(party)) + # , scales = "free"coord_cartesian(ylim = c(0,25)) +
   labs(y = "Mean of Google Proportion over samples and 95% CI", x = "Time span", color = "Party", fill= "Party") + 
   theme_minimal(base_size = 22) +
