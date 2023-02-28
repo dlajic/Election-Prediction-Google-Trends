@@ -564,7 +564,7 @@ q <- p + annotate(geom = "text",
            hjust = 0)
 
 ggsave(plot = q,
-       filename = "../../Figure_A1_Selection_Category_Plot.png", # e.g. change to pdf
+       filename = "Figure_A1_Selection_Category_Plot.png", # e.g. change to pdf
        width = 14,
        height = 10,
        device = "png", # e.g. change to pdf
