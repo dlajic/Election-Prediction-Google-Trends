@@ -152,17 +152,20 @@ plot21 <- mem2 %>%
 
 # gprop (grid)
 grid_gprop <- plot21 %>%
-            filter(date > "2021-08-01") %>%
-            ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
-            geom_line(size = 1) +
-            geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.1) +
-            scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
-            facet_grid(facets = vars(party), scales = "free") + #coord_cartesian(ylim = c(0,25)) +
-            labs(y = "Mean of Google Proportion over samples and 95% CI", x = "Time span", color = "Party", fill= "Party") + 
-            theme(legend.position="top", legend.direction = "horizontal")+
-            guides(color = guide_legend(nrow = 1)) + 
-            scale_x_date(date_breaks = "weeks" , date_labels = "%b %d")
-  
+  filter(date > "2021-08-01") %>%
+  ggplot(aes(x = date, y = Gprop, group = party, color = party)) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = Gprop_lower.ci, ymax = Gprop_upper.ci,  fill = party), alpha = 0.1) +
+  scale_color_manual(values = c("AFD" = "deepskyblue1", "CDU" = "black", "FDP" = "yellow","Grüne" = "green3", "Linke" = "purple", "SPD" = "red")) +
+  facet_grid(facets = vars(party)) + # , scales = "free"coord_cartesian(ylim = c(0,25)) +
+  labs(y = "Mean of Google Proportion over samples and 95% CI", x = "Time span", color = "Party", fill= "Party") + 
+  theme_minimal(base_size = 22) +
+  theme(legend.position="top", 
+        legend.direction = "horizontal",
+        panel.spacing = unit(2, "lines"))+
+  guides(color = guide_legend(nrow = 1)) + 
+  scale_x_date(date_breaks = "weeks" , date_labels = "%b %d")
+
 
 grid_gprop
 
@@ -209,8 +212,8 @@ grid_gprop
 
 
 ggsave(plot = grid_gprop,
-       filename = "Variation_GT_Data_grid_gprop.png", # e.g. change to pdf
-       width = 10,
-       height = 8,
+       filename = "../Figure_A3_Variation_GT_Data.png", # e.g. change to pdf
+       width = 14,
+       height = 14,
        device = "png", # e.g. change to pdf
        dpi = 300)  
