@@ -51,14 +51,13 @@ replace_searchterms <- function(x){
 
 # Datasets with category ####
 #all Datsets
-dir <- setwd("./Data")
-df_names <- list.files(dir, full.names = FALSE)
-df <- list.files(dir, full.names = TRUE)
-
-
+setwd("./Data")
+df <- list.files(full.names = FALSE)
 
 years <- c("_05", "_09", "_13", "_17", "_21")
 years2 <- c("2005", "2009", "2013", "2017", "2021")
+
+
 
 
 for (y in 1:length(df)){ # 
@@ -125,17 +124,17 @@ mem2 <- rbind(get(names[1]), get(names[2]), get(names[3]), get(names[4]), get(na
 
 
 ## compute mean, sd, ci intervals over ten datasets for hits and Gprop
-#plot21 <- mem2 %>%
-#  rename(party=keyword) %>%
-#  group_by(date, party) %>%
-#  summarize(Mean_hits = mean(hits), hits_sum = sum(hits), SD = sd(hits)) %>% # Same as before but diff. code
-#  mutate(Gprop = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
-#  mutate(Mean_hits_lower.ci = Mean_hits - 1.96*(SD/sqrt(n())),
-#         Mean_hits_upper.ci = Mean_hits + 1.96*(SD/sqrt(n())),
-#         Gprop_lower.ci =  Gprop - 1.96*(SD/sqrt(n())),
-#         Gprop_upper.ci =  Gprop + 1.96*(SD/sqrt(n()))) %>%
-#  mutate(party = as.factor(party)) %>%
-#  filter(party != "Sonstige")
+plot21 <- mem2 %>%
+  rename(party=keyword) %>%
+  group_by(date, party) %>%
+  summarize(Mean_hits = mean(hits), hits_sum = sum(hits), SD = sd(hits)) %>% # Same as before but diff. code
+  mutate(Gprop = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
+  mutate(Mean_hits_lower.ci = Mean_hits - 1.96*(SD/sqrt(n())),
+         Mean_hits_upper.ci = Mean_hits + 1.96*(SD/sqrt(n())),
+         Gprop_lower.ci =  Gprop - 1.96*(SD/sqrt(n())),
+         Gprop_upper.ci =  Gprop + 1.96*(SD/sqrt(n()))) %>%
+  mutate(party = as.factor(party)) %>%
+  filter(party != "Sonstige")
 #
 #
 ## hits (grid)
