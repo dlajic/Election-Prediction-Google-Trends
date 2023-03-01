@@ -1,4 +1,8 @@
-
+library(pacman)
+p_load(gtrendsR,
+       ggplot2,
+       tidyverse,
+       tidyr)
 
 # Load data ####
 load(file  = "./Environments/Env_Merged_syntax_NEU_all_Polls.RData")
@@ -190,14 +194,14 @@ ggsave(plot = p,
 ###Plot GT vs. Polls
 
 data_plot2 <- data_plot %>%
-  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls" |
+  filter(datasource_weight =="GT" | datasource_weight =="Last polls" |
          datasource_weight =="Allens" | datasource_weight =="Forsa" | datasource_weight =="Kantar" |
          datasource_weight == "FGW"
   ) %>%
   group_by(model_name) %>% 
   mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE))
 
-cols2 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue",
+cols2 <- c("GT" = "red", "Last polls" = "blue",
            "Allens" = "darkmagenta", "Forsa" = "darkgoldenrod1", "Kantar" = "cyan", "FGW" = "chartreuse")
 
 #Plot GT vs. Polls
@@ -228,11 +232,12 @@ p2 <- ggplot(data_plot2,
                               "Date: ", x_labels_date
                )
   ) +
-  scale_color_manual(values = cols2) + 
+  scale_color_manual(labels = c("GT", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"), values = cols2) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight")
+  labs(colour = "Datasource") + 
+  theme(legend.position="top")
 #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 
@@ -248,14 +253,14 @@ ggsave(plot = p2,
 
 #### Plot average Deviation all Models
 data_plot3 <- data_plot %>%
-  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="Only polls" | datasource_weight =="Last polls" | datasource_weight =="GT + weekly polls weight" |
-           datasource_weight =="Allens" | datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW"
+  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Last polls" |
+           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
   ) %>%
   group_by(model_name) %>% 
   mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
 
-cols3 <- c("GT" = "red", "Only polls" = "black", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
-           "Last polls" = "blue", "Allens" = "peachpuff", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred")
+cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
+           "Last polls" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
 
 
 p3 <- ggplot(data_plot3,
@@ -285,12 +290,13 @@ p3 <- ggplot(data_plot3,
                               "Date: ", x_labels_date
                )
   ) +
-  scale_color_manual(values = cols3) + 
+  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight") + 
-  ylim(0,10)
+  labs(colour = "Datasource") + 
+  ylim(0,10) + 
+  theme(legend.position="top")
 #+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 p3
@@ -307,13 +313,13 @@ ggsave(plot = p3,
 ##### comparison weekly weighting
 data_plot4 <- data_plot %>%
   group_by(model_name) %>% 
-  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls" | datasource_weight =="GT + weekly polls weight" |
-           datasource_weight =="Allens" | datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW"
+  filter(datasource_weight =="GT" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Last polls" |
+           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
   ) %>%
   mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
 
-cols4 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue", "GT + weekly polls weight" = "green",
-           "Allens" = "darkmagenta", "Forsa" = "darkgoldenrod1", "Kantar" = "cyan", "FGW" = "springgreen4")
+cols4 <- c("GT" = "red", "GT + weekly polls weight" = "green", 
+           "Last polls" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
 
 
 p4 <- ggplot(data_plot4,
@@ -343,12 +349,13 @@ p4 <- ggplot(data_plot4,
                               "Date: ", x_labels_date
                )
   ) +
-  scale_color_manual(values = cols4) + 
+  scale_color_manual(labels = c("GT", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"), values = cols4) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
   labs(colour = "datasource_weight") + 
-  ylim(0,10)
+  ylim(0,10)+ 
+  theme(legend.position="top")
 #+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
 
 p4
@@ -437,10 +444,6 @@ ggsave(plot = p5,
        height = 10,
        device = "png", # e.g. change to pdf
        dpi = 550)
-
-
-
-
 
 
 
