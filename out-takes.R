@@ -16,3 +16,41 @@
 
 # cols <- c(cols, c("Av." = "darkgray"))
 # linetypes <- c(linetypes, c("Av." = "dashed"))
+
+
+
+
+## Add unique model name
+#data_models <- data_models %>%
+#mutate(model_name  = paste("M", 
+#                           model_id, 
+#                           year(election_date), 
+#                           "int",
+#                           as.character(time_length(model_time_interval, unit = "days")),
+#                           "days",
+#                           "dist",
+#                           as.character(time_length(model_time_distance, unit = "days")),
+#                           "days",
+#                           gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+#                           sep = "_"))
+
+
+
+
+
+
+
+
+# data_predictions$datasource_weight <-
+#   factor(data_predictions$datasource_weight) %>%
+#   mutate()
+
+
+
+
+# now with more Datasets Confidence Intervals ###
+
+
+# data_predictions$datasource_weight <-
+#   factor(data_predictions$datasource_weight) %>%
+#   mutate()
