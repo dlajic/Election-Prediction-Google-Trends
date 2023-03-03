@@ -10,7 +10,9 @@ p_load(gtrendsR,
        rvest,
        xml2,
        stringr,
-       data.table)
+       data.table,
+       kableExtra,
+       knitr)
 
 
 ### Function: Replace search terms ####
@@ -51,7 +53,7 @@ replace_searchterms <- function(x){
 
 # Datasets with category ####
 #all Datsets
-dir <- setwd("C:/Users/deanl/Desktop/UniMannheim/ComSocScience/Publikation/Election-Prediction-Google-Trends/Data_raw_table")
+dir <- setwd("./Data_raw_table")
 df_names <- list.files(dir, full.names = FALSE)
 df <- list.files(dir, full.names = TRUE)
 
@@ -76,7 +78,6 @@ data_comparisons <- data_comparisons %>% mutate_at(2:14, list)
 
 #creating a list where the results of Model1_09 of every Dataset is stored, to compare these
 
-
 for (y in 1:length(df)){ # 
   #y <- 1
   
@@ -100,10 +101,6 @@ for (y in 1:length(df)){ #
   }}
 
 
-
-
-
-
 # LOGIC 1 (dataset selection)
   # Compare datasets in Rdata with those of Rdata in previous row
 
@@ -125,11 +122,6 @@ for(y in 2:nrow(data_comparisons)){ #
   
 data_comparisons <- data_comparisons %>% 
   select(sort(names(data_comparisons))) # Sort variable names
-
-
-
-
-
 
 
 
@@ -177,20 +169,29 @@ for(i in datasets_we_can_use){
 }
 
 
-
-
-
-
-
 # compareDF::compare_df(
 #   data.frame(data_comparisons[[26]][[2]]),
 #   data.frame(data_comparisons[[26]][[1]]))
 
 
 # Table: Datasets ####
+datasets_table <- data_comparisons2 %>% 
+  select(name, check, no_dataset_identical, how_many_dataset_identical) %>% 
+  filter(no_dataset_identical==TRUE)
+# GOOD = ALL datasets in .Rdata in this row are different from the .Rdata in the row before
 
-datasets_good %>%
-  select(name) %>%
+# Filter out one RDate per day
+
+datasets_table$date <- as.Date(str_extract(datasets_table$name, 
+                                          pattern = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"))
+
+datasets_table$time <- sub(".+? ", "", datasets_table$name)
+datasets_table$time <- sub(".RData", "", datasets_table$time)
+datasets_table$used <- ifelse(datasets_table$name %in% datasets_good$name, "used", "-")
+
+
+datasets_table %>%
+  select(name, date, time, used) %>%
   #group_by(election_date) %>%
   #filter(row_number()==1) %>%
   #select(election_date, GT_keywords) %>%
@@ -199,12 +200,10 @@ datasets_good %>%
   #rename("Date of election" = "election_date",
   #       "Final search queries" = "GT_keywords") %>%
   kable(format = "html",
-        caption = "Table 1: Overview different Datasets", 
+        caption = "Table 5: Overview different Datasets", 
         table.attr = "style = \"color: black;\"") %>%
-  kable_classic(full_width = F)
-  #save_kable("table_22.html")
-
-
+  kable_classic(full_width = F) #%>%
+  #save_kable("table_5_differentDatasets.html")
 
 
 
