@@ -68,17 +68,19 @@ p_load(gtrendsR,
 load(file  = "./Environments/Env_Merged_syntax_NEU 2023-01-22_09-06-42.RData")
 
 # Delete unneccessary objects
-rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions", "data_comparisons2"))) 
+rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
 ```
 
 ```{r data-management}
+
+# DELETE THIS CHUNK WHEN CODE STEPS ARE INCLUDED IN ENVIRONMENT ABOVE
 
 ## Data management ####
 # delete 2005 rows (just needed for Model2_2009)
 data_models <- data_models %>% 
   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
 
-#And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
+#And again renaming since first id´s are missing (deleted 2005´s)
 ## Add model index/number
 data_models <- data_models %>% 
   mutate(model_id = row_number()) %>%
@@ -1543,8 +1545,11 @@ Table A1 shows the collected datasets across a day that were different. We colle
 #| tbl-colwidths: auto
 
 
+  data_GT_data_set_comparisons <- read_csv("data_GT_data_set_comparisons.csv")
 
-datasets_table <- data_comparisons2 %>% 
+ data_GT_datasets_good <- read_csv("data_GT_datasets_good.csv")
+
+datasets_table <- data_GT_data_set_comparisons %>% 
   select(name, check, no_dataset_identical, how_many_dataset_identical) %>% 
   filter(no_dataset_identical==TRUE)
 # GOOD = ALL datasets in .Rdata in this row are different from the .Rdata in the row before
@@ -1556,7 +1561,7 @@ datasets_table$date <- as.Date(str_extract(datasets_table$name,
 
 datasets_table$time <- sub(".+? ", "", datasets_table$name)
 datasets_table$time <- sub(".RData", "", datasets_table$time)
-datasets_table$used <- ifelse(datasets_table$name %in% datasets_good$name, "used", "-")
+datasets_table$used <- ifelse(datasets_table$name %in% data_GT_datasets_good$name, "used", "-")
 
 datasets_table %>%
   select(name, date, time, used) %>%
