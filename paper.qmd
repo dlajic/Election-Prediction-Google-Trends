@@ -2967,6 +2967,14 @@ ggplot(data_plot3,
 
 
 
+# Setup of data collection and replication information
+
+* Step 1: Collect GT Data
+* Step 2: Collect polling data
+* Step 3: Generate predictions
+* Step 4: Generate paper
+
+
 
 
 # References
