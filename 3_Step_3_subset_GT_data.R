@@ -1,6 +1,10 @@
 # File is used to compare GT datasets and extract subset
 # of datasets that are not identical (both with and without category)
 
+
+# Packages ####
+
+
 ### Function: Replace search terms ####
 replace_searchterms <- function(x){
   
@@ -134,9 +138,13 @@ replace_searchterms <- function(x){
   # no_dataset_identical = GOOD: Non of the datasets in RData is the same as RData in previous row
   # how_many_dataset_identical = Counts how many of the datassets in RData are the same as in the previous row
 
-
+   
   #View(data_comparisons %>% select(name, contains("identical"), check, no_dataset_identical, how_many_dataset_identical))
 
+  # Save data_comparisons2
+  write_csv(data_comparisons2, "data_GT_data_set_comparisons.csv")
+
+  
 
   # Subset all datasets that are not identical
   datasets_good <- data_comparisons2 %>% 
@@ -154,6 +162,9 @@ replace_searchterms <- function(x){
     group_by(date) %>%
     filter(row_number()==1) %>%
     filter(date < "2022-12-11" & date >= "2022-12-01")
+  
+  
+  write_csv(datasets_good, "data_GT_datasets_good.csv")
   
   datasets_we_can_use <- datasets_good$name
   
