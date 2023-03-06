@@ -4,12 +4,12 @@
 
 
 # Scheduler ####
-  ## Run this code in the console(and the script will run every hour)
+  ## Run this code in the console (and the script will run every hour)
   ## Run every day at the same time on 09:10, starting from tomorrow on
   ## Mark: change the format of startdate to your locale if needed (e.g. US: %m/%d/%Y)
     # library(taskscheduleR)
     # taskscheduler_create(taskname = "scheduler_collect_gt_data", 
-    #                      rscript = "scheduler_collect_data",
+    #                      rscript = "2_Step_2_collect_GT_data.R",
     #                      schedule = "HOUR", 
     #                      starttime = "14:00", 
     #                      modifier = 1)
