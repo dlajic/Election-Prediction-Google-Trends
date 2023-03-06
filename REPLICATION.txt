@@ -1,0 +1,4 @@
+1_Step_1_collect_polling_data.R
+
+- Collects polling data from different polling institutes (Infratest Dimap is used for main comparison)
+- Creates "data_polls_....csv" files that contain polling data.

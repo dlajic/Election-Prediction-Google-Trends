@@ -25,10 +25,12 @@ library(gsubfn)
   # assign names of parties to columns and delete first row of data set (contains names of political parties)
   colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke")
   infra_dimap_all <- infra_dimap_all[-1,]
-  # save(infra_dimap_all, file = "data_polls_infratest_dimap.RData")
+  # write_csv(infra_dimap_all, file = "data_polls_infratest_dimap.csv")
 
-
-
+  
+  
+  
+  
 
 # 2 Infratest Dimap: 6 parties with Sonstige ####
   # Scraping survey data from the infratest dimap website
@@ -56,7 +58,7 @@ library(gsubfn)
   infra_dimap_all <- infra_dimap_all %>%
     mutate(Date = as.Date(Date, format = "%d.%m.%y")) %>%
     filter(Date <= "2022-08-04")
-  #save(infra_dimap_all, file = "data_polls_infratest_dimap_sonstige.RData")
+  #write_csv(infra_dimap_all, file = "data_polls_infratest_dimap_sonstige.csv")
   
   
   
@@ -227,7 +229,7 @@ library(gsubfn)
   
   
   
-  # save(Allens_all, file = "data_polls_allens.RData")
+  # write_csv(Allens_all, file = "data_polls_allens.csv")
   
   
 
@@ -410,7 +412,7 @@ library(gsubfn)
            AFD = AfD)
   
 
-  # save(FGW_all, file = "data_polls_fgw.RData")
+  # write_csv(FGW_all, file = "data_polls_fgw.csv")
   
   
   
@@ -505,7 +507,7 @@ library(gsubfn)
            Linke = LINKE,
            AFD = AfD)
   
-  # save(Forsa_all, file = "data_polls_forsa.RData")
+  # write_csv(Forsa_all, file = "data_polls_forsa.csv")
 
   
   
@@ -611,7 +613,7 @@ library(gsubfn)
   
   
 
-  # save(Kantar_all, file = "data_polls_kantar.RData")
+  # write_csv(Kantar_all, file = "data_polls_kantar.csv")
   
   
   
