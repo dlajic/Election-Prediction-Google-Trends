@@ -1,21 +1,20 @@
 # Load packages ####
   # install.packages("remotes"); remotes::install_github("Ajfrick/ajfhelpR")
 
+
 library(pacman)
 p_load(gtrendsR,
        ggplot2,
        tidyverse,
        tidyr,
-       rvest,
        xml2,
        data.table,
        patchwork,
        lubridate,
-       ajfhelpR,
-       jsonlite)
+       ajfhelpR)
 
 
-setwd("/cloud/project")
+
 
 # Dataset: Election results ####
 # Creates a list
@@ -37,38 +36,12 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 
-
-
-# Scraping survey data from the infratest dimap website
-
-
-# To be able to weight Google trends data with data from opinion polls,
-# polling results of infratest dimap polling institute were scraped from their website on 5th August 2022
-
-# url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
-# 
-# html <- read_html(url)
-# tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
-# infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
-# 
-# ## Sum up mcolums "Freie Wähler" and "Sonstige", delete Freie Wähler afterwards
-# infra_dimap_all$X8[infra_dimap_all$X8 == "-"] <- 0
-# infra_dimap_all$X9 <- as.numeric(infra_dimap_all$X9) + as.numeric(infra_dimap_all$X8)
-# 
-# infra_dimap_all$X8 <- NULL
-# #infra_dimap_all$X9 <- NULL
-# 
-# ## assign names of parties to columns and delete first row of data set (contains names of political parties)
-# colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke","Sonstige")
-# infra_dimap_all <- infra_dimap_all[-1,]
-# infra_dimap_all <- infra_dimap_all %>% 
-#   mutate(Date = as.Date(Date, format = "%d.%m.%y")) %>% 
-#   filter(Date <= "2022-08-04")
-# save(infra_dimap_all, file = "infratest_dimap_polls_sonstige.RData")
-
-
-# Load poll data set, scraped on 5th August 2022
-load("infratest_dimap_polls_sonstige.RData")
+# load poll datasets
+Infratest_Dimap_polls <- read.csv("data_polls_infratest_dimap.csv")
+Forsa_polls           <- read.csv("data_polls_forsa.csv")
+Kantar_polls          <- read.csv("data_polls_kantar.csv")
+FGW_polls             <- read.csv("data_polls_fgw.csv")
+Allensbach_polls      <- read.csv("data_polls_allens.csv")
 
 
 
@@ -82,10 +55,14 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                      "18-09-2005"), format = "%d-%m-%Y"),
                            datasource_weight = c("GT",
                                                  "GT + election weight",
-                                                 "GT + polls weight",
                                                  "GT + weekly polls weight",
-                                                 "Only polls",
-                                                 "Last polls"),
+                                                 "Infratest",
+                                                 "Forsa", 
+                                                 "Kantar", 
+                                                 "FGW", 
+                                                 "Allens"#,
+                                                 #"Avg_polls_infra",
+                                                 ),
                            #model_time_interval = duration(seq(7,14, 7), "days"),
                            #model_time_distance = days(seq(1, 3, 1))) # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
                            model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
@@ -246,227 +223,61 @@ replace_searchterms <- function(x){
   x <- gsub('NPD.*', 'Sonstige', x)
   x <- gsub('REP.*', 'Sonstige', x)
   x <- gsub('Freie.*', 'Sonstige', x)
+
 }
 
- 
 
 
-## Loop A: Collect GT data ####
-  # Idea: collect GT datasets first then merge with data_model dataframe.
-  # 1. Create GT datasets for the different time periods for all GT data definitions
-  # 2. Join with data for all models 
-  # Check number of models: length(unique(data_models$GT_identifier))
 
-
-  
-  # Subset data_models to   
-    data_models_GT <- data_models %>%
+# Subset data_models to 
+data_models_GT <- data_models %>%
       filter(datasource_weight=="GT") %>% 
-    mutate(data_GT = list(NA)) %>%
-  mutate(row_nr = row_number())
-  
-# Steps
-# 1. Choose a new VPN (Proton vpn)
-# ". Go to smart proxy website anc copy IP address
-# 2. Set domain to own IP Proton VPN, e.g., domain <- "37.120.217.84"
-# If you don't you get 407 error.
-# 3. Turn of proxies: Sys.setenv(no_proxy = "*")
-# 4. Make sure other parameters are up to date.
-
-# Tips: You should experiment on it. Divide on different proxies, 
-# divide the queries or try using the code multiple times with different 
-# servers (like us.smartproxy.com) if multiple locations are possible
-# http code 407: Problem with proxy identification
+      mutate(data_GT = list(NA)) %>%
+      mutate(row_nr = row_number())
 
 
 
-# Set proxy data
-  #user <- "user-sp63125425"
-  #password <- "8ffEGZmupe66Z2Y2"
-  #domain <- "77.179.81.148"
-  #proxyhost <- "us.smartproxy.com"
-  #proxyport <- 10000
-  
-  # Set rotating proxies: Get IP for "domain" with: fromJSON("https://api.myip.com/")
-  #setHandleParameters(user = user,
-                      #password = password,
-                      #domain = domain,
-                      #proxyhost = proxyhost,
-                      #proxyport = proxyport)
-  
-  # Sys.setenv(http_proxy = "http://user-sp63125425:8ffEGZmupe66Z2Y2@fr.smartproxy.com:40000",
-  #            https_proxy = "http://user-sp63125425:8ffEGZmupe66Z2Y2@fr.smartproxy.com:40000") 
-  # Show proxies: Sys.getenv(c("https_proxy", "http_proxy"))
-  # Sys.setenv(no_proxy = "*")
-  
-  # CHECK IF PROXY WORKS
-  # gtrends(keyword= "Merkel", # Ony 1 dataset
-  #         geo= "DE",
-  #         category = 19,
-  #         time = "2005-09-10 2005-09-17",
-  #         gprop="web",
-  #         onlyInterest = TRUE)$interest_over_time
 
-  # load(file = "data_models_GT.RData")
-  # rows_missing_data <- data_models_GT$row_nr[is.na(data_models_GT$data_GT)]
-  
-  #for(i in rows_missing_data){ # 1:nrow(data_models_GT)
-  #  
-  #  cat("\n\n\n\nModel ID: ", data_models_GT$model_id[i], "\n")
-  #  cat("\n\n\n\nrow_nr: ", data_models_GT$row_nr[i], "\n")
-  #  
-  #  # Prepare dataset(s) for model
-  #  year_i <- year(data_models_GT$election_date)[i]
-  #  cat("\n Year:", year_i, "\n")
-  #  
-#
-  #    # cat("\nProxy used:", proxy_i, "\n")
-#
-  #    # Show name of (previous) dataset and keywords
-  #    name_GT_datasets_i <- as.character(data_models_GT$name_GT_datasets[i][[1]])
-  #    cat("\n\nDataset: ", name_GT_datasets_i, "\n")
-  #    GT_keywords_i <- data_models_GT$GT_keywords[i]
-  #    print(GT_keywords_i)
-  #    
-  #    # Detect if 2005/2009 election
-  #    if(length(name_GT_datasets_i)==1){ # THIS PART FOR 2005/2009
-  #      print("\n2005/2009 election\n")
-  #   
-  #      skip_to_next <- FALSE# ERROR HANDLING
-  #      tryCatch({ # ERROR HANDLING
-  #        
-  #        df1 <- gtrends(keyword= GT_keywords_i[[1]], # Ony 1 dataset
-  #                       geo= "DE",
-  #                       category = 19,
-  #                       time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
-  #                       gprop="web",
-  #                       onlyInterest = TRUE)$interest_over_time
-  #      }, 
-  #      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-  #      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-  #      
-  #      data_models_GT$data_GT[[i]] <- df1 %>%
-  #        select(date, hits, keyword) %>%
-  #        mutate(hits = str_replace(hits, "<1", "0"),
-  #               hits = as.numeric(hits),
-  #               date = as.Date(date))%>%
-  #        replace(is.na(.), 0) %>%
-  #        mutate(keyword = replace_searchterms(keyword)) # keywords is here party!
-  #      
-  #      print(table(data_models_GT$data_GT[[i]]$keyword))
-  #      
-  #      
-  #      
-  #      # Detect if NO 2005/2009 election
-  #    }else{ # THIS PART 2013-2021
-  #      
-  #      print("\n2013/2021 election\n")
-  #      
-  #      skip_to_next <- FALSE# ERROR HANDLING
-  #      tryCatch({ # ERROR HANDLING
-#
-  #        df1 <- gtrends(keyword= GT_keywords_i[[1]][[1]], # dataset 1
-  #                       geo= "DE",
-  #                       category = 19,
-  #                       time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
-  #                       gprop="web",
-  #                       onlyInterest =  TRUE)$interest_over_time # CDU
-  #      }, 
-  #      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-  #      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-  #      
-  #      
-  #      skip_to_next <- FALSE# ERROR HANDLING
-  #      tryCatch({ # ERROR HANDLING
-#
-  #        df2 <- gtrends(keyword= GT_keywords_i[[1]][[2]], # dataset 1
-  #                       geo= "DE",
-  #                       category = 19,
-  #                       time = paste(data_models_GT$GT_start_date[i], data_models_GT$GT_end_date[i]),
-  #                       gprop="web",
-  #                       onlyInterest =  TRUE)$interest_over_time %>% # AFD
-  #          filter(grepl("Afd.*", keyword) == TRUE)
-  #      }, 
-  #      error = function(e) { skip_to_next <<- TRUE}) # ERROR HANDLING
-  #      if(skip_to_next) { Sys.sleep(sample(seq(0.5,1,0.01),1)); next } # ERROR HANDLING
-  #      
-  #      
-  #      
-  #      data_models_GT$data_GT[[i]] <- bind_rows(df1, df2) %>%
-  #        select(date, hits, keyword) %>%
-  #        mutate(hits = str_replace(hits, "<1", "0"), # HIER WEITER
-  #               hits = as.numeric(hits),
-  #               date = as.Date(date))%>%
-  #        replace(is.na(.), 0) %>%
-  #        mutate(keyword = replace_searchterms(keyword))
-  #      
-  #      print(table(data_models_GT$data_GT[[i]]$keyword))
-  #      
-  #    }
-  #    
-  #    
-  #    
-  #    Sys.sleep(sample(seq(1,2,0.001),1)) # Not to overburden gtrends
-  #  }
-  
-  
-  # Check how many datasets were collected 
-    #table(is.na(data_models_GT$data_GT))
-    #save(data_models_GT, file = "data_models_GT.RData")
-    #load(file = "data_models_GT_2022_10_31.RData") # Load for several runs
-  
 
-# START HERE ####
-    #load(file = "2022-07-14 10-13-10.RData")
-    #table(is.na(data_models_GT$data_GT)) # Check whether there are missings
-  
-# Merge data_models with data_models_GT
-  #data_models <- left_join(data_models,
-  #                         data_models_GT %>% select(data_GT, GT_identifier),
-  #                         by = "GT_identifier")  
-  
-  # Check that matching worked (for one model type)
-  # data_models %>% 
-  #   filter(GT_identifier == "2005-04-04-2005-06-20") %>%
-  #   select(model_id, datasource_weight, GT_identifier, data_GT)
+## Loop A: Create GT datasets ####
+# Create GT datasets for the different time periods for all models that include GT data (see filter below)
+														
+data_models$data_GT_year <- list(NA)
 
-  
-  
-  ## Loop A: Create GT datasets ####
-  # Create GT datasets for the different time periods for all models that include GT data (see filter below)
-  data_models$data_GT_year <- list(NA)
-  
-  # Names of Google Trends datasets
+
+
+
+# Names of Google Trends datasets
 setwd("./Data")
 dir <- getwd()
 names_df <- list.files(dir)  
 
   data_predictions_final <- data.frame()
   
-  
   start_time <- Sys.time()
   
   for(y in names_df){
+ 
+ 
+    # Load GT datasets
+    name <- y
+    load(name)
     
-    for(i in 1:nrow(data_models)){
-      # Load GT datasets
-      name <- y
-      load(name)
-      
+    relevant_rows_a <- which(grepl("GT", data_models$datasource_weight))
+    
+    
+    for(i in relevant_rows_a){
       
       
       # Prepare dataset(s) for model
       year_i <- year(data_models$election_date)[i]
       cat("\n\n\n\n", year_i, "\n\n")
       
-      # Detect models using GT data
-      if(str_detect(data_models$datasource_weight[i], "GT")){
-        
-        
-        
+      
         # Select GT datasets relevant for this year and merge
         name_GT_datasets_i <- as.character(data_models$name_GT_datasets[i][[1]])
         print(name_GT_datasets_i)
+        
         
         # Detect if 2005/2009 election
         if(length(name_GT_datasets_i)==2){ # THIS PART FOR 2005/2009
@@ -531,155 +342,53 @@ names_df <- list.files(dir)
           data_models$data_GT_year[[i]] <- bind_rows(df1, df2, df3) 
         }
         }
-      }
     
 
-  ## Loop B: Create Poll average datasets ####
-  # Can we optimize this loop? 
-  # For each model: Create poll datasets (averages)
-  data_models$data_polls_average <- list(NA)
-
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-
-    if(grepl("M_\\d+_2005", data_models$model_name[i])){
-      next
-    }
-
-    # Prepare dataset(s) for model
-    year_i <- year(data_models$election_date)[i]
-    cat("\n\n\n\n", year_i, "\n\n")
-
-      f <- infra_dimap_all %>% # Find polls within GT interval
-      mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-      filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i])
-
-
-      if(nrow(f) == 0){
+    ##Loop B: newest poll ##
+    # write newest poll to rows
+    
+    data_models$predictions_Infratest <- list(NA)
+    data_models$predictions_Forsa <- list(NA)
+    data_models$predictions_Kantar <- list(NA)
+    data_models$predictions_FGW <- list(NA)
+    data_models$predictions_Allens <- list(NA)
+    
+    
+    poll_institutes <- c("Infratest",
+                         "Forsa", 
+                         "Kantar", 
+                         "FGW", 
+                         "Allens")
+    
+    
+    for(j in poll_institutes){
+      
+      
+      relevant_rows_b <- which(!grepl("M_\\d+_2005", data_models$model_name) & grepl(j, data_models$datasource_weight))
+      col_name <- paste0("predictions_", j)
+      
+      for(i in relevant_rows_b){
+        cat("\nRow ", i, " out of", nrow(data_models))
+        
+        
+        # Prepare dataset(s) for model
+        year_i <- year(data_models$election_date)[i]
+        cat("\n\n\n\n", year_i, "\n\n")
+        
+        
+        f2 <- get(ls()[grep(j, ls(), ignore.case = T)]) %>% # Find polls within GT interval
+          mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+          filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]) %>%
+          slice(1)
+        
+        
+        if(nrow(f2) == 0){
 
         if(grepl("M_\\d+_2009", data_models$model_name[i])){
 
-        data_models$data_polls_average[[i]] <- infra_dimap_all %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
-                                             data_models$GT_start_date[i], onlypre = T)) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          na.omit(.) %>% # here the AFD gets removed
-          group_by(party) %>%
-          summarize(perc_mean = mean(perc, na.rm=TRUE),
-                    SD = sd(perc, na.rm=TRUE), # CHECK THIS DOES NOT WORK IF ONLY ONE POLL IN INTERVAL
-                    N = n()) %>% # CHECK
-          mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
-                 upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
-          mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-        #filter(!is.na(SD)) # Filter out AFD when no data
-
-      }
-  }
-
-
-      if(nrow(f) == 0){
-
-        if(!grepl("M_\\d+_2009", data_models$model_name[i])){
-
-          data_models$data_polls_average[[i]] <- infra_dimap_all %>%
-            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
-                                               data_models$GT_start_date[i], onlypre = T)) %>%          
-            mutate_if(is.character, as.numeric) %>%
-            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-            group_by(party) %>%
-            summarize(perc_mean = mean(perc, na.rm=TRUE),
-                      SD = sd(perc, na.rm=TRUE),
-                      N = n()) %>% # CHECK
-            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
-                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
-            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-          #filter(!is.na(SD)) # Filter out AFD when no data
-
-        }
-      }
-
-
-
-
-      if(nrow(f) >= 1){
-
-        if(grepl("M_\\d+_2009", data_models$model_name[i])){
-
-          data_models$data_polls_average[[i]] <- f %>%
-            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            mutate_if(is.character, as.numeric) %>%
-            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-            na.omit(.) %>% # here the AFD gets removed
-            group_by(party) %>%
-            summarize(perc_mean = mean(perc, na.rm=TRUE),
-                      SD = sd(perc, na.rm=TRUE),
-                      N = n()) %>% # CHECK
-            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
-                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
-            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-          #filter(!is.na(SD)) # Filter out AFD when no data
-
-
-        }
-      }
-
-
-      if(nrow(f) >= 1){
-
-        if(!grepl("M_\\d+_2009", data_models$model_name[i])){
-
-          data_models$data_polls_average[[i]] <- f %>%
-            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-            mutate_if(is.character, as.numeric) %>%
-            pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-            group_by(party) %>%
-            summarize(perc_mean = mean(perc, na.rm=TRUE),
-                      SD = sd(perc, na.rm=TRUE),
-                      N = n()) %>% # CHECK
-            mutate(lower.ci = perc_mean - 1.96*(SD/sqrt(N)),
-                   upper.ci = perc_mean + 1.96*(SD/sqrt(N)))  %>%
-            mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-          #filter(!is.na(SD)) # Filter out AFD when no data
-
-
-        }
-      }
-  }
-  #save(data_models, file = "data_models_B.RData")
-
-  
-  ##Loop B2: Only last poll ##
-  # logic is the same like for polls average, but this time we are using just the last Poll before the time distance
-  
-  data_models$data_polls_last <- list(NA)
-  
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-    
-    if(grepl("M_\\d+_2005", data_models$model_name[i])){
-      next
-    }
-    
-    # Prepare dataset(s) for model
-    year_i <- year(data_models$election_date)[i]
-    cat("\n\n\n\n", year_i, "\n\n")
-    
-    f2 <- infra_dimap_all %>% # Find polls within GT interval
-      mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-      filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]) %>%
-      slice(1)
-    
-    
-    if(nrow(f2) == 0){
-      
-      if(grepl("M_\\d+_2009", data_models$model_name[i])){
-        
-        data_models$data_polls_last[[i]] <- infra_dimap_all %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
+          data_models[[col_name]][[i]] <- get(ls()[grep(j, ls(), ignore.case = T)]) %>%
+          mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+          filter(Date == ajfhelpR::date_near(as.Date(.$Date, "%Y-%m-%d"),
                                              data_models$GT_start_date[i], onlypre = T)) %>%
           mutate_if(is.character, as.numeric) %>%
           pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
@@ -688,260 +397,176 @@ names_df <- list.files(dir)
           summarize(perc_mean = mean(perc, na.rm=TRUE),
                     SD = sd(perc, na.rm=TRUE),
                     N = n()) %>% # CHECK
-          mutate_all(~ifelse(is.nan(.), NA, .))
+          mutate_all(~ifelse(is.nan(.), NA, .))%>%
+          filter(party != "AFD")
       }
-    }
-    
-    
-    if(nrow(f2) == 0){
-      
-      if(!grepl("M_\\d+_2009", data_models$model_name[i])){
-        
-        data_models$data_polls_last[[i]] <- infra_dimap_all %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date == ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"),
-                                             data_models$GT_start_date[i], onlypre = T)) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          group_by(party) %>%
-          summarize(perc_mean = mean(perc, na.rm=TRUE),
-                    SD = sd(perc, na.rm=TRUE),
-                    N = n()) %>% # CHECK
-          mutate_all(~ifelse(is.nan(.), NA, .))
-        
-      }
-    }
-    
-    
-    
-    
-    if(nrow(f2) == 1){
-      
-      if(grepl("M_\\d+_2009", data_models$model_name[i])){
-        
-        data_models$data_polls_last[[i]] <- f2 %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          na.omit(.) %>% # here the AFD gets removed
-          group_by(party) %>%
-          summarize(perc_mean = mean(perc, na.rm=TRUE),
-                    SD = sd(perc, na.rm=TRUE),
-                    N = n()) %>% # CHECK
-          mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-        #filter(!is.na(SD)) # Filter out AFD when no data
-        
-        
-      }
-    }
-    
-    
-    if(nrow(f2) == 1){
-      
-      if(!grepl("M_\\d+_2009", data_models$model_name[i])){
-        
-        data_models$data_polls_last[[i]] <- f2 %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          group_by(party) %>%
-          summarize(perc_mean = mean(perc, na.rm=TRUE),
-                    SD = sd(perc, na.rm=TRUE),
-                    N = n()) %>% # CHECK
-          mutate_all(~ifelse(is.nan(.), NA, .)) #%>%
-        #filter(!is.na(SD)) # Filter out AFD when no data
-      }
-    }
   }
-  
-  
+
+
+        if(nrow(f2) == 0){
+          
+          if(!grepl("M_\\d+_2009", data_models$model_name[i])){
+            
+            data_models[[col_name]][[i]] <- get(ls()[grep(j, ls(), ignore.case = T)]) %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              filter(Date == ajfhelpR::date_near(as.Date(.$Date, "%Y-%m-%d"),
+                                                 data_models$GT_start_date[i], onlypre = T)) %>%
+              mutate_if(is.character, as.numeric) %>%
+              pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+              group_by(party) %>%
+              summarize(perc_mean = mean(perc, na.rm=TRUE),
+                        SD = sd(perc, na.rm=TRUE),
+                        N = n()) %>% # CHECK
+              mutate_all(~ifelse(is.nan(.), NA, .))
+            
+          }
+        }
+
+
+
+
+        if(nrow(f2) == 1){
+          
+          if(grepl("M_\\d+_2009", data_models$model_name[i])){
+            
+            data_models[[col_name]][[i]] <- f2 %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              mutate_if(is.character, as.numeric) %>%
+              pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+              na.omit(.) %>% # here the AFD gets removed
+              group_by(party) %>%
+              summarize(perc_mean = mean(perc, na.rm=TRUE),
+                        SD = sd(perc, na.rm=TRUE),
+                        N = n()) %>% # CHECK
+              mutate_all(~ifelse(is.nan(.), NA, .)) %>%
+              filter(party != "AFD") #%>%
+            #filter(!is.na(SD)) # Filter out AFD when no data
+            
+            
+          }
+        }
+
+
+        if(nrow(f2) == 1){
+          
+          if(!grepl("M_\\d+_2009", data_models$model_name[i])){
+            
+            data_models[[col_name]][[i]] <- f2 %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              mutate_if(is.character, as.numeric) %>%
+              pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
+              group_by(party) %>%
+              summarize(perc_mean = mean(perc, na.rm=TRUE),
+                        SD = sd(perc, na.rm=TRUE),
+                        N = n()) %>% # CHECK
+              mutate_all(~ifelse(is.nan(.), NA, .))
+            #filter(!is.na(SD)) # Filter out AFD when no data
+          }
+        }
+      }
+    }
+
+
+
+
   ## Loop C: ADD Predictions (GT) ####
   # Use the GT data, summarize it to create predictions
   # Important: No predictions for AFD for 2009!
-  data_models$predictions_GT <- list(NA)
-
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-
-    if(str_detect(data_models$datasource_weight[i], "GT")){ # Filter GT ONLY
-
+    data_models$predictions_GT <- list(NA)
+    
+    relevant_rows_c <- which(grepl("^GT$", data_models$datasource_weight) | grepl("election weight", data_models$datasource_weight))
+    
+    for(i in relevant_rows_c){
+      cat("\nRow ", i, " out of", nrow(data_models))
+      
       data_models$predictions_GT[[i]] <- data_models$data_GT_year[[i]] %>%
-        filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
+        filter(date >= as.Date(data_models$GT_start_date[i], "%Y-%m-%d") & date <= as.Date(data_models$GT_end_date[i], "%Y-%m-%d")) %>%
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
         mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
         select(party, prediction)
-
-    }}
+      
+    }
   #save(data_models, file = "data_models_C.RData")
 
 
   ## Loop D: ADD Predictions (GT + previous election weight) ####
   # Here the GT predictions are simply weighted with the previous election
   # For AFD 2013 we get no prediction because not data for 2009 election
-  identifier = sum(str_count(data_models$model_name, "2005"))
 
-  data_models$predictions_GT_election_weight <- list(NA)
-  data_models$Weight_Model_2 <- list(NA)
-
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-
-    if(!grepl("M_\\d+_2005", data_models$model_name[[i]]) == TRUE){
-
-      if(grepl("election weight", data_models$datasource_weight[[i]]) == TRUE){ # Filter GT ONLY
-
-        k = i - identifier
-
-        data_models$predictions_GT[[k]][2] <- data_models$predictions_GT[[k]][2] %>%
-          mutate(prediction = ifelse(prediction == 0, as.numeric(unlist(data_models$data_election_previous[[i]][2])), prediction))
-
-        t <- (data_models$data_election_previous[[i]][2]/data_models$predictions_GT[[k]][2])
-
-        data_models$Weight_Model_2[[i]] <- cbind(data_models$predictions_GT[[k]][1], t)
-
-
-        if(grepl("M_\\d+_2013", data_models$model_name[[i]]) == TRUE){
-
-          data_models$Weight_Model_2[[i]] <-  data_models$Weight_Model_2[[i]] %>%
-            add_row(party = "AFD", share = 1, .before = 1) # In 2009, the AFD did not yet exist, so we weight the data for the AFD in 2013 with a weighting factor of 1 (no weighting)
-
-
-        }
-
-
-        # Apply previously calculated weighting factor on Google Prop. of the interval of interest
-        data_models$predictions_GT_election_weight[[i]] <- data_models$data_GT_year[[i]] %>%
-          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
-          group_by(keyword) %>%
-          rename(party=keyword) %>%
-          summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
-          select(party, prediction) %>%
-          mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_2[[i]][2])))
-
-      }
-    }
-  }
-  #save(data_models, file = "data_models_D.RData")
-  # CHANGES: DOES NOT WORK TO TAKE AVERAGE OF PREVIOUS GT DATA (BECAUSE WOULD NEED TO BE RECOLLECTED)
-  
-
-  
-  ## Loop E: ADD Predictions (GT + polls weight) ####
-  data_models$avg_polls_before_int <- list(NA)  
-  data_models$predictions_GT_before_int <- list(NA)  
-  data_models$Weight_Model_3 <- list(NA) 
-  data_models$predictions_GT_polls <- list(NA) 
-  
-  for(i in 1:nrow(data_models)){  
+    ######### here identify distance between first entry election weight 2005 to first entry election weight 2009
+    a <-  data_models %>%
+      filter(grepl("M_\\d+_2005", data_models$model_name) & grepl("election weight", data_models$datasource_weight)) %>%
+      select(model_id) %>%
+      slice_head() %>%
+      pull()
     
-    if(grepl("2005", data_models$model_name[i])){
-      next
-    }
+    b <-  data_models %>%
+      filter(grepl("M_\\d+_2009", data_models$model_name) & grepl("election weight", data_models$datasource_weight)) %>%
+      select(model_id) %>%
+      slice_head() %>%
+      pull()
     
-    if(data_models$datasource_weight[i]=="GT + polls weight"){
+    identifier <- b-a
+    
+    
+    relevant_rows_d <- which(!grepl("M_\\d+_2005", data_models$model_name) & grepl("election weight", data_models$datasource_weight))
+    
+    data_models$predictions_GT_election_weight <- list(NA)
+    data_models$Weight_Model_2 <- list(NA)
+    
+    for(i in relevant_rows_d){
+      cat("\nRow ", i, " out of", nrow(data_models))
       
-      # Get raw data and calculate Google Prop. for the interval before the set interval 
-      data_models$predictions_GT_before_int[[i]] <- data_models$data_GT_year[[i]] %>%
-        filter(date >= as.Date((data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]), "%d.%m.%y") & date <= as.Date(data_models$GT_start_date[i]-1, "%d.%m.%y")) %>%
-        group_by(keyword) %>%
-        rename(party=keyword) %>%
-        summarize(hits_sum = sum(hits)) %>% 
-        mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
-        select(party, prediction)
+      k = i - identifier
+      
+      data_models$predictions_GT[[k]][2] <- data_models$predictions_GT[[k]][2] %>%
+        mutate(prediction = ifelse(prediction == 0, as.numeric(unlist(data_models$data_election_previous[[i]][2])), prediction))
+      
+      t <- (data_models$data_election_previous[[i]][2]/data_models$predictions_GT[[k]][2])
+      
+      data_models$Weight_Model_2[[i]] <- cbind(data_models$predictions_GT[[k]][1], t)
       
       
-      if (grepl("2009", data_models$model_name[i])){
+      if(grepl("M_\\d+_2013", data_models$model_name[[i]]) == TRUE){
         
-        # Identify polls that lie in the interval before the set interval, take the mean of the identified polls, and delete the AFD row in 2009.
-        data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= (data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          group_by(party) %>%
-          select(party, perc) %>%
-          rename(prediction = perc) %>%
-          arrange(party) %>%
-          na.omit() %>%
-          summarise(prediciton = mean(prediction))
+        data_models$Weight_Model_2[[i]] <-  data_models$Weight_Model_2[[i]] %>%
+          add_row(party = "AFD", share = 1, .before = 1) # In 2009, the AFD did not yet exist, so we weight the data for the AFD in 2013 with a weighting factor of 1 (no weighting)
         
-      }
-      
-      if (!grepl("2009", data_models$model_name[i])){
-        
-        # Identify polls that lie in the interval before the set interval, take the mean of the identified polls
-        # If AFD NA in 2013, replace NA with Google Proportion to get a weighting factor of 1.
-        data_models$avg_polls_before_int[[i]] <- infra_dimap_all %>%
-          mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-          filter(Date >= (data_models$GT_start_date[i]-1 - data_models$model_time_interval[[i]]) &  Date <= data_models$GT_start_date[i]-1) %>%
-          mutate_if(is.character, as.numeric) %>%
-          pivot_longer(-Date, names_to = "party", values_to = "perc") %>%
-          group_by(party) %>%
-          select(party, perc) %>%
-          rename(prediction = perc) %>%
-          arrange(party) %>%
-          summarise(prediciton = mean(prediction)) %>%
-          replace(is.na(.), as.numeric(unlist(data_models$predictions_GT_before_int[[i]][1,2]))) # If afd NA in 2013, replace NA with Google Proportion to get a weighting factor of 1.
         
       }
       
-      # In case there are no polls in the defined time span, just use the Google Proportion of the set interval. 
-      if(nrow(data_models$avg_polls_before_int[[i]]) == 0){
-        
-        data_models$predictions_GT_polls[[i]] <- data_models$data_GT_year[[i]] %>%
-          filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
-          group_by(keyword) %>%
-          rename(party=keyword) %>%
-          summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
-          mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
-          select(party, prediction)
-        
-        next
-      }
-      
-      
-      # Calculate weighting factor using the avg. of the polls before our set interval and the Google Prop. before our set interval
-      t <- (data_models$avg_polls_before_int[[i]][2])/(data_models$predictions_GT_before_int[[i]][2])
-      
-      data_models$Weight_Model_3[[i]] <- cbind(data_models$predictions_GT_before_int[[i]][1], t)
       
       # Apply previously calculated weighting factor on Google Prop. of the interval of interest
-      data_models$predictions_GT_polls[[i]] <- data_models$data_GT_year[[i]] %>%
-        filter(date >= as.Date(data_models$GT_start_date[i], "%d.%m.%y") & date <= as.Date(data_models$GT_end_date[i], "%d.%m.%y")) %>%
+      data_models$predictions_GT_election_weight[[i]] <- data_models$data_GT_year[[i]] %>%
+        filter(date >= as.Date(data_models$GT_start_date[i], "%Y-%m-%d") & date <= as.Date(data_models$GT_end_date[i], "%Y-%m-%d")) %>%
         group_by(keyword) %>%
         rename(party=keyword) %>%
         summarize(hits_sum = sum(hits)) %>% # Same as before but diff. code
         mutate(prediction = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>% # ifelse is built in for the case that all Google data contain zeros and no NaNs are created but 0 at the end of the calculation.
         select(party, prediction) %>%
-        mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_3[[i]][2])))
+        mutate(prediction = prediction*as.numeric(unlist(data_models$Weight_Model_2[[i]][2])))
+      
       
     }
-  }
-  #save(data_models, file = "data_models_E.RData")
+  #save(data_models, file = "data_models_D.RData")
+  # CHANGES: DOES NOT WORK TO TAKE AVERAGE OF PREVIOUS GT DATA (BECAUSE WOULD NEED TO BE RECOLLECTED)
   
   
   
-  ## Loop F: Weekly Weigthing ####
+  
+  ## Loop E: Weekly Weigthing ####
   data_models$Poll_dates_weekly_weighting <- list(NA)  
   data_models$GT_data_weekly_weighting <- list(NA)
   data_models$predicitons_GT_weekly_polls <- list(NA)
   data_models$predicitons_GT_weekly_polls_mean <- list(NA)
   data_models$predictions
   
+  relevant_rows_e <- which(!grepl("M_\\d+_2005", data_models$model_name) & grepl("weekly polls weight", data_models$datasource_weight))
   
-  for(i in 1:nrow(data_models)){
-    
-    # Skip year 2005
-    if (grepl("M_\\d+_2005", data_models$model_name[i])){
-      next
-    }
-    
-    
-    # Execute weekly weighting only in the corresponding rows
-    if (data_models$datasource_weight[i] == "GT + weekly polls weight"){
+  
+  for(i in relevant_rows_e){
       
       
       Model4_4 <- data.frame() # construct an empty data frame into which the results are written
@@ -949,8 +574,8 @@ names_df <- list.files(dir)
       
       # Get all surveys that are within the set interval and write them into a data set.
       # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-      polls_in_interval <- infra_dimap_all %>%
-        mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+      polls_in_interval <- Infratest_Dimap_polls %>%
+        mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
         filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]-1)
       
       
@@ -963,20 +588,20 @@ names_df <- list.files(dir)
           
           
           # Search for the two polls that precede our interval (first poll (b) to determine the Google data that will be used to calculate the weighting factor with the second poll (k)).
-          b <- ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T)
-          k <- which(grepl(b, as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-          infra_dimap_all$Date[k]
+          b <- ajfhelpR::date_near(as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d"), data_models$GT_start_date[i], onlypre = T)
+          k <- which(grepl(b, as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+          Infratest_Dimap_polls$Date[k]
           
           
           # Write the found poll dates, which are before our actual interval, into our dataset
-          data_models$Poll_dates_weekly_weighting[[i]] <- infra_dimap_all %>%
-            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+          data_models$Poll_dates_weekly_weighting[[i]] <- Infratest_Dimap_polls %>%
+            mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
             filter(Date >= Date[k]+1  &  Date <= data_models$GT_end_date[i])
           
           
           # Get Google data 1 day after the first poll (b) until the end of our interval 
           data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-            filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+            filter(date >= as.Date(Infratest_Dimap_polls$Date[k], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
             group_by(keyword) 
           
           
@@ -994,7 +619,7 @@ names_df <- list.files(dir)
           
           # Get Google data until second poll outside of interval and calculate weighting factor
           Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-            filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
+            filter(date >= as.Date(Infratest_Dimap_polls$Date[k], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
             mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1031,20 +656,20 @@ names_df <- list.files(dir)
           
           
           # Search for the two polls that precede our interval (first poll (b) to determine the Google data that will be used to calculate the weighting factor with the second poll (k)).
-          b <- ajfhelpR::date_near(as.Date(infra_dimap_all$Date, "%d.%m.%y"), data_models$GT_start_date[i], onlypre = T)
-          k <- which(grepl(b, as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-          infra_dimap_all$Date[k]
+          b <- ajfhelpR::date_near(as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d"), data_models$GT_start_date[i], onlypre = T)
+          k <- which(grepl(b, as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+          Infratest_Dimap_polls$Date[k]
           
           
           # Write the found poll dates, which are before our actual interval, into our dataset
-          data_models$Poll_dates_weekly_weighting[[i]] <- infra_dimap_all %>%
-            mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+          data_models$Poll_dates_weekly_weighting[[i]] <- Infratest_Dimap_polls %>%
+            mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
             filter(Date >= Date[k]+1  &  Date <= data_models$GT_end_date[i])
           
           
           # Get Google data 1 day after the first poll (b) until the end of our interval 
           data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-            filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+            filter(date >= as.Date(Infratest_Dimap_polls$Date[k], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
             group_by(keyword)
           
           
@@ -1062,7 +687,7 @@ names_df <- list.files(dir)
           
           # Get Google data until second poll outside of interval and calculate weighting factor
           Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-            filter(date >= as.Date(infra_dimap_all$Date[k], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
+            filter(date >= as.Date(Infratest_Dimap_polls$Date[k], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
             group_by(keyword) %>%
             summarize(hits_sum = sum(hits)) %>%
             mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1106,21 +731,21 @@ names_df <- list.files(dir)
             
             
             # Identify the poll date, which is before the start day of the interval and the poll, to limit the Google data used to calculate the weighting factor
-            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-            infra_dimap_all$Date[p]
+            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+            Infratest_Dimap_polls$Date[p]
             
             
             # Write this poll date and the one that lies in our set interval into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
               filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Now get Google data one day after the poll, which is before our interval, until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1138,7 +763,7 @@ names_df <- list.files(dir)
             
             # Get Google data until poll that falls on same day as the start day of the interval and calculate weighting factor
             Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= last(polls_in_interval$Date)) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= last(polls_in_interval$Date)) %>%
               group_by(keyword) %>%
               summarize(hits_sum = sum(hits)) %>%
               mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1175,21 +800,21 @@ names_df <- list.files(dir)
             
             
             # Search for the two polls that lie before the first poll in our interval
-            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+2
-            infra_dimap_all$Date[a]
+            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+2
+            Infratest_Dimap_polls$Date[a]
             
             
             # Write these poll dates and the one that lies in our set interval into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-              filter(Date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              filter(Date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the first poll (b) that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1207,7 +832,7 @@ names_df <- list.files(dir)
             
             # Get Google data until second poll outside the interval and calculate weighting factor
             Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
               group_by(keyword) %>%
               summarize(hits_sum = sum(hits)) %>%
               mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1286,21 +911,21 @@ names_df <- list.files(dir)
             
             
             # Identify the poll date, which is before the start day of the interval and the poll, to limit the Google data used to calculate the weighting factor
-            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-            infra_dimap_all$Date[p]
+            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+            Infratest_Dimap_polls$Date[p]
             
             
             # Write this poll date and the one that lies in our set interval into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
               filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Now get Google data one day after the poll, which is before our interval, until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1318,7 +943,7 @@ names_df <- list.files(dir)
             
             # Get Google data until poll that falls on same day as the start day of the interval and calculate weighting factor
             Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= last(polls_in_interval$Date)) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= last(polls_in_interval$Date)) %>%
               group_by(keyword) %>%
               summarize(hits_sum = sum(hits)) %>%
               mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1355,21 +980,21 @@ names_df <- list.files(dir)
             
             
             # Search for the two polls that lie before the first poll in our interval
-            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+2
-            infra_dimap_all$Date[a]
+            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+2
+            Infratest_Dimap_polls$Date[a]
             
             
             # Write these poll dates and the one that lies in our set interval into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <- infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-              filter(Date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <- Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              filter(Date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the first poll (b) that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1387,7 +1012,7 @@ names_df <- list.files(dir)
             
             # Get Google data until second poll outside the interval and calculate weighting factor
             Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][1])) %>%
               group_by(keyword) %>%
               summarize(hits_sum = sum(hits)) %>%
               mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1470,21 +1095,21 @@ names_df <- list.files(dir)
             
             
             # Identify the poll date, which is before the start day of the interval and the poll, to limit the Google data used to calculate the weighting factor
-            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-            infra_dimap_all$Date[p]
+            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+            Infratest_Dimap_polls$Date[p]
             
             
             # Write these poll dates into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
               filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the poll that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1496,21 +1121,21 @@ names_df <- list.files(dir)
             
             
             # Search for the two polls that lie before the first poll in our previously filtered range of polls
-            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+2
-            infra_dimap_all$Date[a]
+            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+2
+            Infratest_Dimap_polls$Date[a]
             
             
             # Write these poll dates into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <- infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-              filter(Date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <- Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              filter(Date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the first poll that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1540,7 +1165,7 @@ names_df <- list.files(dir)
                 
                 # Get Google data until poll that falls on same day as the start day of the interval and calculate weighting factor
                 Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-                  filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
+                  filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                   group_by(keyword) %>%
                   summarize(hits_sum = sum(hits)) %>%
                   mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1590,7 +1215,7 @@ names_df <- list.files(dir)
                 
                 # Get Google data until second poll outside the interval and calculate weighting factor
                 Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-                  filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
+                  filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                   group_by(keyword) %>%
                   summarize(hits_sum = sum(hits)) %>%
                   mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1771,21 +1396,21 @@ names_df <- list.files(dir)
             
             
             # Identify the poll date, which is before the start day of the interval and the poll, to limit the Google data used to calculate the weighting factor
-            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+1
-            infra_dimap_all$Date[p]
+            p <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+1
+            Infratest_Dimap_polls$Date[p]
             
             
             # Write these poll dates into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
               filter(Date >= data_models$GT_start_date[i] &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the poll that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
           }
@@ -1796,21 +1421,21 @@ names_df <- list.files(dir)
             
             
             # Search for the two polls that lie before the first poll in our previously filtered range of polls
-            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(infra_dimap_all$Date, "%d.%m.%y")))+2
-            infra_dimap_all$Date[a]
+            a <- which(grepl(dplyr::last(polls_in_interval$Date), as.Date(Infratest_Dimap_polls$Date, "%Y-%m-%d")))+2
+            Infratest_Dimap_polls$Date[a]
             
             
             # Write these poll dates into our data set
             # Subtract -1 from the end date, since no weighting can be applied in the scenario where the end date and survey date fall on the same date
-            data_models$Poll_dates_weekly_weighting[[i]] <-  infra_dimap_all %>%
-              mutate(Date = as.Date(Date, "%d.%m.%y")) %>%
-              filter(Date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
+            data_models$Poll_dates_weekly_weighting[[i]] <-  Infratest_Dimap_polls %>%
+              mutate(Date = as.Date(Date, "%Y-%m-%d")) %>%
+              filter(Date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 &  Date <= data_models$GT_end_date[i]-1) %>%
               arrange(Date) 
             
             
             # Get Google data one day after the first poll that lies before our interval until the end of the set interval
             data_models$GT_data_weekly_weighting[[i]] <- data_models$data_GT_year[[i]] %>%
-              filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= data_models$GT_end_date[i]) %>%
+              filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= data_models$GT_end_date[i]) %>%
               group_by(keyword)
             
             
@@ -1840,7 +1465,7 @@ names_df <- list.files(dir)
                 
                 # Get Google data until poll that falls on same day as the start day of the interval and calculate weighting factor
                 Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-                  filter(date >= as.Date(infra_dimap_all$Date[p], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
+                  filter(date >= as.Date(Infratest_Dimap_polls$Date[p], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                   group_by(keyword) %>%
                   summarize(hits_sum = sum(hits)) %>%
                   mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -1890,7 +1515,7 @@ names_df <- list.files(dir)
                 
                 # Get Google data until second poll outside the interval and calculate weighting factor
                 Weighting_factor_beginning <- data_models$GT_data_weekly_weighting[[i]] %>%
-                  filter(date >= as.Date(infra_dimap_all$Date[a], "%d.%m.%y")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
+                  filter(date >= as.Date(Infratest_Dimap_polls$Date[a], "%Y-%m-%d")+1 & date <= first(data_models$Poll_dates_weekly_weighting[[i]][[1]][1])) %>%
                   group_by(keyword) %>%
                   summarize(hits_sum = sum(hits)) %>%
                   mutate(perc = ifelse(hits_sum >= 1, hits_sum/sum(hits_sum)*100, 0)) %>%
@@ -2083,105 +1708,73 @@ names_df <- list.files(dir)
       
       print("Nested data set with mean successful")
       
-      
-    }
-  }
-  
+}
 
 
 
-  ## Loop G: ADD Predictions (Only polls) ####
-  # Here we store average polls result in a new prediction dataframe
-  data_models$predictions_only_polls <- list(NA)
-
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-
-    if(grepl("M_\\d+_2005", data_models$model_name[i])){
-      next
-    }
-
-    # Filter
-    if(data_models$datasource_weight[i]=="Only polls"){ # Filter GT ONLY
 
 
-      data_models$predictions_only_polls[[i]] <-
-        data_models$data_polls_average[[i]] %>%
-        mutate(prediction = perc_mean) %>%
-        select(party, prediction)
-
-    }}
-  #save(data_models, file = "data_models_G.RData")
-
-
-  
-  ## Loop G2: ADD Predictions (Last polls) ####
-  # Here we store average polls result in a new prediction dataframe
-  data_models$predictions_last_polls <- list(NA)
-  
-  for(i in 1:nrow(data_models)){
-    cat("\nRow ", i, " out of", nrow(data_models))
-    
-    if(grepl("M_\\d+_2005", data_models$model_name[i])){
-      next
-    }
-    
-    # Filter
-    if(data_models$datasource_weight[i]=="Last polls"){ # Filter GT ONLY
-      
-      
-      data_models$predictions_last_polls[[i]] <-
-        data_models$data_polls_last[[i]] %>%
-        mutate(prediction = perc_mean) %>%
-        select(party, prediction)
-      
-    }}
-  #save(data_models, file = "data_models_G.RData")
-  
-  
-
-
-  ## Loop H: Merge predictions ####
+  ## Loop F: Merge predictions ####
   # Create column that contains dataframe with all the predictions
   data_models$predictions <- list(NA)  
   
-  for(i in 1:nrow(data_models)){  
-    
-    if(grepl("2005", data_models$model_name[i])){
-      next
-    }
-    
-    if(data_models$datasource_weight[i]=="GT"){
-      data_models$predictions[[i]] <- data_models$predictions_GT[[i]] %>% rename(party_pred=party) # rename
-      # because of conflict with names later on
-    }
-    
-    
-    if(data_models$datasource_weight[i]=="GT + election weight"){
-      data_models$predictions[[i]] <- data_models$predictions_GT_election_weight[[i]] %>% rename(party_pred=party)
-    }  
-    
-    
-    if(data_models$datasource_weight[i]=="GT + polls weight"){
-      data_models$predictions[[i]] <- data_models$predictions_GT_polls[[i]] %>% rename(party_pred=party)
-    }   
-    
-    if(data_models$datasource_weight[i]=="GT + weekly polls weight"){
-      data_models$predictions[[i]] <- data_models$predicitons_GT_weekly_polls_mean[[i]] %>% rename(party_pred=party)
-    }   
-    
-    if(data_models$datasource_weight[i]=="Only polls"){
-      data_models$predictions[[i]] <- data_models$predictions_only_polls[[i]] %>% rename(party_pred=party)
-    }
-    
-    if(data_models$datasource_weight[i]=="Last polls"){
-      data_models$predictions[[i]] <- data_models$predictions_last_polls[[i]] %>% rename(party_pred=party)
-    }
-  }
   
+  datasource_weight <-  c("^GT$",
+                          "election weight",
+                          "weekly polls weight",
+                          "Infratest",
+                          "Forsa", 
+                          "Kantar", 
+                          "FGW", 
+                          "Allens")
   
-  if(grepl("2005", data_models$model_name[i])){
-    next
+  for(j in datasource_weight){
+    
+    relevant_rows_g <- which(!grepl("M_\\d+_2005", data_models$model_name) & grepl(j, data_models$datasource_weight))
+    
+    for(i in relevant_rows_g){  
+      cat("\nRow ", i, " out of", nrow(data_models))
+      
+      if(j == "^GT$"){
+        data_models$predictions[[i]] <- data_models$predictions_GT[[i]] %>% select(party, prediction) %>%
+          rename(party_pred = party) # rename because of conflict with names later on
+      }
+      
+      if(j == "election weight"){
+        data_models$predictions[[i]] <- data_models$predictions_GT_election_weight[[i]] %>% select(party, prediction) %>%
+          rename(party_pred = party)
+      }
+      
+      if(j == "weekly polls weight"){
+        data_models$predictions[[i]] <- data_models$predicitons_GT_weekly_polls_mean[[i]] %>% select(party, prediction) %>%
+          rename(party_pred = party)
+      }   
+      
+      if(j == "Infratest"){
+        data_models$predictions[[i]] <- data_models$predictions_Infratest[[i]] %>% select(party, perc_mean) %>%
+          rename(party_pred = party, prediction = perc_mean)
+      }
+      
+      if(j == "Forsa"){
+        data_models$predictions[[i]] <- data_models$predictions_Forsa[[i]] %>% select(party, perc_mean) %>%
+          rename(party_pred = party, prediction = perc_mean)
+      }
+      
+      if(j == "Kantar"){
+        data_models$predictions[[i]] <- data_models$predictions_Kantar[[i]] %>% select(party, perc_mean) %>%
+          rename(party_pred = party, prediction = perc_mean)
+      }
+      
+      if(j == "FGW"){
+        data_models$predictions[[i]] <- data_models$predictions_FGW[[i]] %>% select(party, perc_mean) %>%
+          rename(party_pred = party, prediction = perc_mean)
+      }
+      
+      if(j == "Allens"){
+        data_models$predictions[[i]] <- data_models$predictions_Allens[[i]] %>% select(party, perc_mean) %>%
+          rename(party_pred = party, prediction = perc_mean)
+      }
+    }
   }
   
   
@@ -2296,7 +1889,10 @@ data_predictions <- data_predictions %>%
   data_predictions$deviation_label <-
     round(data_predictions$deviation, 1)
   
-  #for Confidence Intervals
+  #### Confidence Intervals calculation and mean over all samples ####
+  
+  # dataframe data_predictions_final contains all results of all samples (unnested)
+  # to calculate confidence intervals and mean over all samples group by model_name & party 
   
   data_predictions_final_mean <- data_predictions_final %>%
     group_by( model_name, party) %>%
@@ -2314,6 +1910,26 @@ data_predictions <- data_predictions %>%
   data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
 
+  
+  
+  
+  
+  
+  
+  #### Kann ab hier gelöscht werden??? ####
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 # data_predictions$datasource_weight <-
 #   factor(data_predictions$datasource_weight) %>%

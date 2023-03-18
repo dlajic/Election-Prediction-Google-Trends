@@ -15,6 +15,7 @@ p_load(gtrendsR,
 
 
 
+
 # Dataset: Election results ####
 # Creates a list
 list_electionresults <- NULL
@@ -212,7 +213,7 @@ replace_searchterms <- function(x){
 
 }
 
- 
+
 
 
 # Subset data_models to   
@@ -220,11 +221,11 @@ data_models_GT <- data_models %>%
       filter(datasource_weight=="GT") %>% 
       mutate(data_GT = list(NA)) %>%
       mutate(row_nr = row_number())
-  
 
 
-  
-  
+
+
+
 ## Loop A: Create GT datasets ####
 # Create GT datasets for the different time periods for all models that include GT data (see filter below)
 data_models$data_GT_year <- list(NA)
@@ -1652,36 +1653,12 @@ identifier <- b-a
       print("Nested data set with mean successful")
       
 }
-  
-
-# delete 
-  
-#  ## Loop F: ADD Predictions (Last polls) ####
-#  # Here we store polls result in a new prediction dataframe
-#  data_models$predictions_last_polls <- list(NA)
-#  
-#  for(j in poll_institutes){
-#    
-#    relevant_rows_f <- which(!grepl("M_\\d+_2005", data_models$model_name) & grepl(j, data_models$datasource_weight))
-#    col_name <- paste0("predictions_", j)
-#  
-#    for(i in relevant_rows_f){
-#    cat("\nRow ", i, " out of", nrow(data_models))
-#      
-#      data_models$predictions_last_polls[[i]] <-
-#        data_models[[col_name]][[i]] %>%
-#        mutate(prediction = perc_mean) %>% ######## Add to loop G ##########
-#        select(party, prediction)
-#      
-#    }
-#  }
-
-  #save(data_models, file = "data_models_G.RData")
-  
-# instead of predictions_last_polls filter in datasource_weight for "Infratest" and tkae the values from the predictions column
 
 
-  ## Loop G: Merge predictions ####
+
+
+
+  ## Loop F: Merge predictions ####
   # Create column that contains dataframe with all the predictions
   data_models$predictions <- list(NA)  
   
