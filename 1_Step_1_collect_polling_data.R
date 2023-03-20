@@ -18,59 +18,19 @@ library(gsubfn)
   tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
   infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
   
-  # delete column for political party "Freie Wähler" and column "Other"
+  # delete column for political party "Freie Wähler" 
   infra_dimap_all$X8 <- NULL
-  infra_dimap_all$X9 <- NULL
-  
+
   # assign names of parties to columns and delete first row of data set (contains names of political parties)
-  colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke")
+  colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke", "Sonstige")
   infra_dimap_all <- infra_dimap_all[-1,]
+  infra_dimap_all$Date <- as.Date(infra_dimap_all$Date, "%d.%m.%y") # adapt date column to format of following poll datasets
   write_csv(infra_dimap_all, file = "data_polls_infratest_dimap.csv")
 
   
-  
-  
-  
-
-# 2 Infratest Dimap: 6 parties with Sonstige ####
-  # Scraping survey data from the infratest dimap website
-  
-  
-  # To be able to weight Google trends data with data from opinion polls,
-  # polling results of infratest dimap polling institute were scraped from their website on 5th August 2022
-  
-  url <- "https://www.infratest-dimap.de/umfragen-analysen/bundesweit/sonntagsfrage/"
-  
-  html <- read_html(url)
-  tables <- html_table(html, fill=TRUE) # extract the HTML table from the scrapped data with all survey results over time (no other html table on this page of the website)
-  infra_dimap_all <- as.data.frame(tables) # construct data frame from scraped htmltable
-  
-  ## Sum up mcolums "Freie Wähler" and "Sonstige", delete Freie Wähler afterwards
-  infra_dimap_all$X8[infra_dimap_all$X8 == "-"] <- 0
-  infra_dimap_all$X9 <- as.numeric(infra_dimap_all$X9) + as.numeric(infra_dimap_all$X8)
-  
-  infra_dimap_all$X8 <- NULL
-  #infra_dimap_all$X9 <- NULL
-  
-  ## assign names of parties to columns and delete first row of data set (contains names of political parties)
-  colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke","Sonstige")
-  infra_dimap_all <- infra_dimap_all[-1,]
-  infra_dimap_all <- infra_dimap_all %>%
-    mutate(Date = as.Date(Date, format = "%d.%m.%y")) %>%
-    filter(Date <= "2022-08-04")
-  write_csv(infra_dimap_all, file = "data_polls_infratest_dimap_sonstige.csv")
-  
-  
-  
-  
-  
-  
 
   
-  
-  
-  
-# 3 Allensbach ####  
+# 2 Allensbach ####  
   url1 <- "https://www.wahlrecht.de/umfragen/allensbach.htm"
   url2 <- "https://www.wahlrecht.de/umfragen/allensbach/2017.htm"
   url3 <- "https://www.wahlrecht.de/umfragen/allensbach/2013.htm"
@@ -237,11 +197,7 @@ library(gsubfn)
   
   
   
-# 4 FGW ####  
-  
-  
-  
-  
+# 3 FGW ####  
   url1 <- "https://www.wahlrecht.de/umfragen/politbarometer.htm"
   url2 <- "https://www.wahlrecht.de/umfragen/politbarometer/politbarometer-2017.htm"
   url3 <- "https://www.wahlrecht.de/umfragen/politbarometer/politbarometer-2013.htm"
@@ -416,7 +372,7 @@ library(gsubfn)
   
   
   
-# 5 Forsa ####
+# 4 Forsa ####
   url1 <- "https://www.wahlrecht.de/umfragen/forsa.htm"
   url2 <- "https://www.wahlrecht.de/umfragen/forsa/2013.htm"
   
@@ -511,7 +467,7 @@ library(gsubfn)
 
   
   
-# 6 Kantar ####
+# 5 Kantar ####
   url1 <- "https://www.wahlrecht.de/umfragen/emnid.htm"
   url2 <- "https://www.wahlrecht.de/umfragen/emnid/2013.htm"
   
@@ -614,11 +570,6 @@ library(gsubfn)
   
 
   write_csv(Kantar_all, file = "data_polls_kantar.csv")
-  
-  
-  
-  
-  
   
   
   
