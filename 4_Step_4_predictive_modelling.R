@@ -99,8 +99,8 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  ),
                            #model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
                            #model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
-                           model_time_interval = duration(c(7,91), "days"), # Test
-                           model_time_distance = days(seq(1, 150, 50)), # Test
+                           model_time_interval = duration(c(7,91), "days"), # TEST
+                           model_time_distance = days(seq(1, 150, 50)), # TEST
                            model_time_id = "days")
 
 
@@ -237,7 +237,7 @@ data_models$data_GT_year <- list(NA)
 # Names of Google Trends datasets
 setwd("./Data")
 dir <- getwd()
-names_df <- list.files(dir)  # names_df <- names_df[c(1,2)] # TEST
+names_df <- list.files(dir)
 
   data_predictions_final <- data.frame()
   
@@ -247,6 +247,7 @@ names_df <- list.files(dir)  # names_df <- names_df[c(1,2)] # TEST
   for(y in names_df){
     
     # Load GT datasets
+    # y <- names_df[1] # TEST
     name <- y
     load(name)
     
