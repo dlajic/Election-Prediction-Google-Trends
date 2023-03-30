@@ -1,0 +1,33 @@
+1_Step_1_collect_polling_data.R
+
+- Collects polling data from different polling institutes (Infratest Dimap is used for main comparison)
+- Creates "data_polls_....csv" files that contain polling data.
+
+- to-do
+  - Change infratest dimap to one dataset with sonstige and omit sonstige later when loading it
+
+2_Step_2_collect_GT_data.R
+
+- This file is used to collect GT data hourly over several days
+- Data is stored in "Data_raw" folder (anpassen without category!)
+
+
+3_Step_3_subset_GT_data.R
+
+- This file is used to compare the collected GT datasets that are stored within ".RData" files. 
+- Subsequently, only ".Rdata" files are used (1 per day) where all the GT datasets are different from previous ones.
+
+4_Step_4_predictive_modelling.R
+
+- This file loads the GT datasets stored in ".\Data" and the polling data and
+builds the different predictive models that are analyzed in the paper.
+- "append_other_pools_to_data.R" (find file)
+- to-do
+  - Copy "Merged_syntax_Sonstige.R" and "Merged_syntax_WC.R" to "4_Step_4_predictive_modelling.R"
+   - subvectors "relevant_rows"
+   - save "data_models", "data_predictions_final", "data_predictions", "data_comparisons2" as csv files
+
+
+
+
+
