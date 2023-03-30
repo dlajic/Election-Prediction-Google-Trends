@@ -65,60 +65,19 @@ p_load(gtrendsR,
 
 
 ```{r data-import}
-load(file  = "./Environments/Env_Merged_syntax_NEU 2023-01-22_09-06-42.RData")
+# load(file  = "./Environments/Env_Merged_syntax_NEU 2023-01-22_09-06-42.RData")
 
 # Delete unneccessary objects
-rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
-```
-
-```{r data-management}
-
-# DELETE THIS CHUNK WHEN CODE STEPS ARE INCLUDED IN ENVIRONMENT ABOVE
-
-## Data management ####
-# delete 2005 rows (just needed for Model2_2009)
-data_models <- data_models %>% 
-  filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005´s)
-## Add model index/number
-data_models <- data_models %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
+# rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
 
 
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
-
-
-#### delete 2005 rows (just needed for Model2_2009)
-
-data_predictions_final <- data_predictions_final %>% 
-  filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number
-data_predictions_final <- data_predictions_final %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-
-
-# CLEAN data_predictions
-data_predictions <- data_predictions %>%
-  filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
-  group_by(model_name) %>%
-  mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
-  ungroup()
-
-
+  data_models <- read_csv("data_models.csv")
+  data_predictions <- read_csv("data_predictions.csv")
+  data_predictions_final <- read_csv("data_predictions_final.csv")
+  data_predictions_final_mean <- read_csv("data_predictions_final_mean.csv")
 
 ```
+
 
 # Introduction
 
@@ -379,29 +338,29 @@ We start by comparing MC1 models that solely based on GT data, varying the GT da
 
 ## Figure 4: Comparison data windows ####
 
-## Prepare data for graph #
-data_predictions$party <-
-  as.factor(ordered(data_predictions$party,
-                    levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
-data_predictions$deviation_label <-
-  round(data_predictions$deviation, 1)
+# ## Prepare data for graph #
+# data_predictions$party <-
+#   as.factor(ordered(data_predictions$party,
+#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
+# data_predictions$deviation_label <-
+#   round(data_predictions$deviation, 1)
 
 #for Confidence Intervals
 
-data_predictions_final_mean <- data_predictions_final %>%
-  group_by( model_name, party) %>%
-  summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-            .groups = "keep") %>%
-  mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-         mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-         dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-         dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
-# replace_na(.,0)
-
-# Kann man nuch besser lösen ????????
-#Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
+# data_predictions_final_mean <- data_predictions_final %>%
+#   group_by( model_name, party) %>%
+#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
+#             .groups = "keep") %>%
+#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
+#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
+#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
+#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
+# # replace_na(.,0)
+# 
+# # Kann man nuch besser lösen ????????
+# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
+# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
+# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
 
 
@@ -2034,52 +1993,52 @@ Figure_5_2017_09_24
 
 # LOAD DATA (Sonstige) ####
 # Remove all files
-rm(list=ls())
-### For normal Data
-load(file  = "./Environments/Env_Merged_syntax_Sonstige 2023-01-26_01-11-02.RData")
-
-# Delete unneccessary objects
-rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
-
-
-## Data management ####
-data_models <- data_models %>% 
-  filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number
-data_models <- data_models %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
-
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
-
-
-#### delete 2005 rows (just needed for Model2_2009)
-
-data_predictions_final <- data_predictions_final %>% 
-  filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number
-data_predictions_final <- data_predictions_final %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-
-
-# CLEAN data_predictions
-data_predictions <- data_predictions %>%
-  filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
-  group_by(model_name) %>%
-  mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
-  ungroup()
+# rm(list=ls())
+# ### For normal Data
+# load(file  = "./Environments/Env_Merged_syntax_Sonstige 2023-01-26_01-11-02.RData")
+# 
+# # Delete unneccessary objects
+# rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
+# 
+# 
+# ## Data management ####
+# data_models <- data_models %>% 
+#   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
+# 
+# #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
+# ## Add model index/number
+# data_models <- data_models %>% 
+#   mutate(model_id = row_number()) %>%
+#   select(model_id, everything())
+# 
+# # Reorder
+# data_models <- data_models %>%
+#   select(model_id, model_name, everything())
+# 
+# # Reorder
+# data_models <- data_models %>%
+#   select(model_id, model_name, everything())
+# 
+# 
+# #### delete 2005 rows (just needed for Model2_2009)
+# 
+# data_predictions_final <- data_predictions_final %>% 
+#   filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
+# 
+# #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
+# ## Add model index/number
+# data_predictions_final <- data_predictions_final %>% 
+#   mutate(model_id = row_number()) %>%
+#   select(model_id, everything())
+# 
+# 
+# 
+# # CLEAN data_predictions
+# data_predictions <- data_predictions %>%
+#   filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
+#   group_by(model_name) %>%
+#   mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
+#   ungroup()
 
 ```
 
@@ -2095,29 +2054,29 @@ data_predictions <- data_predictions %>%
 
 
 
-## Prepare data for graph #
-data_predictions$party <-
-  as.factor(ordered(data_predictions$party,
-                    levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU", "Sonstige"))) # ADAPTED
-data_predictions$deviation_label <-
-  round(data_predictions$deviation, 1)
-
-#for Confidence Intervals
-
-data_predictions_final_mean <- data_predictions_final %>%
-  group_by( model_name, party) %>%
-  summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-            .groups = "keep") %>%
-  mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-         mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-         dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-         dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) #%>%
-# replace_na(.,0)
-
-# Kann man nuch besser lösen ????????
-#Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
+# ## Prepare data for graph #
+# data_predictions$party <-
+#   as.factor(ordered(data_predictions$party,
+#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU", "Sonstige"))) # ADAPTED
+# data_predictions$deviation_label <-
+#   round(data_predictions$deviation, 1)
+# 
+# #for Confidence Intervals
+# 
+# data_predictions_final_mean <- data_predictions_final %>%
+#   group_by( model_name, party) %>%
+#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
+#             .groups = "keep") %>%
+#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
+#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
+#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
+#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) #%>%
+# # replace_na(.,0)
+# 
+# # Kann man nuch besser lösen ????????
+# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
+# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
+# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
 
 
@@ -2611,96 +2570,96 @@ ggplot(data_plot2,
 
 
 # Load data #
-load(file  = "./Environments/Env_Merged_syntax_NEU_all_Polls.RData")
-
-
-
-#### delete 2005 rows (just needed for Model2_2009)
-
-data_models <- data_models %>% 
-  filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-## Add model index/number #
-data_models <- data_models %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
-
-## Add unique model name #
-#data_models <- data_models %>%
-#mutate(model_name  = paste("M", 
-#                           model_id, 
-#                           year(election_date), 
-#                           "int",
-#                           as.character(time_length(model_time_interval, unit = "days")),
-#                           "days",
-#                           "dist",
-#                           as.character(time_length(model_time_distance, unit = "days")),
-#                           "days",
-#                           gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-#                           sep = "_"))
-
-
-# Reorder
-data_models <- data_models %>%
-  select(model_id, model_name, everything())
-
-
-#### delete 2005 rows (just needed for Model2_2009)
-
-data_predictions_final <- data_predictions_final %>% 
-  filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
-
-#And again renaming since first id´s are missing (deleted 2005´s)
-## Add model index/number #
-data_predictions_final <- data_predictions_final %>% 
-  mutate(model_id = row_number()) %>%
-  select(model_id, everything())
-
-
-
-# CLEAN data_predictions #
-
-data_predictions <- data_predictions %>%
-  filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
-  group_by(model_name) %>%
-  mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
-  ungroup()
-#
-#save(data_predictions_final_mean, file = "data_predictions_final_mean_Dean.RData")
-
-
-
-# Graphs #
-
-# Prepare data for graph
-data_predictions$party <-
-  as.factor(ordered(data_predictions$party,
-                    levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
-data_predictions$deviation_label <-
-  round(data_predictions$deviation, 1)
-
-#for Confidence Intervals
-
-data_predictions_final_mean <- data_predictions_final %>%
-  group_by( model_name, party) %>%
-  summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-            .groups = "keep") %>%
-  mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-         mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-         dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-         dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
-# replace_na(.,0)
-
-# Kann man nuch besser lösen ????????  #
-#Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
-
+# load(file  = "./Environments/Env_Merged_syntax_NEU_all_Polls.RData")
+# 
+# 
+# 
+# #### delete 2005 rows (just needed for Model2_2009)
+# 
+# data_models <- data_models %>% 
+#   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
+# 
+# #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
+# ## Add model index/number #
+# data_models <- data_models %>% 
+#   mutate(model_id = row_number()) %>%
+#   select(model_id, everything())
+# 
+# # Reorder
+# data_models <- data_models %>%
+#   select(model_id, model_name, everything())
+# 
+# ## Add unique model name #
+# #data_models <- data_models %>%
+# #mutate(model_name  = paste("M", 
+# #                           model_id, 
+# #                           year(election_date), 
+# #                           "int",
+# #                           as.character(time_length(model_time_interval, unit = "days")),
+# #                           "days",
+# #                           "dist",
+# #                           as.character(time_length(model_time_distance, unit = "days")),
+# #                           "days",
+# #                           gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
+# #                           sep = "_"))
+# 
+# 
+# # Reorder
+# data_models <- data_models %>%
+#   select(model_id, model_name, everything())
+# 
+# 
+# #### delete 2005 rows (just needed for Model2_2009)
+# 
+# data_predictions_final <- data_predictions_final %>% 
+#   filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
+# 
+# #And again renaming since first id´s are missing (deleted 2005´s)
+# ## Add model index/number #
+# data_predictions_final <- data_predictions_final %>% 
+#   mutate(model_id = row_number()) %>%
+#   select(model_id, everything())
+# 
+# 
+# 
+# # CLEAN data_predictions #
+# # 
+# # data_predictions <- data_predictions %>%
+# #   filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
+# #   group_by(model_name) %>%
+# #   mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
+# #   ungroup()
+# # #
+# #save(data_predictions_final_mean, file = "data_predictions_final_mean_Dean.RData")
+# 
+# 
+# 
+# # Graphs #
+# 
+# # Prepare data for graph
+# data_predictions$party <-
+#   as.factor(ordered(data_predictions$party,
+#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
+# data_predictions$deviation_label <-
+#   round(data_predictions$deviation, 1)
+# 
+# #for Confidence Intervals
+# 
+# data_predictions_final_mean <- data_predictions_final %>%
+#   group_by( model_name, party) %>%
+#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
+#             .groups = "keep") %>%
+#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
+#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
+#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
+#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
+# # replace_na(.,0)
+# 
+# # Kann man nuch besser lösen ????????  #
+# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
+# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
+# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
+# 
 
 
 # data_predictions$datasource_weight <-

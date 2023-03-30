@@ -71,11 +71,11 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 # load poll datasets
-Infratest_Dimap_polls <- read.csv("data_polls_infratest_dimap.csv")
-Forsa_polls           <- read.csv("data_polls_forsa.csv")
-Kantar_polls          <- read.csv("data_polls_kantar.csv")
-FGW_polls             <- read.csv("data_polls_fgw.csv")
-Allensbach_polls      <- read.csv("data_polls_allens.csv")
+Infratest_Dimap_polls <- read_csv2("data_polls_infratest_dimap.csv")
+Forsa_polls           <- read_csv2("data_polls_forsa.csv")
+Kantar_polls          <- read_csv2("data_polls_kantar.csv")
+FGW_polls             <- read_csv2("data_polls_fgw.csv")
+Allensbach_polls      <- read_csv2("data_polls_allens.csv")
 
 
 
@@ -97,10 +97,10 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  "Allens"#,
                                                  #"Avg_polls_infra",
                                                  ),
-                           #model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
-                           #model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
-                           model_time_interval = duration(c(7,91), "days"), # TEST
-                           model_time_distance = days(seq(1, 150, 50)), # TEST
+                           model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
+                           model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           #model_time_interval = duration(c(7,91), "days"), # TEST
+                           #model_time_distance = days(seq(1, 150, 50)), # TEST
                            model_time_id = "days")
 
 
@@ -238,6 +238,7 @@ data_models$data_GT_year <- list(NA)
 setwd("./Data")
 dir <- getwd()
 names_df <- list.files(dir)
+# names_df <- names_df[c(1,2)]
 
   data_predictions_final <- data.frame()
   
@@ -1755,13 +1756,7 @@ identifier <- b-a
   end_time <- Sys.time()
   end_time - start_time
   
-  # Save environment
-  save.image(file = paste('/cloud/project/Env_Merged_syntax_NEU', 
-                          gsub("\\s", "_", gsub(":", "-",Sys.time())), 
-                          '.RData'))
-
-  
-  nrow(data_predictions) # number of predictions (40 models for each party)
+  nrow(data_predictions) # number of predictions
 
   #save(data_predictions, file = "data_predictionvs.RData")
 
@@ -1777,6 +1772,13 @@ identifier <- b-a
   data_models <- data_models %>% 
     mutate(model_id = row_number()) %>%
     select(model_id, model_name, everything())
+  
+  # Prepare for keywords
+  data_models <- data_models %>%
+    mutate(GT_keywords = map(.x = GT_keywords, ~paste(.x, collapse = "; "))) %>%
+    #select(model_name, election_date, GT_keywords) %>%
+    unnest(GT_keywords)
+  
   
   # Reorder
   #data_models <- data_models %>%
@@ -1856,4 +1858,12 @@ data_predictions <- data_predictions %>%
   data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
   data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
+# Save files
+  setwd("..")
+  write_csv(data_models, "data_models.csv")
+  write_csv(data_predictions, "data_predictions.csv")
+  write_csv(data_predictions_final, "data_predictions_final.csv")
+  write_csv(data_predictions_final_mean, "data_predictions_final_mean.csv")
 
+# Clean up environment
+  rm(list=ls())

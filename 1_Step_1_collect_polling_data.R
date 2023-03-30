@@ -25,7 +25,7 @@ library(gsubfn)
   colnames(infra_dimap_all) <- c("Date", "SPD", "CDU", "Grüne", "FDP", "AFD", "Linke", "Sonstige")
   infra_dimap_all <- infra_dimap_all[-1,]
   infra_dimap_all$Date <- as.Date(infra_dimap_all$Date, "%d.%m.%y") # adapt date column to format of following poll datasets
-  write_csv(infra_dimap_all, file = "data_polls_infratest_dimap.csv")
+  write_excel_csv2(infra_dimap_all, file = "data_polls_infratest_dimap.csv")
 
   
 
@@ -189,7 +189,7 @@ library(gsubfn)
   
   
   
-  write_csv(Allens_all, file = "data_polls_allens.csv")
+  write_excel_csv2(Allens_all, file = "data_polls_allens.csv")
   
   
 
@@ -368,7 +368,7 @@ library(gsubfn)
            AFD = AfD)
   
 
-  write_csv(FGW_all, file = "data_polls_fgw.csv")
+  write_excel_csv2(FGW_all, file = "data_polls_fgw.csv")
   
   
   
@@ -463,7 +463,7 @@ library(gsubfn)
            Linke = LINKE,
            AFD = AfD)
   
-  write_csv(Forsa_all, file = "data_polls_forsa.csv")
+  write_excel_csv2(Forsa_all, file = "data_polls_forsa.csv")
 
   
   
@@ -569,7 +569,7 @@ library(gsubfn)
   
   
 
-  write_csv(Kantar_all, file = "data_polls_kantar.csv")
+  write_excel_csv2(Kantar_all, file = "data_polls_kantar.csv")
   
   
   
