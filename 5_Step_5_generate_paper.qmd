@@ -23,7 +23,7 @@ execute:
   echo: false
   warning: false
   message: false
-  cache: true
+  cache: false
 tbl-cap-location: top
 fig-cap-location: top
 editor:
@@ -71,10 +71,10 @@ p_load(gtrendsR,
 # rm(list=setdiff(ls(), c("data_models", "data_predictions_final", "data_predictions"))) 
 
 
-  data_models <- read_csv("data_models.csv")
-  data_predictions <- read_csv("data_predictions.csv")
-  data_predictions_final <- read_csv("data_predictions_final.csv")
-  data_predictions_final_mean <- read_csv("data_predictions_final_mean.csv")
+  data_models <- read_csv("data_models.csv")  %>%
+    mutate(model_time_interval = duration(model_time_interval))
+  data_predictions_final_mean <- read_csv("data_predictions_final_mean.csv") %>%
+    mutate(model_time_interval = duration(model_time_interval))
 
 ```
 
@@ -96,32 +96,28 @@ Google has made its data on Google searches freely available for everyone in the
 
 @tbl-1 summarizes studies that have used GT data to predict elections (see also Table A1). Reviewing the literature a few aspects stand out. First, the focus usually lies on binary electoral outcomes. Prado-Román et al. [@prado-roman_google_2021], for example, were able to predict the ﬁnal results of all presidential elections in the US and Canada for the time period 2004 -- 2016. Polykalas et al. [@polykalas_general_2013] were able to forecast Greek and Spain election results. However, other studies found GT to be less helpful in predicting elections, despite their focus on binary settings [@harkan_predicting_2021, @wolf_trending_2018]. Other studies illustrated that GT data can be used to predict referendum results [@askitas_calling_2015, @askitas_predicting_2015). @mavragani_predicting_2019 successfully predicted six referendums in different countries in Europe between 2014 and 2016, for example the Brexit referendum. Polykalas et al. [@polykalas_algorithm_2013] used GT to predict elections in Germany, examining only the two most popular parties, the SPD and the CDU, trying to predict which of the two parties will win. In contrast to the previously mentioned studies, the authors additionally weight their GT predictions using previous election results to control for the selection bias, i.e., the fact that not everyone uses the internet. As indicated in @tbl-1, one of the few exceptions predicting multi-party elections is @sjovill_using_2020. Sjövill's thesis uses GT data to predict party shares focusing on the three Swedish federal elections 2010, 2014 and 2018. Sjövill [@sjovill_using_2020] emphasizes the importance of weighting the GT predictions using previous ﬁnal election results and polling data, to control for the sample selection bias of GT data. Sjövill [@sjovill_using_2020] compares diﬀerent models with the diﬀerent weighting methods and finds that they mostly have the same predictive accuracy as the average of pre-election opinion polls. The weighting method using actual polling data proved to be the most informative. Second, the GT data window that is used for the prediction is defined through its width, i.e., the end time minus the start time of the window, and the distance to the event that shall be predicted. Across studies there is strong variation in terms of the GT data windows chosen both in terms of width and distance (cf. @tbl-1). Most studies pick one to three different widths, usually one week or one month. And, in terms of distance studies usually pick a data window that ends just before the election. Naturally, the question arises whether the findings made across these studies would be the same if we were to vary the width and distance of the underlying GT data. It is one of our aims to provide a more systematic approach to choosing the data window comparing predictions for a wide variety of choices. Third, while researchers have compared GT predictions to classical polling data, they have also explored different weighting schemes that may decrease sample selection bias [@polykalas_algorithm_2013, @sjovill_using_2020). Sample selection bias is present if, e.g., voters of conservative parties are on average older and thus use the internet less. As a consequence they are underrepresented among Google users leading to an underestimation of the vote share of conservative parties. Polykalas et al. [@polykalas_algorithm_2013] weighted their GT predictions with election results from the previous election. Sjövill [@sjovill_using_2020] constructed three different models: A long-term model that weighs GT predictions with partys' previous election results; an intermediate model weighting the GT predictions using semi-annual and highly representative polling data from a respected election poll in Sweden; and a short-term model which used average monthly polling data for weighting. While all models came close to the results of the election polls in the election years studied, the short time model proved to be the most informative. Inspired by this research we also compare different weighting schemes as described in Section 3. Finally, with few exceptions, most studies remain silent on a set of important characteristics of the GT platform and its data. At the same time these characteristics can affect any predictive exercise. A first issue is that data provided by GT represents a random sample that changes over time [@raubenheimer_hey_2021]. As summarized in @tbl-1, column "Multiple GT datasets", we only found one study that bases its predictions on several GT data samples [@raubenheimer_hey_2021]. Following Raubenheimer et al. [@raubenheimer_hey_2021] we develop a systematic sampling strategy for GT data and average our predictions across those samples as described in Section 3.3 and Appendix "GT data collection and sampling error". A second issue is the selection of GT search terms. This selection potentially has the strongest effect on any predictions we make, hence, transparently communicating how and following which rational these terms have been selected is of utmost importance. A third issue is whether to further refine search terms by picking a category filter provided by Google. Such filters attempt to identify searches that belong to particular topics helping to identify only relevant searches. With the exception of Mavragani & Tsagarakis [@mavragani_predicting_2019] no previous studies made use of such categories (cf. column "Cat. used" in @tbl-1). Below, we compare the impact of basing predictions on searches refined through such a category and non-refined searches.
 
-| Study                                                      | Election(s)                                                                                         | Width(s)                    | Dist.                                               | Cat. used                        | Data type used | Multiple GT datasets | Explain / mention search term selection |
-|---------|---------|---------|---------|---------|---------|---------|---------|
-| Peer-reviewed                                              |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-|                                                            |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Raubenheimer et al. (2021)                                 | 2020 New Zealand cannabis referendum                                                                | 1 week; 3 months            | N = 1; 1 day before event                           | no                               | hourly, daily  | yes                  | yes                                     |
-| Prado-Román et al. (2021)                                  | 2004-2016 presidential elections US & 2004-2019 presidential elections Canada                       | 1/2/3 month(s)              | N = 1; 1 day before event                           | ?                                | daily          | no                   | no                                      |
-| Mavragani et al. (2019)                                    | The 2014 Scottish, the 2015 Greek, the 2016 UK, Hungarian, Italian, and the 2017 Turkish Referendum | 1 week; 1 month             | N = 1; 1 day before event                           | yes (no further explanation why) | hourly, daily  | no                   | no                                      |
-| Mavragani & Tsagarakis (2016)                              | Greek referendum 2015                                                                               | 8 days, 1 day, 12 hours     | N = 1; 1 day before event & N= 0; on Referendum day | ?                                | hourly         | no                   | yes                                     |
-|                                                            |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Polykalas et al. (2013a)                                   | 2005-2013 German Elections (only parties CDU/SPD)                                                   | 1 month                     | N = 1; 1 day before event                           | ?                                | daily          | no                   | yes                                     |
-| Harkan & Eryanto (2021)                                    | 2019 Indonesian Presidential Election                                                               | 23\. Sept 2018- 16 May 2019 | N = 1; 1 day before event                           | no                               | weekly?        | no                   | no                                      |
-| Polykalas et al. (2013b)                                   | Greek elections 2007-2012 & Spanish national elections 2008-2011                                    | 1 month                     | 1 day; 1/2 week(s)                                  | ?                                | daily          | no                   | yes                                     |
-|                                                            |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Yasseri & Bright (2013)                                    | Iranian election 2013, German election 2013, UK election 2010                                       | ?                           | ?                                                   | ?                                | daily?         | no                   | no                                      |
-| Granka (2013)                                              | US Presidential Elections 4', 8' and 12'                                                            | 1 month                     | 2 months                                            | no                               | weekly         | no                   | no                                      |
-| Vergara-Perucich (2022)                                    | Chile: Presidential election 2006--2021                                                             | 121 days                    | 5 days                                              | ?                                | daily          | no                   | no                                      |
-|                                                            |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Non-peer reviewed                                          |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Sjövill (2020)\*                                           | Swedish general election 2010-2018                                                                  | 1/2 weeks; 1 month          | N = 1; 1 day before event                           | no                               | daily          | no                   | yes                                     |
-| Wolf (2018)                                                | US Presidential Elections 16' swing states                                                          | 2/4 days                    | Depending on poll data                              | no                               | daily/hourly?  | no                   | ?                                       |
-| Askitas (2015b)                                            | Greek referendum 2015                                                                               | 1 week                      | N = 1; 1 day before event                           | no                               | hourly         | no                   | yes                                     |
-| Askitas (2015a)                                            | Irish "Gay Marriage" Referendum 2015                                                                | 1 week                      | N = 1; 1 day before event                           | no                               | hourly         | no                   | yes                                     |
-|                                                            |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
-| Note: \* = Non-binary outcome; ? = not enough information; |                                                                                                     |                             |                                                     |                                  |                |                      |                                         |
+```{r}
+#| label: tbl-1
+#| tbl-cap: "Overview of choices in previous studies"
+#| tbl-colwidths: auto
+##
+table_1 <- read_csv("Table_1.csv")
+#Syntax
+table_1[is.na(table_1)] = ""
+kable(table_1, booktabs = TRUE) %>%
+  kable_styling(font_size = 6)  %>%
+      column_spec(1,width = "0.8in") %>%
+      column_spec(2,width = "1in") %>%
+      column_spec(3,width = "0.4in") %>%
+      column_spec(4,width = "0.6in") %>%
+      column_spec(5,width = "0.4in") %>%
+      column_spec(6,width = "0.4in")  %>%
+      column_spec(7,width = "0.3in")  %>%
+      column_spec(8,width = "0.3in") %>%
+      footnote("* = Non-binary outcome; ? = not enough information")
+```
 
-: Overview of choices in previous studies {#tbl-1, tbl-colwidths="[12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5, 12.5]"}
+
 
 
 # Data and Method
@@ -263,7 +259,9 @@ data_models %>%
   filter(row_number()==1) %>%
   select(election_date, GT_keywords) %>%
   mutate(GT_keywords = sapply(GT_keywords, paste, collapse = " and ")) %>%
-  kable()
+  kable(col.names = c("Election date", "Search queries"), booktabs = TRUE) %>%
+  kable_styling(font_size = 10)  %>%
+      column_spec(2,width = "5in")
 ```
 
 
@@ -337,32 +335,6 @@ We start by comparing MC1 models that solely based on GT data, varying the GT da
 
 
 ## Figure 4: Comparison data windows ####
-
-# ## Prepare data for graph #
-# data_predictions$party <-
-#   as.factor(ordered(data_predictions$party,
-#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
-# data_predictions$deviation_label <-
-#   round(data_predictions$deviation, 1)
-
-#for Confidence Intervals
-
-# data_predictions_final_mean <- data_predictions_final %>%
-#   group_by( model_name, party) %>%
-#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-#             .groups = "keep") %>%
-#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
-# # replace_na(.,0)
-# 
-# # Kann man nuch besser lösen ????????
-# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
-
-
 
 
 ### Data for plots ####
@@ -488,7 +460,7 @@ for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
   #print(i)
   data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
-           datasource_weight =="Last polls" |
+           datasource_weight =="Infratest" |
            datasource_weight =="GT + election weight" |
            datasource_weight =="GT + weekly polls weight"
   ) %>%
@@ -524,7 +496,7 @@ x_tick_labels <- data_plot2 %>%
 
 cols2 <- c("MC1: GT" = "#e41a1c", 
            #"Only polls" = "black", 
-           "Last polls" = "black",
+           "Infratest" = "black",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
@@ -541,9 +513,9 @@ model_comparison <- data_plot2 %>%
   slice(1) %>% 
   ungroup() %>%
   mutate(id = row_number()) %>% # Recreate ID (aggregated)
-  mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
-         polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
-         polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+  mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
 table(model_comparison$polls_vs_GT)
@@ -644,7 +616,7 @@ Above we focussed on the most recent election in Germany (September 2021). This 
 ## Figure 6: Comparison elections ####
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
-           datasource_weight =="Last polls" |
+           datasource_weight =="Infratest" |
            datasource_weight =="GT + election weight" |
            datasource_weight =="GT + weekly polls weight"
   ) %>%
@@ -695,23 +667,23 @@ model_comparison <- data_plot2 %>%
   arrange(election, model_time_interval, model_time_distance) %>%
   mutate(id = row_number()) %>% # Recreate ID (aggregated)
   ungroup() %>%
-  mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
-         polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
-         polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+  mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
-table(model_comparison$election, model_comparison$polls_vs_GT)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
-table(model_comparison$election, model_comparison$polls_vs_GTE)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
-table(model_comparison$election, model_comparison$polls_vs_GTP)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
+  # table(model_comparison$election, model_comparison$polls_vs_GT)
+  # prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
+  # table(model_comparison$election, model_comparison$polls_vs_GTE)
+  # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
+  # table(model_comparison$election, model_comparison$polls_vs_GTP)
+  # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
 
 
 
 cols2 <- c("MC1: GT" = "#e41a1c", 
            #"Only polls" = "black", 
-           "Last polls" = "black",
+           "Infratest" = "black",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
@@ -1524,7 +1496,9 @@ datasets_table$used <- ifelse(datasets_table$name %in% data_GT_datasets_good$nam
 
 datasets_table %>%
   select(name, date, time, used) %>%
-  kable()
+  kable(col.names = c("Dataset name", "Date",
+                      "Time", "Used"), booktabs = TRUE) %>%
+  kable_styling(font_size = 6)
 
 ```
 
@@ -2197,7 +2171,7 @@ for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
   print(i)
   data_plot2 <- data_plot %>%
     filter(datasource_weight =="GT" | 
-             datasource_weight =="Last polls" |
+             datasource_weight =="Infratest" |
              datasource_weight =="GT + election weight" |
              datasource_weight =="GT + weekly polls weight"
     ) %>%
@@ -2233,7 +2207,7 @@ for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
   
   cols2 <- c("MC1: GT" = "#e41a1c", 
              #"Only polls" = "black", 
-             "Last polls" = "black",
+             "Infratest" = "black",
              "MC2: GT + election weight" = "#984ea3",
              "MC3: GT + weekly polls weight" = "#ff7f00")
   
@@ -2250,9 +2224,9 @@ for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
     slice(1) %>% 
     ungroup() %>%
     mutate(id = row_number()) %>% # Recreate ID (aggregated)
-    mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
-           polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
-           polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+    mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
+           polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
+           polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
   
   # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
   table(model_comparison$polls_vs_GT)
@@ -2344,7 +2318,7 @@ ggplot(data_plot2,
 ## Figure 6: Comparison elections ####
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
-           datasource_weight =="Last polls" |
+           datasource_weight =="Infratest" |
            datasource_weight =="GT + election weight" |
            datasource_weight =="GT + weekly polls weight"
   ) %>%
@@ -2395,23 +2369,23 @@ model_comparison <- data_plot2 %>%
   arrange(election, model_time_interval, model_time_distance) %>%
   mutate(id = row_number()) %>% # Recreate ID (aggregated)
   ungroup() %>%
-  mutate(polls_vs_GT = ifelse(`Last polls` < `MC1: GT`, TRUE, FALSE),
-         polls_vs_GTE = ifelse(`Last polls` < `MC2: GT + election weight`, TRUE, FALSE),
-         polls_vs_GTP = ifelse(`Last polls` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+  mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
-table(model_comparison$election, model_comparison$polls_vs_GT)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
-table(model_comparison$election, model_comparison$polls_vs_GTE)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
-table(model_comparison$election, model_comparison$polls_vs_GTP)
-prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
+    # table(model_comparison$election, model_comparison$polls_vs_GT)
+    # prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
+    # table(model_comparison$election, model_comparison$polls_vs_GTE)
+    # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
+    # table(model_comparison$election, model_comparison$polls_vs_GTP)
+    # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
 
 
 
 cols2 <- c("MC1: GT" = "#e41a1c", 
            #"Only polls" = "black", 
-           "Last polls" = "black",
+           "Infratest" = "black",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
@@ -2471,7 +2445,7 @@ ggplot(data_plot2,
 
 data_plot2 <- data_plot %>%
   filter(datasource_weight =="GT" | 
-           datasource_weight =="Last polls" |
+           datasource_weight =="Infratest" |
            datasource_weight =="GT + election weight" |
            datasource_weight =="GT + weekly polls weight"
   ) %>%
@@ -2508,7 +2482,7 @@ x_tick_labels <- data_plot2 %>%
 
 cols2 <- c("MC1: GT" = "#e41a1c", 
            #"Only polls" = "black", 
-           "Last polls" = "black",
+           "Infratest" = "black",
            "MC2: GT + election weight" = "#984ea3",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
@@ -2569,105 +2543,6 @@ ggplot(data_plot2,
 
 
 
-# Load data #
-# load(file  = "./Environments/Env_Merged_syntax_NEU_all_Polls.RData")
-# 
-# 
-# 
-# #### delete 2005 rows (just needed for Model2_2009)
-# 
-# data_models <- data_models %>% 
-#   filter(grepl("M_\\d+_2005", data_models$model_name) == FALSE)
-# 
-# #And again renaming since first id´s are missing (deleted 2005ÃÂ´s)
-# ## Add model index/number #
-# data_models <- data_models %>% 
-#   mutate(model_id = row_number()) %>%
-#   select(model_id, everything())
-# 
-# # Reorder
-# data_models <- data_models %>%
-#   select(model_id, model_name, everything())
-# 
-# ## Add unique model name #
-# #data_models <- data_models %>%
-# #mutate(model_name  = paste("M", 
-# #                           model_id, 
-# #                           year(election_date), 
-# #                           "int",
-# #                           as.character(time_length(model_time_interval, unit = "days")),
-# #                           "days",
-# #                           "dist",
-# #                           as.character(time_length(model_time_distance, unit = "days")),
-# #                           "days",
-# #                           gsub("\\s", "_", gsub("\\s+", " ", gsub("\\+", " ", data_models$datasource_weight))),
-# #                           sep = "_"))
-# 
-# 
-# # Reorder
-# data_models <- data_models %>%
-#   select(model_id, model_name, everything())
-# 
-# 
-# #### delete 2005 rows (just needed for Model2_2009)
-# 
-# data_predictions_final <- data_predictions_final %>% 
-#   filter(grepl("M_\\d+_2005", data_predictions_final$model_name) == FALSE)
-# 
-# #And again renaming since first id´s are missing (deleted 2005´s)
-# ## Add model index/number #
-# data_predictions_final <- data_predictions_final %>% 
-#   mutate(model_id = row_number()) %>%
-#   select(model_id, everything())
-# 
-# 
-# 
-# # CLEAN data_predictions #
-# # 
-# # data_predictions <- data_predictions %>%
-# #   filter(grepl("M_\\d+_2005", model_name) == FALSE) %>% # filter out models without predictions
-# #   group_by(model_name) %>%
-# #   mutate(model_id = cur_group_id()) %>% # Add new model_id (after filtering)
-# #   ungroup()
-# # #
-# #save(data_predictions_final_mean, file = "data_predictions_final_mean_Dean.RData")
-# 
-# 
-# 
-# # Graphs #
-# 
-# # Prepare data for graph
-# data_predictions$party <-
-#   as.factor(ordered(data_predictions$party,
-#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU")))
-# data_predictions$deviation_label <-
-#   round(data_predictions$deviation, 1)
-# 
-# #for Confidence Intervals
-# 
-# data_predictions_final_mean <- data_predictions_final %>%
-#   group_by( model_name, party) %>%
-#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-#             .groups = "keep") %>%
-#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
-# # replace_na(.,0)
-# 
-# # Kann man nuch besser lösen ????????  #
-# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
-# 
-
-
-# data_predictions$datasource_weight <-
-#   factor(data_predictions$datasource_weight) %>%
-#   mutate()
-
-
-
 
 # predictions for different distances #
 data_plot <- data_predictions_final_mean %>%
@@ -2700,14 +2575,14 @@ cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue",
 
 #### Plot average Deviation all Models
 data_plot3 <- data_plot %>%
-  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Last polls" |
+  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
            datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
   ) %>%
   group_by(model_name) %>% 
   mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
 
 cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
-           "Last polls" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
+           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
 
 
 ggplot(data_plot3,
