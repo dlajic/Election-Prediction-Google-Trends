@@ -1757,8 +1757,11 @@ identifier <- b-a
   end_time - start_time
   
   nrow(data_predictions) # number of predictions
-
-  #save(data_predictions, file = "data_predictionvs.RData")
+   
+  # save.image(file=paste0('../Saved_environments/environment_afterloop_',gsub("\\s|:", "-",Sys.time()),'.RData'))
+  # save(data_predictions, file = paste0('../Saved_environments/data_predictions_',gsub("\\s|:", "-",Sys.time()),'.RData'))
+  # save(data_predictions_final, file = paste0('../Saved_environments/data_predictions_final_',gsub("\\s|:", "-",Sys.time()),'.RData'))
+  # save(data_models, file = paste0('../Saved_environments/data_models_',gsub("\\s|:", "-",Sys.time()),'.RData'))
 
   
   #######
