@@ -1759,9 +1759,6 @@ identifier <- b-a
   nrow(data_predictions) # number of predictions
    
   # save.image(file=paste0('../Saved_environments/environment_afterloop_',gsub("\\s|:", "-",Sys.time()),'.RData'))
-  # save(data_predictions, file = paste0('../Saved_environments/data_predictions_',gsub("\\s|:", "-",Sys.time()),'.RData'))
-  # save(data_predictions_final, file = paste0('../Saved_environments/data_predictions_final_',gsub("\\s|:", "-",Sys.time()),'.RData'))
-  # save(data_models, file = paste0('../Saved_environments/data_models_',gsub("\\s|:", "-",Sys.time()),'.RData'))
 
   
   #######
@@ -1861,11 +1858,22 @@ data_predictions <- data_predictions %>%
   data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
   data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
+# Subset datafiles
+  data_models <- data_models %>%
+    select(model_name, election_date, GT_keywords, model_time_interval)
+  data_predictions_final_mean <- data_predictions_final_mean %>%
+    select(model_time_interval, 
+           datasource_weight,
+           model_name, Mean_dev, election,
+           election_date,
+           party,
+           GT_start_date, GT_end_date)
+  
 # Save files
   setwd("..")
   write_csv(data_models, "data_models.csv")
-  write_csv(data_predictions, "data_predictions.csv")
-  write_csv(data_predictions_final, "data_predictions_final.csv")
+  #write_csv(data_predictions, "data_predictions.csv")
+  #write_csv(data_predictions_final, "data_predictions_final.csv")
   write_csv(data_predictions_final_mean, "data_predictions_final_mean.csv")
 
 # Clean up environment
