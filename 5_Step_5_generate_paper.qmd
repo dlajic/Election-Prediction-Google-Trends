@@ -18,12 +18,15 @@ format:
     number-sections: true
     include-in-header: 
       text: |
-        \usepackage{lscape}
+        \usepackage{booktabs}
+        \usepackage{siunitx}
+        \usepackage{multirow}
+        \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
 execute: 
   echo: false
   warning: false
   message: false
-  cache: false
+  cache: true
 tbl-cap-location: top
 fig-cap-location: top
 editor:
@@ -58,7 +61,8 @@ p_load(gtrendsR,
        ggh4x,
        htmlTable,
        forcats,
-       modelsummary)
+       modelsummary,
+       stargazer)
 
 ```
 
@@ -74,7 +78,8 @@ p_load(gtrendsR,
   data_models <- read_csv("data_models.csv")  %>%
     mutate(model_time_interval = duration(model_time_interval))
   data_predictions_final_mean <- read_csv("data_predictions_final_mean.csv") %>%
-    mutate(model_time_interval = duration(model_time_interval))
+    mutate(model_time_interval = duration(model_time_interval)) %>%
+  mutate(model_time_distance = election_date - GT_end_date)
 
 ```
 
@@ -292,7 +297,7 @@ knitr::include_graphics("Figure_2_data_window_logic.pdf")
 
 In previous research authors rarely provided a justification for the corresponding choices. The majority of studies used time window(s) with a width of 1 or 2 weeks / 1 or 3 months ending one day before election/referendum. Our aim is to systematically examine as many data windows as possible in order to find the best possible prediction windows and to provide guidance for future research. In doing so we compare small with large data windows. Small data windows better reflect searches in short time spans and better reflect the current mood in those time periods. Wider data windows reflect average interest across a longer time period and average out non-meaningful spikes (e.g., TV appearances) as well as potentially covering more relevant events. For instance, we could chose a wide, several-week data window that covers both searches from in-person voters right before the election but also searches from mail-in voters a few weeks before. We compare data windows of different width namely 7, 14, 21, 28, 42, 56, 70 and 91 days. Another essential aspect is the distance of our GT data windows to the election. We could base our predictions on a data window that is far from the election, corresponding to a large distance, or a data window that ends right before the election. Previous studies have barely examined this aspect and have mostly chose a distance of one day to the election. However, election campaign leaders and demoscopists will be more interested in how the parties are performing, e.g. two weeks or three months before the election. Furthermore, it is of interest to compare which data windows or models are best suited at which point in time. One assumption could be that polls are more suitable shortly before the election, but GT data with a longer distance to the election. For these reasons, we compare the predictive power of GT data windows of distance one to 150 days before election day where a distance of, e.g., 30 days means that the GT data window ends 30 days before the election. In total, we compare 8 (number of widths) \* 150 (number of distances) = 1200 different GT data windows.
 
-## Prediction models and benchmark
+## Prediction models and benchmark {#sec-models}
 
 In our analysis, we predict party shares in four federal elections in Germany: 2009, 2013, 2017 and 2021. We build three broad classes of predictive models: Our first class of models, MC1, consists of the raw, unweighted Google Trends data; The second class of models, MC2, uses a weighting factor based on the results of the preceding election; Our last class of models, MC3, weights the GT predictions using polling results of Infratest dimap, which will be explained in more detail below. In total we estimate 4 (elections) \* 3 (model classes) \* 1200 (data windows) = 14400 models. We compare predictions of models based on GT data to predictions based on models drawing on polls for the time windows to benchmark their performance.^[The term model does not necessarily refer to a sophisticated statistical model here. For instance, the models based on polls are simply the party shares as measured in the polls.]
 For each election, we compare our predictions with the actual election results and calculate the average deviation of our predictions from the election results. The calculated average absolute deviations serve as a performance indicator for the different models. MC1 models predict party shares solely with Google Trends data. To obtain these we proceeded as follows: We started by calculating the Google proportion for each party p for an interval i. As shown in Eq. 1, in the ﬁrst step, we use the average Google search interest of each party p for the examined data window i, for example, the average search interest for the search query of the CDU for the data window with width 7 days and distance 7 days. Then we divide it by the sum N of all parties average search interest for that data window. The Google proportion thus serves as a prediction in percent for the respective party.
@@ -371,7 +376,7 @@ linetypes <- c("SPD" = "solid",
 data_plot1 <- data_plot %>%
   filter(datasource_weight =="GT") %>%
   group_by(model_name) %>%
-  mutate(group_mean_deviation = mean(abs(Mean_dev))) %>%
+  #mutate(group_mean_deviation = mean(abs(Mean_dev))) %>%
   filter(election_date == "2021-09-26") %>%
   filter(model_time_interval_fac == "7 days" |
          model_time_interval_fac == "14 days" |
@@ -428,16 +433,56 @@ ggplot(data_plot1,
   labs(colour = "Party")
 # stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="purple", geom="line", linetype = "dashed")
 #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+# Data for text (@fig-4)
+n_predictions <- nrow(data_plot1)
+n_parties <- length(unique(data_plot1$party))
+n_models <- length(unique(data_plot1$model_name))
+n_widths <- length(unique(data_plot1$model_time_interval))
+n_distances <- length(unique(data_plot1$model_time_distance))
+
+# Data for text (Footnote)
+data_predictions_final_mean_GT <- data_predictions_final_mean %>% filter(datasource_weight=="GT")
+n_predictions_all <- nrow(data_predictions_final_mean_GT)
+n_parties_all <- length(unique(data_predictions_final_mean_GT$party))
+n_models_all <- length(unique(data_predictions_final_mean_GT$model_name))
+n_widths_all <- length(unique(data_predictions_final_mean_GT$model_time_interval))
+n_distances_all <- length(unique(data_predictions_final_mean_GT$model_time_distance))
+n_elections_all <- length(unique(data_predictions_final_mean_GT$election_date))
+
+
+data_predictions_final_mean_GT_2013_2021 <- data_predictions_final_mean %>%
+  filter(datasource_weight=="GT",
+         election_date=="2013-09-22" | 
+         election_date=="2017-09-24" |
+         election_date=="2021-09-26")
+
+n_predictions_2013_2021 <- nrow(data_predictions_final_mean_GT_2013_2021)
+
+
+data_predictions_final_mean_GT_2009 <- data_predictions_final_mean %>%
+  filter(datasource_weight=="GT",
+         election_date=="2013-09-22" | 
+         election_date=="2017-09-24" |
+         election_date=="2021-09-26")
+
+n_predictions_2009 <- nrow(data_predictions_final_mean_GT_2009)
+
+
+
+
 ```
 
 
 
-In @fig-4 we visualize a subset of the predictions provided by MC1 models for the most recent general election in Germany (26th of September 2021). @fig-4 plots 3600 deviations = predictions - actual vote shares across parties as points connected by lines, namely predictions for 6 parties of based on 600 models defined by 4 widths and 150 distances.^[In total we have, 8 (widths) * 150 (distances) = 1200 models across. Across the 4 elections these MC1 models yield (1200 * 6 parties * 3 elections) + (1200 * 5 parties* 1 election) =  27600 predictions. Figure 1 displayes a subset namely 4 (widths) * 150 (distances) * 6 (parties) = 3600 predictions across parties. For the 2009 election we predict the vote shares of 5 parties yielding  8 * 150 * 5 = 6000 predictions. For the 2013, 2017, 2021 election we predict vote shares for 6 parties yielding 8 * 150 * 3 * 6 = 21600 predictions. This results in a total of 27600 predictions.] 
-The most recent election is ideal for benchmarking GT predictions, because usage of the platform has changed over time. Connecting lines have been added to facilitate comparison. The single panels (Plot 1-4) correspond to the four different widths of the data windows going from 7 days to 91 days (see right-hand y-axis). The x-axis indicates the distance of the respective window to the election. First, we find that the width and distance of the data window to the election matters. We compare models of differing width (from top to bottom) and distance (from left to right). Data windows of low width, e.g., the models based on 7 days of GT data in the top plot, vary much stronger in their predictive accuracy across time. In other words, with such small time spans it matters which week of GT data we have pick for our prediction. Naturally, this variation decreases when we extend the time window on which we base our prediction going from 7 days (Plot 1) to 91 days (Plot 4) at the bottom in @fig-4. Second, on average accuracy seems to improve slightly the smaller the distance between the GT data window and the election. In @fig-3 (next section) we plot the prediction error averaged across all parties for MC1 models (red line) contrasting them with other models. Focusing on the red line this analysis also indicates that the error decreases the closer we are to the election. However, we can also clearly see that picking a short data window, e.g., 7 days (Plot 1), results in considerable variation in what regards accuracy. In addition, we used a linear model to model the trend of accuracy as a function of distance holding the width contant at 14 days in @tbl-A2. For the 2021 election, the average deviation decreases by 0.02% per day distance. In other words, if move the data window 100 days closer to the election, the absolute mean deviation decreases by 2%. Third, @fig-4 also highlights the strong variation in accuracy between parties. For instance, GT predictions of the vote share of the Linke are more accurate than, e.g., for the AFD, with the deviation being closer to 0 across models. For the 2021 election the error generally seems highest for the AfD. Moreover, shares of certain parties are constantly underestimated (e.g., Linke), while others are overestimate (e.g., AfD). It seems that the quality of Google searches as a signal of vote choice, different across parties. Importantly, in Appendix A.4 @fig-A1 provides further visualizations for more intervals for the 2021 election, @fig-A2 provide visualizations for the other elections and Table A1 also provides models for the other elections. The insights regarding data windows described above are largely confirmed when using data for other elections.
+In @fig-4 we visualize a subset of the predictions provided by MC1-GT models for the most recent general election in Germany (26th of September 2021). @fig-4 plots `r n_predictions` deviations = predictions - actual vote shares^[Obtained by averaging predictions over 10 GT data samples. CHECK!] across parties as points connected by lines, namely predictions for  `r n_parties` parties of based on `r n_models` models defined by `r n_widths` widths and `r n_distances` distances.^[The graph is only showing a subset of our predictions restricted to one election and four data window widths. Overall, from our models that are solely based on GT data we yielded `r n_predictions_all` deviations = predictions - actual vote shares, namely predictions for  `r n_parties_all` parties of based on `r n_models_all` models defined by `r n_widths_all` widths, `r n_distances_all` distances and `r n_elections_all`. For the 2009 election, we have `r n_predictions_2009` solely GT data based predictions. For the 2013, 2017, 2021 elections we obtained `r n_predictions_2013_2021` 27600 predictions.] 
+
+
+The most recent election is ideal for benchmarking GT predictions, because usage of the platform has changed over time. Connecting lines have been added to facilitate comparison. The single panels (Plot 1-4) correspond to the four different widths of the data windows going from 7 days to 91 days (see right-hand y-axis). The x-axis indicates the distance of the respective window to the election. First, we find that the width and distance of the data window to the election matters. We compare models of differing width (from top to bottom) and distance (from left to right). Data windows of low width, e.g., the models based on 7 days of GT data in the top plot, vary much stronger in their predictive accuracy across time. In other words, with such small time spans it matters which week of GT data we have picked for our prediction. Naturally, this variation decreases when we extend the time window on which we base our prediction going from 7 days (Plot 1) to 91 days (Plot 4) at the bottom in @fig-4. Second, on average accuracy seems to improve slightly the smaller the distance between the GT data window and the election. In @fig-5 (next section) we plot the prediction error averaged across all parties for MC1-GT models (red line) contrasting them with other models. Focusing on the red line this analysis also indicates that the error decreases the closer we are to the election. However, we can also clearly see that picking a short data window, e.g., 7 days, results in considerable variation in what regards accuracy (see @fig-4, Plot 1). In addition, we used a linear model to model the trend of accuracy as a function of distance holding the width constant at 14 days in @tbl-A2. For the 2021 election, the average deviation decreases by 0.02% per day distance. In other words, if move the data window 100 days closer to the election, the mean absolute deviation decreases by 2%. This, however, is not true for the other elections (cf. @tbl-A2). Third, @fig-4 also highlights the strong variation in accuracy between parties. For instance, GT predictions of the vote share of the Linke are more accurate than, e.g., for the AFD, with the deviation being closer to 0 across models. For the 2021 election the error generally seems highest for the AfD. Moreover, shares of certain parties are usually underestimated (e.g., SPD), while others are overestimated (e.g., AfD). It seems that the quality of Google searches as a signal of vote choice differs across parties. Importantly, in @fig-A4 provides further visualizations for more intervals for the 2021 election, @fig-A5 provide visualizations for the other elections and @tbl-A2 also provides models for the other elections. The insights described above are largely confirmed when using data for other elections.
 
 ## Comparing predictions across model classes
 
-Above, we compared different models within class MC1 (only GT data) focusing on the width and distance of data windows. Previous studies have often combined GT data with election data or polls. As described in Section 3 we compare predictions across three broad classes of models. In @fig-5 again focuses on the 21' election. Now, each point represents the mean absolute error, i.e., the prediction error averaged across parties whereby predictions by different models are colored: MC1 is solely based on GT data (red line, 600 models), MC2 is weights GT data with previous election results (purple line, 600 models), MC3 weights GT data with poll data (orange line, 600 models). Finally, we have the pure polling data, namely always the last Dimap polls in the respective time windows (black line, 600 models). The various plots (Plot 1-4) in @fig-5 corresponding to different widths of the data window.
+Above, we compared different models within class MC1-GT focusing on the width and distance of data windows. Previous studies have often combined GT data with election data or polls. As described in @sec-models we compare predictions across three broad classes of models. @fig-5 again focuses on the 21' election. 
 
 
 ```{r}
@@ -501,6 +546,9 @@ cols2 <- c("MC1: GT" = "#e41a1c",
            "MC3: GT + weekly polls weight" = "#ff7f00")
 
 
+if(i == "2021-09-26"){ # Only for 21# eleection
+  
+
 # Compare predictions across models
 # Table profide the number/percentage of models where MC1-3 beat polls
 
@@ -518,24 +566,33 @@ model_comparison <- data_plot2 %>%
          polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
-table(model_comparison$polls_vs_GT)
-prop.table(table(model_comparison$polls_vs_GT))
-table(model_comparison$polls_vs_GTE)
-prop.table(table(model_comparison$polls_vs_GTE))
-table(model_comparison$polls_vs_GTP)
-prop.table(table(model_comparison$polls_vs_GTP))
+model_comp <- function(var){
+  result <- model_comparison[var]
+  result <- paste0(round(prop.table(table(model_comparison[var])),2)[1]*100, 
+                   "% (",
+                   table(model_comparison[var])[1],
+                   " out of ",
+                   sum(table(model_comparison[var])),
+                   ")")
+}
+
+
+
+comparison_MC1_GT <<- model_comp("polls_vs_GT")
+comparison_MC2_GTE <<- model_comp("polls_vs_GTE")
+comparison_MC3_GTP <<- model_comp("polls_vs_GTP")
 
 # Comparison only for large width
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
 model_comparison_large_width <- model_comparison %>% 
   filter(model_time_interval == "7862400s (~13 weeks)")
-table(model_comparison_large_width$polls_vs_GT)
-prop.table(table(model_comparison_large_width$polls_vs_GT))
-table(model_comparison_large_width$polls_vs_GTE)
-prop.table(table(model_comparison_large_width$polls_vs_GTE))
-table(model_comparison_large_width$polls_vs_GTP)
-prop.table(table(model_comparison_large_width$polls_vs_GTP))
 
+comparison_MC2_GTE_large_width <<- model_comp("polls_vs_GTE")
+comparison_MC1_GT_large_width <<- model_comp("polls_vs_GT")
+comparison_MC3_GTP_large_width <<- model_comp("polls_vs_GTP")
+
+
+}
 
 # Add Plot X labels
 data_plot2 <- data_plot2 %>%
@@ -597,12 +654,14 @@ Figure_5_2021_09_26
 
 ```
 
-
-No surprisingly, we find that polls (black line) unarguably perform the best for the 2021 election reflected in the fact that prediction error mostly scores below our models of Class MC1-3. In @fig-3 this becomes visible as the black line is almost always closer to 0 then the other ones. We also compared how often other models actually provide better predictions. The next best model class, MC3, combines GT data with polls. Across all models visualized in @fig-3, in 24.5% (147 out of 600) of predictions the MC3 models beat the polls in terms of accuracy. In other words, sometimes the combination of the two data sources provides a more accurate prediction. MC1 models perform worse and only provide a better predictions in 5.8% (35 out of 600) cases. Finally, models of class MC2 that combine GT data with previous election perform even worse and only provide better predictions than polls in 4.5% (27 out of 600) of cases. Hence, our data suggests that weighting GT data with previous elections is generally unhelpful. Naturally, we could discuss whether the accuracy of our GT based models (MC1) is really so much worse than polling data. Given that we can collect GT data for free, errors of the size found here may be acceptable for certain applications where we only need rough predictions. Besides, if we want to decrease the dependency of GT-based predictions on short-term trends we should probably base our predictions on a larger time span as shown in Plot in @fig-3. We provide findings for other elections in the next section and in Appendix A.4.2.
+Now, each point represents the mean absolute error, i.e., the prediction error averaged across parties whereby we obtain 600 predictions per model (+ 600 for Intratest) and the models are colored: MC1 models based on GT data in red, MC2 models based on GT data weighted with previous election results in purple, MC3 models based on GT data weighted with polling data in orange. Finally, we have the predictions based on Infratest Dimap polls, whereby we simply use last Dimap poll in the respective time windows. As in @fig-4, the various plots in @fig-5 (Plot 1-4) correspond to different widths of the data window.
+No surprisingly, we find that polls (black line) unarguably perform the best for the 2021 election reflected in the fact that prediction error mostly scores below our GT data based models of Class MC1-3. In @fig-3 this becomes visible as the black line is almost always closer to 0 then the other ones.          
+We also compared how often our other models actually provide better predictions. GT data based MC1 models provide better prediction in `r comparison_MC1_GT` of the cases. MC2 models that weight GT data with previous election perform the worst with `r comparison_MC2_GTE` better predictions as compared to polls by Infratest Dimap. Finally, MC3 models that combine GT data with polls perform the best with `r comparison_MC3_GTP` of predictions being better. The picture hardly changes when we restrict our models to those based on width 91 days.           
+Naturally, we could discuss whether the accuracy of our GT based models (MC1) is really so much worse than polling data. Given that we can collect GT data for free, errors of the size found here may be acceptable for certain applications where we only need rough predictions. Besides, if we want to decrease the dependency of GT-based predictions on short-term trends we should probably base our predictions on a larger time span as shown in Plot in @fig-3. We provide findings for other elections in the next section and in @sec-comparing-model-classes-other.
 
 ## Comparing predictions across model classes and elections
 
-Above we focussed on the most recent election in Germany (September 2021). This focus is justified because, given the changing user population, the most recent election is the most appropriate to assess the predictive power of the GT search data. Nonetheless, a comparison with earlier elections can provide us with some insights as to what variations we can expect for coming elections. @fig-6 is similar to @fig-5 only that the width of the data window is held constant at 91 days - corresponding to the shown in the lowest panel of @fig-5 - and predictions for different elections are shown on top of each other. Again, each point represents the mean absolute error, i.e., the prediction error averaged across parties whereby predictions by different model classes are colored. We find that indeed the accuracy of predictions varies across election. To start GT based predictions (MC1: GT, red lines) were least accurate in 2009 (@fig-6, Plot 2) and 2021 (@fig-6, Plot 3), never beating the polls in terms of accuracy. However, MC1 models fared better in 2013, beating polls in 66% (99 out of 150) predictions and 2017 with 97% (145 out of 150) predictions (cf. @fig-6, Plot 2 and 3). MC2 models (GT + election weight) only provide better predictions in 2017 in 45% of cases (68 out of 150). MC3 exceeded polls in terms of accuracy in 2009 for 30 our of 150 predictions (20%), in 2013 for 43 our of 150 predictions (29%), in 2017 for 109 our of 150 predictions (73%) and in 2021 for 30 our of 150 predictions (20%). Hence, in general, 2017 was a particularly bad year for the polls in our data. We can only speculate why there is such strong variation across elections. First, as mentioned, we have to assume that the representativity of Google search users varies across time. In principle, it is possible that the population of Google search users was more representative of German voters in the 2013, 2017 elections than in 2009 or 2021. Second, it could be related to the elections themselves. Potentially, the extend to which the action "search for" is related to "vote for" depends on the election with more "charged" elections like the 2021 election decreasing this correlation (Faas and Klingelhöfer 2022). Third, it is possible that the accuracy of the polling data which we use as a benchmark varies over time.
+Above we focused on the most recent election in Germany (9th of September 2021). This focus is justified: Given the changing user population, the most recent election is the most appropriate to assess the predictive power of GT search data. Nonetheless, a comparison with earlier elections can provide us with some insights as to what variations we can expect for coming elections. @fig-6 is similar to @fig-5 only that the width of the data window is held constant at 91 days which corresponds to Plot 4 in @fig-5, and predictions for different elections are shown on top of each other (Plot 1-4). Again, each point represents the mean absolute error, i.e., the prediction error averaged across parties whereby predictions by different model classes are colored.      
 
 
 ```{r}
@@ -671,6 +730,8 @@ model_comparison <- data_plot2 %>%
          polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
          polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
 
+  
+
 # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
   # table(model_comparison$election, model_comparison$polls_vs_GT)
   # prop.table(table(model_comparison$election, model_comparison$polls_vs_GT), margin = 1)
@@ -678,6 +739,56 @@ model_comparison <- data_plot2 %>%
   # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
   # table(model_comparison$election, model_comparison$polls_vs_GTP)
   # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), margin = 1)
+
+
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
+model_comp_election2 <- function(var1, var2){
+  # var1 <- "election"
+  # var2 <- "polls_vs_GT"
+  result_table <- table(model_comparison %>% pull(var1), 
+                        model_comparison %>% pull(var2)) %>%
+    as.data.frame.matrix() %>%
+    slice(-1)
+  result_proptable <- prop.table(table(model_comparison %>% pull(var1), 
+                        model_comparison %>% pull(var2)),
+                        margin = 1)  %>%
+    as.data.frame.matrix() %>%
+    slice(-1) 
+  result <- paste(paste0("Election ", 
+         str_extract(rownames(result_proptable), "[0-9][0-9][0-9][0-9]$"), 
+         ": ",
+         round(result_proptable[,1],2)*100, 
+         "% (", result_table[,1], 
+         " out of ", 
+         result_table[,1]+result_table[,2], ")"), 
+        collapse=", ")
+  
+  results_table <- 
+    bind_cols(Model = var2, 
+              Election = str_extract(rownames(result_proptable), "[0-9][0-9][0-9][0-9]$"),
+              "Better predictions: %" = paste0(round(result_proptable[,1],2)*100, "%"),
+              "Better predictions: n out of total" = paste0(result_table[,1], " out of ", result_table[,1]+result_table[,2]))
+  #print(result)
+  results_table
+}
+
+
+table_comparison <- 
+  bind_rows(model_comp_election2("election", "polls_vs_GT"),
+            model_comp_election2("election", "polls_vs_GTE"),
+            model_comp_election2("election", "polls_vs_GTP")) %>%
+  mutate(Model = recode(Model,
+    "polls_vs_GT" = "MC1: GT",
+    "polls_vs_GTE" = "MC2: GT + election weight",
+    "polls_vs_GTP" = "MC3: GT + weekly polls weight"
+  )) %>% 
+  rename("Model class" = Model)
+
+table_comparison[c(2:4, 6:8, 10:12),1] <- ""
+
+  # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTE), margin = 1)
+  # table(model_comparison$election, model_comparison$polls_vs_GTP)
+  # prop.table(table(model_comparison$election, model_comparison$polls_vs_GTP), 
 
 
 
@@ -727,11 +838,36 @@ ggplot(data_plot2,
 ```
 
 
+```{r}
+#| label: tbl-3
+#| tbl-cap: "Comparing model predictions to polls"
+#| tbl-colwidths: auto
+
+table_comparison %>%
+  kable(booktabs = TRUE) %>%
+  kable_styling(font_size = 9) %>%
+      column_spec(4,width = "1in") %>%
+      column_spec(3,width = "1in")
+```
+
+ 
+We find that indeed the accuracy of predictions varies across elections. @tbl-3 provides an overview regarding how often the different models of the classes MC1-3 where better than purely poll based predictions across elections (poll based predictions always concern the last poll). We can see that 2021 and 2009 were particular bad years for models of class MC1 and MC2 with 0 better predictions than polls. In contrast, MC3 provided better predictions in for 20% of the estimated models both in 2009 and 2021.
+For the 2013 election, the purely GT data based models beat the polls in 66% of the estimated models and provide better predictions than the other model classes most of the time. For the 2017 election,the purely GT data based models fare even better, beating the polls in 97% of the models (defined by width and distance), with the other two model classes faring somewhat worse. Hence, in general, 2017 was a particularly bad year for the polls in our data.         
+We can only speculate why there is such strong variation across elections. First, as mentioned, we have to assume that the representativity of Google search users varies across time. In principle, it is possible that the population of Google search users was more representative of German voters in the 2013, 2017 elections than in 2009 or 2021. Second, it could be related to the elections themselves. Potentially, the extend to which the action "search for" is related to "vote for" depends on the election with more "charged" elections like the 2021 election decreasing this correlation [@faas_german_2022]. Third, it is possible that the accuracy of the polling data which we use as a benchmark varies over time.
+
+
+
+
 # Conclusion
 
 Google trends data has become a popular data source for prediction in different domains such as elections. While most previous research focuses on binary electoral outcomes such as referendum results or presidential elections, we evaluate GT predictions in a multi-party setting. Furthermore, we developed a framework that allows us to compare predictions across 1200 fine-grained GT data windows that vary both in terms of width (7 to 91 days) and distance to the election (1 to 150 days). And, we compare predictions across several elections (four general elections in Germany). Besides, we provide a more systematic assessment hitherto neglected choices such as the selection of search terms, GT data samples and search refinement categories. Tackling these different dimensions allows us to provide some unique insights. First, we find that predictive accuracy varies significantly as a function of the width and distance of GT data windows. To some extent disagreement on the predictive accuracy of GT data in previous research may be linked to the varying choices researchers made here (cf. @tbl-2). In what concerns width(s), accuracy varies significantly across time for shorter data windows (here 7-28 days). We would generally recommend choosing larger data windows for predictive purposes to average out variation that is due to singular events. And, akin to classic polling data we find that predictive accuracy increases the closer our data window to the election. Second, in terms of predictive models we compared models based on GT data, on GT + previous electoral outcomes data and GT + opinion poll data. Generally, high quality opinion polls, in our case by the reknowned company Infratest dimap, still represents the benchmark in terms of accuracy, especially in the case of the lates election in 2021. We found that models that combine polling data with GT data (MC3) data fare better than purely GT-data-based models (MC1). Furthermore, we find that weighting GT data with previous electoral outcomes [cf. @polykalas_algorithm_2013, @polykalas_general_2013] does not help predictive accuracy, at least not for the German case (cf. @fig-3). Third, while we argued that recent elections are the appropriate benchmarks for GT data predictions, comparisons to past elections may still be revealing. Especially, insofar our findings for the 2021 election are somewhat discouraging, which goes against earlier studies that emphasize the predictive accuracy of GT data. Hence, we need to test whether our findings for 2021 also hold for other elections. And, especially, for the 2013 and 2017 election GT data models where much more accurate, at times beating or at least aligning with predictions based on opinion polls (cf. @fig-6). Above we speculated that the nature of the election may affect predictive power of GT (cf. Faas and Klingelhöfer 2022). More generally, this highlights that conclusions regarding predictive accuracy from one election may not generalize to other elections. Finally, we conclude that GT prediction research should ideally become more transparent. From our review we learned that identifying the various characteristics in @tbl-2, i.e., all representing important choices when using GT data, was a challenge. Future research would benefit if authors would report more details, e.g., the exact time of GT data collection, the number of GT samples, the nature of search term selection. For instance, we found that it matters which category search filter is selected (cf. Appendix A.1). Our study has several limitations that provide venues for future research. First, we pursued a systematic approach to search term selection, testing different search terms against each other (see Section 3.2). Future research might benefit from choosing an even wider net of search terms, trying out different ones. Second, while we predicted elections shares we did not forecast them in that the elections happened already. Since, we didn't built any sophisticated models we somewhat circumvented the danger of adapting our models to already seen data. Nonetheless, as is now more common in the literature on election forecasting [@gschwend_zweitstimme_2022], studie that rely on GT data for prediction could also be pre-registered. Third, from the general perspective of election forecasting, GT data could be seen as just another dynamic signal that can be integrated into more sophisticated modelling strategies [e.g., @stoetzer_forecasting_2019] that go beyond the simple weighting approach used in the present paper. Whether such additional sources of data can improve predictions remains to be tested. Fourth, the changing predictive power of GT across elections maybe related to how representative the GT data is of searches on the platform (1) and how representative users of the GT platform are of voting population (2). Pertaining to (1), both aspects of representiveness should be studied further. Finding variation across GT data samples Raubenheimer et al. [@raubenheimer_hey_2021] suggested that there might be a publication bias, i.e., successful predictions are based on suitable samples. For this reason we averaged across GT data samples (cf. Section 3.3. and A.2). However, more rearch into the variability of such samples for particular predictions is warranted. However, (2) is relevant as well. Platforms are generally quite secretive about their userbase. Collecting more evidence on how representative Goodle users are of the general (voting) population would help to explain the accuracy of corresponding predictions and help to develop more sophisticated weighting schemes.
 
+\newpage
+
 # Online appendix
+
+\beginsupplement
+
 
 ## Category filter selection and search terms
 
@@ -1506,8 +1642,6 @@ datasets_table %>%
 
 @fig-A3 visualizes exemplarily the variation of the Google proportion across 10 different samples for the 2021 election. In order to visualize this variation we used the same samples as used for the prediction of the 2021 election. The Google proportion was calculated for each day for each party in each sample. Subsequently, the mean and confidence intervals were calculated for each day for each party. @fig-A3 displays the mean (solid line) and confidence intervals (shaded area) across days and parties. We find that the variability accross samples is relatively low.
 
-@fig-A3: Sampling error variation for the 2021 election
-
 
 ```{r}
 #| label: fig-A3
@@ -1666,12 +1800,14 @@ grid_gprop <- plot21 %>%
   scale_color_manual(values = c("AFD" = "blue", "CDU" = "black", "FDP" = "orange","Grüne" = "green", "Linke" = "purple", "SPD" = "red")) +
   facet_grid(facets = vars(party)) + # , scales = "free"coord_cartesian(ylim = c(0,25)) +
   labs(y = "Mean of Google Proportion over samples and 95% CI", x = "Time span", color = "Party", fill= "Party") + 
-  # theme_minimal(base_size = 22) +
+  theme_minimal(base_size = 22) +
   theme(legend.position="top", 
         legend.direction = "horizontal",
         panel.spacing = unit(2, "lines"))+
   guides(color = guide_legend(nrow = 1)) + 
   scale_x_date(date_breaks = "weeks" , date_labels = "%b %d")
+
+
 
 
 grid_gprop
@@ -1731,7 +1867,7 @@ ggplot(data_plot1,
              linetype="dashed") +
   geom_hline(yintercept = 0,
              linetype="solid") +  
-  geom_point(size = 0.5) +
+  geom_point(size = 0.3) +
   geom_line() +
   theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
@@ -1784,13 +1920,17 @@ data_plot2 <- data_plot %>%
 # Create x-axis tick labels
 
 x_tick_labels <- data_plot2 %>%
-  #filter(election_date == "2017-09-24") %>% # Just use one election
   group_by(election_date, GT_end_date) %>%
   filter(row_number()==1) %>%
   group_by(election_date) %>%
-  slice(c(1,50,  100, 150)) %>%# Pick every 30th row
+  filter(model_time_distance == 1|
+           model_time_distance == 50|
+           model_time_distance == 100|
+           model_time_distance == 150) %>%
+  #slice(c(1,50,  100, 150)) %>%# Pick every 30th row
   ungroup() %>%
-  select(GT_start_date, GT_end_date, model_time_distance)
+  select(GT_start_date, GT_end_date, model_time_distance) %>%
+  arrange(GT_end_date, model_time_distance)
 
 
 
@@ -1806,8 +1946,8 @@ ggplot(data_plot2,
              linetype="dashed") +
   geom_hline(yintercept = 0,
              linetype="solid") +  
-  geom_point(size = 0.5) +
-  geom_line() +
+  geom_point(size = 0.1) +
+  geom_line(size = 0.2) +
   theme_minimal(base_size = 22) +
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
@@ -1818,7 +1958,9 @@ ggplot(data_plot2,
   scale_y_continuous(sec.axis = dup_axis(
     name = "Width of data window")) +
   scale_color_manual(values = cols) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  theme(axis.text.x = element_text(angle = 55, 
+                                   hjust = 1,
+                                   size= 14),
         legend.position="top",
         axis.text.y.right = element_blank()) +
   ylab("Deviation on % scale\n(prediction error)") +
@@ -1852,15 +1994,13 @@ data_plot1_party <- data_plot1 %>%
 
 ```
 
+@tbl-A2 models the prediction accuracy as a function of the data windows distance to the election. Thereby, the width of the data window is held constant at 14 days.
 
 
-
-```{r eval=FALSE}
+```{r}
 #| label: tbl-A2
-#| tbl-cap: "Prediction accuracy as a function of distance"
-#| tbl-colwidths: auto
-
-
+#| tbl-cap: "Prediction accuracy as a function of distance days"
+#| results: "asis"
 
 # First model distance
 data_modelling <- data_plot %>%
@@ -1884,42 +2024,29 @@ M5 <- lm(Mean_dev_absolute ~ model_time_distance_num, data = data_modelling %>%
            filter(election_date=="2021-09-26"))
 
 
-models <- list("M1 (all elections)" = M1, 
-               "M2 (2009-09-27)" = M2, 
-               "M3 (2013-09-22)" = M3, 
-               "M4 (2017-09-24)" = M4, 
-               "M5 (2021-09-26)" = M5)
-
-
-
-# additionally we want to change the font, font size and spacing
-modelsummary(models,
-             title = 'Linear regression',
-             output = 'gt',
-             notes = "Notes: Outcome is the absolute mean deviation across parties.",
-             estimate  = "{estimate} [{conf.low}, {conf.high}]",
-             statistic = "{std.error} ({p.value}){stars}") %>%
-  tab_spanner(label = 'Dependent variable: Deviations (absolute)', columns=2:6) %>%
-  tab_options(
-    table.font.size = 10,
-    data_row.padding = px(1),
-    table.border.top.color = "white",
-    heading.border.bottom.color = "black",
-    row_group.border.top.color = "black",
-    row_group.border.bottom.color = "white",
-    table.border.bottom.color = "white",
-    column_labels.border.top.color = "black",
-    column_labels.border.bottom.color = "black",
-    table_body.border.bottom.color = "black",
-    table_body.hlines.color = "white"
-  ) %>% kable()
-
-
+stargazer(M1, 
+          M2,
+          M3,
+          M4, 
+          M5,
+          dep.var.caption = 'Dependent variable: Average absolute deviations',
+          column.labels=c('\\shortstack{M1 \\\\ (all elections)}',
+                          '\\shortstack{M2 \\\\ (2009-09-27)}',
+                          '\\shortstack{M3 \\\\ (2013-09-22)}',
+                          '\\shortstack{M4 \\\\ (2017-09-24)}',
+                          '\\shortstack{M5 \\\\ (2021-09-26)}'),
+          omit.stat=c("LL","ser","f"),
+          dep.var.labels.include = FALSE,
+          model.names = FALSE,
+          font.size = "scriptsize",
+          covariate.labels = "Distance (days)",
+          header = F, 
+          model.numbers=FALSE)
 
 
 ```
 
-### Comparing predictions across model classes: Other elections and data window widths
+### Comparing predictions across model classes: Other elections and data window widths {#sec-comparing-model-classes-other}
 
 
 ```{r}
@@ -2531,14 +2658,11 @@ ggplot(data_plot2,
 
 ## Benchmarking GT data and our models against all other leading polling institutes
 
-* Landscape mode?
-
-
 ```{r}
 #| label: fig-13
-#| fig-cap: "Benchmarking against other polls"
+#| fig-cap: "Benchmarking against other polls (Elections: 2009, 2013)"
 #| fig-width: 14
-#| fig-height: 14
+#| fig-height: 20
 #| fig-pos: "H"
 
 
@@ -2546,7 +2670,7 @@ ggplot(data_plot2,
 
 # predictions for different distances #
 data_plot <- data_predictions_final_mean %>%
-  #filter(election_date=="2017-09-24"|election_date=="2013-09-22") %>% #can filter for better overview
+  filter(election_date=="2009-09-27"|election_date=="2013-09-22") %>% #can filter for better overview
   mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
   mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
   mutate(model_time_distance = election_date - GT_end_date)
@@ -2613,6 +2737,7 @@ ggplot(data_plot3,
                )
   ) +
   scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
+    theme_minimal(base_size = 22) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("MeanDeviation in %\n(prediction error)") +
   xlab("Enddate of interval\n(= distance)") +
@@ -2628,6 +2753,101 @@ ggplot(data_plot3,
 
 ```
 
+
+```{r}
+#| label: fig-14
+#| fig-cap: "Benchmarking against other polls (Elections: 2017, 2021)"
+#| fig-width: 14
+#| fig-height: 20
+#| fig-pos: "H"
+
+
+
+
+# predictions for different distances #
+data_plot <- data_predictions_final_mean %>%
+  filter(election_date=="2017-09-24"|election_date=="2021-09-26") %>% #can filter for better overview
+  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
+  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
+  mutate(model_time_distance = election_date - GT_end_date)
+
+
+data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
+                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
+                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
+                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
+                                            ordered = TRUE)
+
+x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
+x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+
+cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
+          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
+
+
+
+
+
+
+# PLOT #
+
+
+#### Plot average Deviation all Models
+data_plot3 <- data_plot %>%
+  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
+           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
+
+cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
+           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
+
+
+ggplot(data_plot3,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal() +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                              "Date: ", x_labels_date
+               )
+  ) +
+  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
+    theme_minimal(base_size = 22) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("MeanDeviation in %\n(prediction error)") +
+  xlab("Enddate of interval\n(= distance)") +
+  labs(colour = "Datasource") + 
+  ylim(0,10) + 
+  theme(legend.position="top")
+#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+
+
+
+
+```
 
 
 # Reproducing and replicating this study
