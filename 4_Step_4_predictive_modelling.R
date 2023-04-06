@@ -71,11 +71,14 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 # load poll datasets
-Infratest_Dimap_polls <- read_csv2("data_polls_infratest_dimap.csv")
-Forsa_polls           <- read_csv2("data_polls_forsa.csv")
-Kantar_polls          <- read_csv2("data_polls_kantar.csv")
-FGW_polls             <- read_csv2("data_polls_fgw.csv")
-Allensbach_polls      <- read_csv2("data_polls_allens.csv")
+Infratest_Dimap_polls <- read_delim("data_polls_infratest_dimap.csv", delim = ";")
+Forsa_polls           <- read_delim("data_polls_forsa.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
+Kantar_polls          <- read_delim("data_polls_kantar.csv", delim = ";")
+FGW_polls             <- read_delim("data_polls_fgw.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
+Allensbach_polls      <- read_delim("data_polls_allens.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
 
 
 
@@ -1758,7 +1761,7 @@ identifier <- b-a
   
   nrow(data_predictions) # number of predictions
    
-  # save.image(file=paste0('../Saved_environments/environment_afterloop_',gsub("\\s|:", "-",Sys.time()),'.RData'))
+  save.image(file=paste0('../Saved_environments/environment_afterloop_',gsub("\\s|:", "-",Sys.time()),'.RData'))
 
   
   #######
