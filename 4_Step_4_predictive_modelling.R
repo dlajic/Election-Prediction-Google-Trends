@@ -247,7 +247,7 @@ names_df <- list.files(dir)
   
   start_time <- Sys.time()
  
-  # LOOP: START ####
+  # LOOP DATASETS: START ####
   for(y in names_df){
     
     # Load GT datasets
@@ -1754,7 +1754,7 @@ identifier <- b-a
   
   print("Dataset finish")
   
-  } # LOOP FINISH ####
+  } # LOOP DATASETS: FINISH ####
   
   end_time <- Sys.time()
   end_time - start_time
@@ -1853,7 +1853,7 @@ data_predictions <- data_predictions %>%
     mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
            mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
            dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) #%>%
+           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) #%>%
    # replace_na(.,0)
   
   ######### Kann man nuch besser lösen ????????  ################
