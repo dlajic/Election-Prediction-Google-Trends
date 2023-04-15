@@ -1,4 +1,6 @@
-# Load packages ####
+# SONSTIGE ####
+
+# 1 Load packages ####
   # install.packages("remotes"); remotes::install_github("Ajfrick/ajfhelpR")
 
 
@@ -16,7 +18,7 @@ p_load(gtrendsR,
 
 
 
-# Dataset: Election results ####
+# 2 Dataset: Election results ####
 # Creates a list
 list_electionresults <- NULL
 list_electionresults[["2005-09-18"]] <- data.frame(party=c("CDU", "FDP", "Grüne", "Linke", "SPD","Sonstige"),
@@ -36,16 +38,20 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 
+
 # load poll datasets
-Infratest_Dimap_polls <- read.csv("data_polls_infratest_dimap.csv")
-Forsa_polls           <- read.csv("data_polls_forsa.csv")
-Kantar_polls          <- read.csv("data_polls_kantar.csv")
-FGW_polls             <- read.csv("data_polls_fgw.csv")
-Allensbach_polls      <- read.csv("data_polls_allens.csv")
+Infratest_Dimap_polls <- read_delim("data_polls_infratest_dimap.csv", delim = ";")
+Forsa_polls           <- read_delim("data_polls_forsa.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
+Kantar_polls          <- read_delim("data_polls_kantar.csv", delim = ";")
+FGW_polls             <- read_delim("data_polls_fgw.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
+Allensbach_polls      <- read_delim("data_polls_allens.csv", delim = ";",
+                                    locale = locale(decimal_mark = ","))
 
 
 
-# Dataset: Models ####
+# 3 Dataset: Models ####
 
 # Create dataframe
 data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
@@ -65,8 +71,10 @@ data_models <- expand.grid(election_date = as.Date(c("26-09-2021",
                                                  ),
                            #model_time_interval = duration(seq(7,14, 7), "days"),
                            #model_time_distance = days(seq(1, 3, 1))) # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
-                           model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
-                           model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           #model_time_interval = duration(seq(7,91, 7)[c(1:4, 6, 8, 10, 13)], "days"),
+                           #model_time_distance = days(seq(1, 150, 1)), # 1 tag vorher, 3 tage, 7 tage, 14 tage # 1 tag vorher, 3 tage, 7 tage, 14 tage
+                           model_time_interval = duration(c(7,91), "days"), # TEST
+                           model_time_distance = days(seq(1, 150, 50)), # TEST
                            model_time_id = "days")
 
 
@@ -239,7 +247,7 @@ data_models_GT <- data_models %>%
 
 
 
-## Loop A: Create GT datasets ####
+## 4 Loop A: Create GT datasets ####
 # Create GT datasets for the different time periods for all models that include GT data (see filter below)
 														
 data_models$data_GT_year <- list(NA)
@@ -256,6 +264,7 @@ names_df <- list.files(dir)
   
   start_time <- Sys.time()
   
+  # LOOP DATASETS: START ####
   for(y in names_df){
  
  
@@ -344,7 +353,7 @@ names_df <- list.files(dir)
         }
     
 
-    ##Loop B: newest poll ##
+# 5 Loop B: newest poll #####
     # write newest poll to rows
     
     data_models$predictions_Infratest <- list(NA)
@@ -469,7 +478,7 @@ names_df <- list.files(dir)
 
 
 
-  ## Loop C: ADD Predictions (GT) ####
+# 6 Loop C: ADD Predictions (GT) ####
   # Use the GT data, summarize it to create predictions
   # Important: No predictions for AFD for 2009!
     data_models$predictions_GT <- list(NA)
@@ -491,7 +500,7 @@ names_df <- list.files(dir)
   #save(data_models, file = "data_models_C.RData")
 
 
-  ## Loop D: ADD Predictions (GT + previous election weight) ####
+# 7 Loop D: ADD Predictions (GT + previous election weight) ####
   # Here the GT predictions are simply weighted with the previous election
   # For AFD 2013 we get no prediction because not data for 2009 election
 
@@ -556,7 +565,7 @@ names_df <- list.files(dir)
   
   
   
-  ## Loop E: Weekly Weigthing ####
+# 8 Loop E: Weekly Weigthing ####
   data_models$Poll_dates_weekly_weighting <- list(NA)  
   data_models$GT_data_weekly_weighting <- list(NA)
   data_models$predicitons_GT_weekly_polls <- list(NA)
@@ -1714,7 +1723,7 @@ names_df <- list.files(dir)
 
 
 
-  ## Loop F: Merge predictions ####
+# 9 Loop F: Merge predictions ####
   # Create column that contains dataframe with all the predictions
   data_models$predictions <- list(NA)  
   
@@ -1779,7 +1788,7 @@ names_df <- list.files(dir)
   
   
   
-  # Dataset: Predictions ####
+# 10 Dataset: Predictions ####
   # Below we unnest the dataframe to get predictions for single
   # parties across years
   data_predictions <- data_models %>% 
@@ -1806,10 +1815,12 @@ names_df <- list.files(dir)
   end_time <- Sys.time()
   end_time - start_time
   
-  # Save environment
-  save.image(file = paste('/cloud/project/Env_Merged_syntax_Sonstige', 
-                          gsub("\\s", "_", gsub(":", "-",Sys.time())), 
-                          '.RData'))
+  # LOOP DATASETS: FINISH ####
+  
+  nrow(data_predictions) # number of predictions
+  
+  save.image(file=paste0('../Saved_environments/environment_sonstige_afterloop_',gsub("\\s|:", "-",Sys.time()),'.RData'))
+  
   
   
   nrow(data_predictions) # number of predictions (40 models for each party)
@@ -1827,13 +1838,13 @@ names_df <- list.files(dir)
   ## Add model index/number ####
   data_models <- data_models %>% 
     mutate(model_id = row_number()) %>%
-    
-    
-    select(model_id, everything())
-  
-  # Reorder
-  data_models <- data_models %>%
     select(model_id, model_name, everything())
+  
+  # Prepare for keywords
+  data_models <- data_models %>%
+    mutate(GT_keywords = map(.x = GT_keywords, ~paste(.x, collapse = "; "))) %>%
+    #select(model_name, election_date, GT_keywords) %>%
+    unnest(GT_keywords)
   
   ## Add unique model name ####
   #data_models <- data_models %>%
@@ -1850,9 +1861,7 @@ names_df <- list.files(dir)
     #                           sep = "_"))
   
   
-  # Reorder
-  data_models <- data_models %>%
-    select(model_id, model_name, everything())
+
   
  
   #### delete 2005 rows (just needed for Model2_2009)
@@ -1901,7 +1910,7 @@ data_predictions <- data_predictions %>%
     mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
            mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
            dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n())),) 
+           dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) 
   #%>% replace_na(.,0)
   
   ######### Kann man nuch besser lösen ????????  ################
@@ -1910,284 +1919,25 @@ data_predictions <- data_predictions %>%
   data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
 
 
+  # Subset datafiles
+  data_models <- data_models %>%
+    select(model_name, election_date, GT_keywords, model_time_interval)
+  data_predictions_final_mean <- data_predictions_final_mean %>%
+    select(model_time_interval, 
+           datasource_weight,
+           model_name, Mean_dev, election,
+           election_date,
+           party,
+           GT_start_date, GT_end_date)
   
+  # Save files
+  setwd("..")
+  write_csv(data_models, "data_models_sonstige.csv")
+  #write_csv(data_predictions, "data_predictions.csv")
+  #write_csv(data_predictions_final, "data_predictions_final.csv")
+  write_csv(data_predictions_final_mean, "data_predictions_final_mean_sonstige.csv")
   
-  
-  
-  
-  
-  #### Kann ab hier gelöscht werden??? ####
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-# data_predictions$datasource_weight <-
-#   factor(data_predictions$datasource_weight) %>%
-#   mutate()
-
-
-  
-## Figure X ####
-
-############################################################################################
-############################## now with more Datasets Confidence Intervals #################
-
-#In Progress
-
-# Graphs ####
-# data_predictions$datasource_weight <-
-#   factor(data_predictions$datasource_weight) %>%
-#   mutate()
-
-
-## Figure X ####
-# predictions for different distances #
-data_plot_sonst <- data_predictions_final_mean %>%
-  #filter(election_date=="2017-09-24"|election_date=="2013-09-22") %>% #can filter for better overview
-  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
-  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
-  mutate(model_time_distance = election_date - GT_end_date)
-
-
-data_plot_sonst$model_time_interval_fac <- factor(data_plot_sonst$model_time_interval_fac,
-                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
-                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
-                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
-                                            ordered = TRUE)
-
-x_breaks <- unique(data_plot_sonst$GT_end_date)[seq(1, length(unique(data_plot_sonst$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot_sonst$model_time_distance)[seq(1, length(unique(data_plot_sonst$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot_sonst$GT_end_date)[seq(1, length(unique(data_plot_sonst$GT_end_date)), 10)]
-
-cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
-          "FDP" = "orange", "Link" = "pink", "Grüne" = "green", "Sonstige" = "purple")
-
-
-######### Plot1
-data_plot_sonst1 <- data_plot_sonst %>%
-  filter(datasource_weight =="GT") %>%
-  group_by(model_name) %>%
-  mutate(group_mean_deviation = mean(abs(Mean_dev)))
-
-p <- ggplot(data_plot_sonst1,
-            aes(x = GT_end_date,
-                y = Mean_dev,
-                color = party)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot_sonst$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("Deviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Party") + 
-  stat_summary(aes(y = group_mean_deviation, group = 1), fun=mean, colour="orange", geom="line", linetype = "dashed")
-  #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-
-p
-ggsave(plot = p,
-       filename = "plot_predictions_GT_parties.pdf", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)  
-
-
-######################### Create average prediction error (across all parties) ########################
-###Plot GT vs. Polls
-
-data_plot_sonst2 <- data_plot_sonst %>%
-  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls"
-  ) %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE))
- 
-cols2 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue")
-
-#Plot GT vs. Polls
-p2 <- ggplot(data_plot_sonst2,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot_sonst$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols2) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight")
-  #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-
-p2
-
-ggsave(plot = p2,
-       filename = "Sonst_plot_moreSamp_meanDeviations_GT_polls.pdf", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
-
-
-#### Plot average Deviation all Models
-data_plot_sonst3 <- data_plot_sonst %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
-
-cols3 <- c("GT" = "red", "Only polls" = "black", "GT + election weight" = "purple", 
-           "GT + polls weight" = "orange", "GT + weekly polls weight" = "green", "Last polls" = "blue")
-
-
-p3 <- ggplot(data_plot_sonst3,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot_sonst$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(values = cols3) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylim(0, 10) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight") 
-  #+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+  # Clean up environment
+  rm(list=ls())
   
 
-p3
-
-ggsave(plot = p3,
-       filename = "Sonst_plot_meanDeviations_allModels.pdf", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
-
-
-
-##### comparison weekly weighting
-data_plot_sonst4 <- data_plot_sonst %>%
-  group_by(model_name) %>% 
-  filter(datasource_weight =="GT" | datasource_weight =="Only polls" | datasource_weight =="Last polls" | datasource_weight =="GT + weekly polls weight"
-  ) %>%
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
-
-cols4 <- c("GT" = "red", "Only polls" = "black", "Last polls" = "blue", "GT + weekly polls weight" = "green")
-
-
-p4 <- ggplot(data_plot_sonst4,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot_sonst$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date)) +
-  scale_color_manual(values = cols4) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "datasource_weight")
-#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-p4
-
-ggsave(plot = p4,
-       filename = "plot_meanDeviations_CompareWeekly.pdf", # e.g. change to pdf
-       width = 14,
-       height = 10,
-       device = "pdf", # e.g. change to pdf
-       dpi = 300)
-
-
-
-saveRDS(data_plot_sonst, file="data_plot_sonst.RDS")
