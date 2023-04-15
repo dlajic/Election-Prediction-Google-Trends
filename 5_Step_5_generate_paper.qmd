@@ -2088,6 +2088,302 @@ Figure_5_2017_09_24
 
 
 
+
+
+## Replicating analysis across more elections
+
+
+```{r}
+#| label: fig-A9
+#| fig-cap: "Comparison across elections"
+#| fig-width: 14
+#| fig-height: 14
+#| fig-pos: "H"
+
+
+data_plot2 <- data_plot %>%
+  filter(datasource_weight =="GT" | 
+           datasource_weight =="Infratest" |
+           datasource_weight =="GT + election weight" |
+           datasource_weight =="GT + weekly polls weight"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
+  #filter(election_date == i) %>%
+  filter(model_time_interval_fac == "7 days" |
+           model_time_interval_fac == "14 days" |
+           model_time_interval_fac == "28 days" |
+           model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
+
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,50, 100, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
+
+
+
+# Count number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+
+
+
+
+cols2 <- c("MC1: GT" = "#e41a1c", 
+           #"Only polls" = "black", 
+           "Infratest" = "black",
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
+
+#Plot GT vs. Polls
+ggplot(data_plot2,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 22) +
+  # scale_x_date(breaks = x_tick_labels$GT_end_date,
+  #              labels = paste0(x_tick_labels$model_time_distance, 
+  #                              " day(s)\n[", 
+  #                              x_tick_labels$GT_end_date, "]")
+  # ) +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free_x") +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0)) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models across all four elections."),
+       title = paste0("Election: All elections"))
+
+
+```
+
+
+## Benchmarking GT data and our models against all other leading polling institutes
+
+```{r}
+#| label: fig-A10
+#| fig-cap: "Benchmarking against other polls (Elections: 2009, 2013)"
+#| fig-width: 14
+#| fig-height: 20
+#| fig-pos: "H"
+
+
+
+
+# predictions for different distances #
+data_plot <- data_predictions_final_mean %>%
+  filter(election_date=="2009-09-27"|election_date=="2013-09-22") %>% #can filter for better overview
+  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
+  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
+  mutate(model_time_distance = election_date - GT_end_date)
+
+
+data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
+                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
+                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
+                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
+                                            ordered = TRUE)
+
+x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
+x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+
+cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
+          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
+
+
+
+
+
+
+# PLOT #
+
+
+#### Plot average Deviation all Models
+data_plot3 <- data_plot %>%
+  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
+           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
+
+cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
+           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
+
+
+ggplot(data_plot3,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal() +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                              "Date: ", x_labels_date
+               )
+  ) +
+  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
+    theme_minimal(base_size = 22) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("MeanDeviation in %\n(prediction error)") +
+  xlab("Enddate of interval\n(= distance)") +
+  labs(colour = "Datasource") + 
+  ylim(0,10) + 
+  theme(legend.position="top")
+#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+
+
+
+
+```
+
+
+```{r}
+#| label: fig-A11
+#| fig-cap: "Benchmarking against other polls (Elections: 2017, 2021)"
+#| fig-width: 14
+#| fig-height: 20
+#| fig-pos: "H"
+
+
+
+
+# predictions for different distances #
+data_plot <- data_predictions_final_mean %>%
+  filter(election_date=="2017-09-24"|election_date=="2021-09-26") %>% #can filter for better overview
+  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
+  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
+  mutate(model_time_distance = election_date - GT_end_date)
+
+
+data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
+                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
+                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
+                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
+                                            ordered = TRUE)
+
+x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
+x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
+
+cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
+          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
+
+
+
+
+
+
+# PLOT #
+
+
+#### Plot average Deviation all Models
+data_plot3 <- data_plot %>%
+  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
+           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
+
+cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
+           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
+
+
+ggplot(data_plot3,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  #geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal() +
+  facet_grid(vars(model_time_interval_fac),
+             vars(election_date), 
+             scales = "free") +
+  #facet_wrap(~model_time_interval_fac, ncol = 1) +
+  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
+  scale_x_date(breaks = x_breaks,
+               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
+                              "Date: ", x_labels_date
+               )
+  ) +
+  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
+    theme_minimal(base_size = 22) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("MeanDeviation in %\n(prediction error)") +
+  xlab("Enddate of interval\n(= distance)") +
+  labs(colour = "Datasource") + 
+  ylim(0,10) + 
+  theme(legend.position="top")
+#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+
+
+
+
+
+```
+
+
+
+
+
 ## Replicating analysis using a "other parties" category for GT data
 
 ```{r data-import-sonstige}
@@ -2147,39 +2443,16 @@ Figure_5_2017_09_24
 
 
 ```{r}
-#| label: fig-A9
+#| label: fig-A12
 #| fig-cap: "Figure 4 with 'other parties'"
 #| fig-width: 14
 #| fig-height: 14
 #| fig-pos: "H"
 
 
-
-# ## Prepare data for graph #
-# data_predictions$party <-
-#   as.factor(ordered(data_predictions$party,
-#                     levels = c("Grüne", "Linke", "FDP", "AFD", "SPD", "CDU", "Sonstige"))) # ADAPTED
-# data_predictions$deviation_label <-
-#   round(data_predictions$deviation, 1)
-# 
-# #for Confidence Intervals
-# 
-# data_predictions_final_mean <- data_predictions_final %>%
-#   group_by( model_name, party) %>%
-#   summarise(Mean_dev = mean(deviation), SD_dev = sd(deviation), Mean = mean(prediction), SD = sd(prediction), 
-#             .groups = "keep") %>%
-#   mutate(mean_lower.ci = Mean - 1.96*(SD/sqrt(n())),
-#          mean_upper.ci = Mean + 1.96*(SD/sqrt(n())),
-#          dev_lower.ci = Mean_dev - 1.96*(SD_dev/sqrt(n())),
-#          dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) #%>%
-# # replace_na(.,0)
-# 
-# # Kann man nuch besser lösen ????????
-# #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
-# data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
-# data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
-
-
+  data_predictions_final_mean <- read_csv("data_predictions_final_mean_sonstige.csv") %>%
+    mutate(model_time_interval = duration(model_time_interval)) %>%
+  mutate(model_time_distance = election_date - GT_end_date)
 
 
 ### Data for plots #
@@ -2282,7 +2555,7 @@ ggplot(data_plot1,
 
 
 ```{r}
-#| label: fig-A10
+#| label: fig-A13
 #| fig-cap: "Figure 5 with 'other parties'"
 #| fig-width: 14
 #| fig-height: 14
@@ -2435,7 +2708,7 @@ ggplot(data_plot2,
 
 
 ```{r}
-#| label: fig-11
+#| label: fig-A14
 #| fig-cap: "Figure 6 with 'other parties'"
 #| fig-width: 14
 #| fig-height: 14
@@ -2558,296 +2831,6 @@ ggplot(data_plot2,
 
 
 
-
-## Replicating analysis across more elections
-
-
-```{r}
-#| label: fig-12
-#| fig-cap: "Comparison across elections"
-#| fig-width: 14
-#| fig-height: 14
-#| fig-pos: "H"
-
-
-data_plot2 <- data_plot %>%
-  filter(datasource_weight =="GT" | 
-           datasource_weight =="Infratest" |
-           datasource_weight =="GT + election weight" |
-           datasource_weight =="GT + weekly polls weight"
-  ) %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
-  #filter(election_date == i) %>%
-  filter(model_time_interval_fac == "7 days" |
-           model_time_interval_fac == "14 days" |
-           model_time_interval_fac == "28 days" |
-           model_time_interval_fac == "91 days") %>% 
-  ungroup() %>%
-  mutate(datasource_weight = recode(datasource_weight, 
-                                    "GT" = "MC1: GT",
-                                    "GT + election weight" = "MC2: GT + election weight",
-                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
-
-#  WHY NOT AGGREGATE DATASET?
-
-# Create x-axis tick labels
-x_tick_labels <- data_plot2 %>%
-  group_by(GT_end_date) %>%
-  filter(row_number()==1) %>%
-  ungroup() %>%
-  slice(c(1,50, 100, 150)) %>%# Pick every 30th row
-  select(GT_start_date, GT_end_date, model_time_distance)
-
-
-
-# Count number of models
-# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
-
-
-
-
-cols2 <- c("MC1: GT" = "#e41a1c", 
-           #"Only polls" = "black", 
-           "Infratest" = "black",
-           "MC2: GT + election weight" = "#984ea3",
-           "MC3: GT + weekly polls weight" = "#ff7f00")
-
-#Plot GT vs. Polls
-ggplot(data_plot2,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal(base_size = 22) +
-  # scale_x_date(breaks = x_tick_labels$GT_end_date,
-  #              labels = paste0(x_tick_labels$model_time_distance, 
-  #                              " day(s)\n[", 
-  #                              x_tick_labels$GT_end_date, "]")
-  # ) +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free_x") +
-  scale_y_continuous(sec.axis = dup_axis(
-    name = "Width of data window")) +
-  scale_color_manual(values = cols2) + 
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        legend.position="top",
-        axis.text.y.right = element_blank(),
-        plot.caption=element_text(hjust = 0)) +
-  labs(x = "Enddate of interval\n(= distance)",
-       y = "MeanDeviation in %\n(prediction error)",
-       colour = "Model class",
-       caption = paste0("Note: Predictive models across all four elections."),
-       title = paste0("Election: All elections"))
-
-
-```
-
-
-## Benchmarking GT data and our models against all other leading polling institutes
-
-```{r}
-#| label: fig-13
-#| fig-cap: "Benchmarking against other polls (Elections: 2009, 2013)"
-#| fig-width: 14
-#| fig-height: 20
-#| fig-pos: "H"
-
-
-
-
-# predictions for different distances #
-data_plot <- data_predictions_final_mean %>%
-  filter(election_date=="2009-09-27"|election_date=="2013-09-22") %>% #can filter for better overview
-  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
-  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
-  mutate(model_time_distance = election_date - GT_end_date)
-
-
-data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
-                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
-                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
-                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
-                                            ordered = TRUE)
-
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-
-cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
-          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
-
-
-
-
-
-
-# PLOT #
-
-
-#### Plot average Deviation all Models
-data_plot3 <- data_plot %>%
-  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
-           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
-  ) %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
-
-cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
-           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
-
-
-ggplot(data_plot3,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
-    theme_minimal(base_size = 22) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Datasource") + 
-  ylim(0,10) + 
-  theme(legend.position="top")
-#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-
-
-
-
-
-```
-
-
-```{r}
-#| label: fig-14
-#| fig-cap: "Benchmarking against other polls (Elections: 2017, 2021)"
-#| fig-width: 14
-#| fig-height: 20
-#| fig-pos: "H"
-
-
-
-
-# predictions for different distances #
-data_plot <- data_predictions_final_mean %>%
-  filter(election_date=="2017-09-24"|election_date=="2021-09-26") %>% #can filter for better overview
-  mutate(model_time_interval_fac = factor(as.numeric(model_time_interval, "days"))) %>% # convert to days
-  mutate(model_time_interval_fac = paste("Interval: ", model_time_interval_fac, " days", sep="")) %>%
-  mutate(model_time_distance = election_date - GT_end_date)
-
-
-data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
-                                            levels = c("Interval: 7 days", "Interval: 14 days", "Interval: 21 days", 
-                                                       "Interval: 28 days", "Interval: 42 days", "Interval: 56 days", 
-                                                       "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
-                                            ordered = TRUE)
-
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-
-cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
-          "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
-
-
-
-
-
-
-# PLOT #
-
-
-#### Plot average Deviation all Models
-data_plot3 <- data_plot %>%
-  filter(datasource_weight =="GT" | datasource_weight == "GT + election weight" | datasource_weight =="GT + weekly polls weight" | datasource_weight =="Infratest" |
-           datasource_weight =="Forsa" | datasource_weight =="Kantar" | datasource_weight == "FGW" | datasource_weight =="Allens"
-  ) %>%
-  group_by(model_name) %>% 
-  mutate(deviation_mean = mean(abs(Mean_dev) , na.rm=TRUE))
-
-cols3 <- c("GT" = "red", "GT + election weight" = "purple",  "GT + weekly polls weight" = "green", 
-           "Infratest" = "blue", "Forsa" = "sienna1", "Kantar" = "yellow3", "FGW" = "violetred", "Allens" = "peachpuff")
-
-
-ggplot(data_plot3,
-             aes(x = GT_end_date,
-                 y = deviation_mean,
-                 color = datasource_weight)) +
-  geom_vline(xintercept = as.Date("2021-09-26"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2017-09-24"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2013-09-22"),
-             linetype="dashed") +
-  geom_vline(xintercept = as.Date("2009-09-27"),
-             linetype="dashed") +
-  geom_hline(yintercept = 0,
-             linetype="solid") +  
-  #geom_point(size = 0.5) +
-  geom_line() +
-  theme_minimal() +
-  facet_grid(vars(model_time_interval_fac),
-             vars(election_date), 
-             scales = "free") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
-  ) +
-  scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
-    theme_minimal(base_size = 22) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("MeanDeviation in %\n(prediction error)") +
-  xlab("Enddate of interval\n(= distance)") +
-  labs(colour = "Datasource") + 
-  ylim(0,10) + 
-  theme(legend.position="top")
-#+geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
-
-
-
-
-
-
-```
 
 
 # Reproducing and replicating this study
