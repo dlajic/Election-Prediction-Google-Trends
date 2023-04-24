@@ -2556,159 +2556,210 @@ ggplot(data_plot1,
 
 ```{r}
 #| label: fig-A13
-#| fig-cap: "Figure 5 with 'other parties'"
+#| fig-cap: "Figure 5 with 'other parties' (2021 election)"
 #| fig-width: 14
 #| fig-height: 14
 #| fig-pos: "H"
 
 
 
+
+## Figure A13 (Figure 5): Comparison models ####
 # prediction error averaged across all parties for the GT data + other datasources
 
 # Create average prediction error (across all parties) ###
 ###Plot GT vs. Polls
 for(i in as.character(unique(data_plot$election_date))){ # Loop over elections
-  print(i)
+  #print(i)
   data_plot2 <- data_plot %>%
-    filter(datasource_weight =="GT" | 
-             datasource_weight =="Infratest" |
-             datasource_weight =="GT + election weight" |
-             datasource_weight =="GT + weekly polls weight"
-    ) %>%
-    group_by(model_name) %>% 
-    mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
-    filter(election_date == i) %>%
-    filter(model_time_interval_fac == "7 days" |
-             model_time_interval_fac == "14 days" |
-             model_time_interval_fac == "28 days" |
-             model_time_interval_fac == "91 days") %>% 
-    ungroup() %>%
-    mutate(datasource_weight = recode(datasource_weight, 
-                                      "GT" = "MC1: GT",
-                                      "GT + election weight" = "MC2: GT + election weight",
-                                      "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
-  
-  #  WHY NOT AGGREGATE DATASET?
-  
-  # Create x-axis tick labels
-  x_tick_labels <- data_plot2 %>%
-    group_by(GT_end_date) %>%
-    filter(row_number()==1) %>%
-    ungroup() %>%
-    slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
-    select(GT_start_date, GT_end_date, model_time_distance)
-  
-  
-  # Count number of models
-  # data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
-  
-  
-  
-  
-  cols2 <- c("MC1: GT" = "#e41a1c", 
-             #"Only polls" = "black", 
-             "Infratest" = "black",
-             "MC2: GT + election weight" = "#984ea3",
-             "MC3: GT + weekly polls weight" = "#ff7f00")
-  
-  
-  # Compare predictions across models
-  # Table profide the number/percentage of models where MC1-3 beat polls
-  
-  model_comparison <- data_plot2 %>% 
-    select(model_time_interval, model_time_distance, datasource_weight, deviation_mean) %>%
-    group_by(datasource_weight) %>% 
-    mutate(id = row_number()) %>%
-    pivot_wider(names_from = datasource_weight, values_from =  deviation_mean) %>%
-    group_by(model_time_interval, model_time_distance) %>%
-    slice(1) %>% 
-    ungroup() %>%
-    mutate(id = row_number()) %>% # Recreate ID (aggregated)
-    mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
-           polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
-           polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
-  
-  # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
-  table(model_comparison$polls_vs_GT)
-  prop.table(table(model_comparison$polls_vs_GT))
-  table(model_comparison$polls_vs_GTE)
-  prop.table(table(model_comparison$polls_vs_GTE))
-  table(model_comparison$polls_vs_GTP)
-  prop.table(table(model_comparison$polls_vs_GTP))
-  
-  # Comparison only for large width
-  # TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
-  model_comparison_large_width <- model_comparison %>% 
-    filter(model_time_interval == "7862400s (~13 weeks)")
-  table(model_comparison_large_width$polls_vs_GT)
-  prop.table(table(model_comparison_large_width$polls_vs_GT))
-  table(model_comparison_large_width$polls_vs_GTE)
-  prop.table(table(model_comparison_large_width$polls_vs_GTE))
-  table(model_comparison_large_width$polls_vs_GTP)
-  prop.table(table(model_comparison_large_width$polls_vs_GTP))
-  
-  
-  # Add Plot X labels
-  data_plot2 <- data_plot2 %>%
-    mutate(model_time_interval_fac = recode(model_time_interval_fac,
-                                            "7 days" = "Plot 1:\n7 days",
-                                            "14 days" = "Plot 2:\n14 days",
-                                            "28 days" = "Plot 3:\n28 days",
-                                            "91 days" = "Plot 4:\n91 days"))
-  
-  
-  
-  
-  #Plot GT vs. Polls
-ggplot(data_plot2,
-               aes(x = GT_end_date,
-                   y = deviation_mean,
-                   color = datasource_weight)) +
-    geom_vline(xintercept = as.Date("2021-09-26"),
-               linetype="dashed") +
-    geom_vline(xintercept = as.Date("2017-09-24"),
-               linetype="dashed") +
-    geom_vline(xintercept = as.Date("2013-09-22"),
-               linetype="dashed") +
-    geom_vline(xintercept = as.Date("2009-09-27"),
-               linetype="dashed") +
-    geom_hline(yintercept = 0,
-               linetype="solid") +  
-    geom_point(size = 0.5) +
-    geom_line() +
-    theme_minimal(base_size = 22) +
-    facet_grid(vars(model_time_interval_fac),
-               #vars(election_date), 
-               scales = "free_x") +
-    scale_x_date(breaks = x_tick_labels$GT_end_date,
-                 labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
-    ) +
-    scale_y_continuous(sec.axis = dup_axis(
-      name = "Width of data window")) +
-    scale_color_manual(values = cols2) + 
-    theme(axis.text.x = element_text(angle = 30, hjust = 1),
-          legend.position="top",
-          axis.text.y.right = element_blank(),
-          plot.caption=element_text(hjust = 0),
-          strip.background =element_rect(fill="white")) +
-    labs(x = "Enddate of interval\n(= distance)",
-         y = "MeanDeviation in %\n(prediction error)",
-         colour = "Model class",
-         caption = paste0("Note: Predictive models for ",i," election."),
-         title = paste0("Election: ", i))
-  #+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+  filter(datasource_weight =="GT" | 
+           datasource_weight =="Infratest" |
+           datasource_weight =="GT + election weight" |
+           datasource_weight =="GT + weekly polls weight"
+  ) %>%
+  group_by(model_name) %>% 
+  mutate(deviation_mean = mean(abs(Mean_dev), na.rm=TRUE)) %>%
+  filter(election_date == i) %>%
+  filter(model_time_interval_fac == "7 days" |
+           model_time_interval_fac == "14 days" |
+           model_time_interval_fac == "28 days" |
+           model_time_interval_fac == "91 days") %>% 
+  ungroup() %>%
+  mutate(datasource_weight = recode(datasource_weight, 
+                                    "GT" = "MC1: GT",
+                                    "GT + election weight" = "MC2: GT + election weight",
+                                    "GT + weekly polls weight" = "MC3: GT + weekly polls weight"))
 
+#  WHY NOT AGGREGATE DATASET?
+
+# Create x-axis tick labels
+x_tick_labels <- data_plot2 %>%
+  group_by(GT_end_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  slice(c(1,25, 50, 75, 100, 125, 150)) %>%# Pick every 30th row
+  select(GT_start_date, GT_end_date, model_time_distance)
+
+
+# Count number of models
+# data_plot2 %>% group_by(datasource_weight) %>% summarize(n_models = n())
+
+
+
+
+cols2 <- c("MC1: GT" = "#e41a1c", 
+           #"Only polls" = "black", 
+           "Infratest" = "black",
+           "MC2: GT + election weight" = "#984ea3",
+           "MC3: GT + weekly polls weight" = "#ff7f00")
+
+
+if(i == "2021-09-26"){ # Only for 21# eleection
+  
+
+# Compare predictions across models
+# Table profide the number/percentage of models where MC1-3 beat polls
+
+model_comparison <- data_plot2 %>% 
+  select(model_time_interval, model_time_distance, datasource_weight, deviation_mean) %>%
+  group_by(datasource_weight) %>% 
+  mutate(id = row_number()) %>%
+  pivot_wider(names_from = datasource_weight, values_from =  deviation_mean) %>%
+  group_by(model_time_interval, model_time_distance) %>%
+  slice(1) %>% 
+  ungroup() %>%
+  mutate(id = row_number()) %>% # Recreate ID (aggregated)
+  mutate(polls_vs_GT = ifelse(`Infratest` < `MC1: GT`, TRUE, FALSE),
+         polls_vs_GTE = ifelse(`Infratest` < `MC2: GT + election weight`, TRUE, FALSE),
+         polls_vs_GTP = ifelse(`Infratest` < `MC3: GT + weekly polls weight`, TRUE, FALSE))
+
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
+model_comp <- function(var){
+  result <- model_comparison[var]
+  result <- paste0(round(prop.table(table(model_comparison[var])),2)[1]*100, 
+                   "% (",
+                   table(model_comparison[var])[1],
+                   " out of ",
+                   sum(table(model_comparison[var])),
+                   ")")
 }
 
 
 
+comparison_MC1_GT <<- model_comp("polls_vs_GT")
+comparison_MC2_GTE <<- model_comp("polls_vs_GTE")
+comparison_MC3_GTP <<- model_comp("polls_vs_GTP")
+
+# Comparison only for large width
+# TRUE = POLLS ARE BETTER, FALSE = MODELCLASS X is BETTER
+model_comparison_large_width <- model_comparison %>% 
+  filter(model_time_interval == "7862400s (~13 weeks)")
+
+comparison_MC2_GTE_large_width <<- model_comp("polls_vs_GTE")
+comparison_MC1_GT_large_width <<- model_comp("polls_vs_GT")
+comparison_MC3_GTP_large_width <<- model_comp("polls_vs_GTP")
 
 
+}
+
+# Add Plot X labels
+data_plot2 <- data_plot2 %>%
+  mutate(model_time_interval_fac = recode(model_time_interval_fac,
+                                          "7 days" = "Plot 1:\n7 days",
+                                          "14 days" = "Plot 2:\n14 days",
+                                          "28 days" = "Plot 3:\n28 days",
+                                          "91 days" = "Plot 4:\n91 days"))
+
+
+
+
+#Plot GT vs. Polls
+figure_5 <- ggplot(data_plot2,
+             aes(x = GT_end_date,
+                 y = deviation_mean,
+                 color = datasource_weight)) +
+  geom_vline(xintercept = as.Date("2021-09-26"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2017-09-24"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2013-09-22"),
+             linetype="dashed") +
+  geom_vline(xintercept = as.Date("2009-09-27"),
+             linetype="dashed") +
+  geom_hline(yintercept = 0,
+             linetype="solid") +  
+  geom_point(size = 0.5) +
+  geom_line() +
+  theme_minimal(base_size = 22) +
+  facet_grid(vars(model_time_interval_fac),
+             #vars(election_date), 
+             scales = "free_x") +
+  scale_x_date(breaks = x_tick_labels$GT_end_date,
+               labels = paste0(x_tick_labels$model_time_distance, " day(s)\n[", x_tick_labels$GT_end_date, "]")
+  ) +
+  scale_y_continuous(sec.axis = dup_axis(
+    name = "Width of data window")) +
+  scale_color_manual(values = cols2) + 
+  theme(axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.position="top",
+        axis.text.y.right = element_blank(),
+        plot.caption=element_text(hjust = 0),
+        strip.background =element_rect(fill="white")) +
+  labs(x = "Enddate of interval\n(= distance)",
+       y = "MeanDeviation in %\n(prediction error)",
+       colour = "Model class",
+       caption = paste0("Note: Predictive models for ",i," election."),
+       title = paste0("Election: ", i))
+#+ geom_errorbar(aes(ymin=dev_lower.ci, ymax=dev_upper.ci),width=.3, position=position_dodge(.9))
+
+assign(paste0("Figure_A13_is_5_sonstige_",gsub("-", "_", i)), figure_5)
+
+}
+
+
+Figure_A13_is_5_sonstige_2021_09_26
 ```
+
+
 
 
 ```{r}
 #| label: fig-A14
+#| fig-cap: "Figure 5 with 'other parties' (2009 election)"
+#| fig-width: 14
+#| fig-height: 14
+#| fig-pos: "H"
+
+Figure_A13_is_5_sonstige_2009_09_27
+```
+
+
+```{r}
+#| label: fig-A15
+#| fig-cap: "Figure 5 with 'other parties' (2013 election)"
+#| fig-width: 14
+#| fig-height: 14
+#| fig-pos: "H"
+
+Figure_A13_is_5_sonstige_2013_09_22
+```
+
+```{r}
+#| label: fig-A16
+#| fig-cap: "Figure 5 with 'other parties' (2017 election)"
+#| fig-width: 14
+#| fig-height: 14
+#| fig-pos: "H"
+
+Figure_A13_is_5_sonstige_2017_09_24 
+```
+
+
+
+
+
+```{r}
+#| label: fig-A17
 #| fig-cap: "Figure 6 with 'other parties'"
 #| fig-width: 14
 #| fig-height: 14
