@@ -1,22 +1,5 @@
-# SONSTIGE ####
-
-# 1 Load packages ####
-  # install.packages("remotes"); remotes::install_github("Ajfrick/ajfhelpR")
-
-
-library(pacman)
-p_load(gtrendsR,
-       ggplot2,
-       tidyverse,
-       tidyr,
-       xml2,
-       data.table,
-       patchwork,
-       lubridate,
-       ajfhelpR)
-
-
-
+# PART 2 - PREDICTIONS: OTHER PARTIES (SONSTIGE) ####
+# Below code to get the predictions including "Other parties" = Sonstige
 
 # 2 Dataset: Election results ####
 # Creates a list
