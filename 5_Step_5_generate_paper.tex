@@ -101,7 +101,7 @@
 \usepackage{booktabs}
 \usepackage{siunitx}
 \usepackage{multirow}
-\newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
+\newcommand{\beginsupplement}{\setcounter{section}{0} \renewcommand{\thesection}{A\arabic{section}}  \setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
 \KOMAoption{captions}{tableheading,figureheading}
 \makeatletter
 \makeatother
@@ -174,7 +174,7 @@
 \title{Can we predict multi-party elections with Google Trends data?
 Evidence across elections, data windows, and model classes}
 \author{Jan Behnert \and Dean Lajic \and Paul C. Bauer}
-\date{4/24/23}
+\date{4/27/23}
 
 \begin{document}
 \maketitle
@@ -182,21 +182,26 @@ Evidence across elections, data windows, and model classes}
 Google trends (GT), a service aggregating search queries on Google, has
 been used to predict various outcomes such as as the spread of
 influenza, automobile sales, unemployment claims, and travel destination
-planning (1,2). Political scientists used GT to predict elections and
+planning (1,2). Social scientists also used GT to predict elections and
 referendums across different countries and time periods, sometimes with
 more, sometimes with less success. We provide unique evidence on the
-predictive power of GT in the German multi-party systems forecasting
-four elections (2009, 2013, 2017, 2021) and make several contributions
-to this literature: First, we present one of the first attempts to
-predict a multi-party election using GT and highlight the specific
-challenges that originate from this setting. Second, we develop a
-framework that allows for fine-grained variation of the GT data window
-both in terms of window'width and distance to the event. In our case, we
-estimate 24000 models using GT data. Third, \ldots{} Finally, we
-summarize the various challenges that researchers face when using Google
-trends for prediction that have often been ignored in previous research.
+predictive power of GT in the German multi-party systems, forecasting
+four elections (2009, 2013, 2017, 2021). Thereby, we make several
+contributions: First, we present one of the first attempts to predict a
+multi-party election using GT and highlight the specific challenges that
+originate from this setting. In doing so, we also provide a
+comprehensive and systematic overview of prior research. Second, we
+develop a framework that allows for fine-grained variation of the GT
+data window both in terms of its width and distance to the election.
+Subsequently, we test the predictive accuracy of several thousand models
+resulting from those fine-grained specifications. Third, we compare the
+predictive power of different model classes that are purely GT data
+based but also incorporate polling data as well as previous elections.
+Finally, we provide a systematic overview of the challenges one faces in
+using GT data for predictions part of which have been neglected in prior
+research.
 \end{abstract}
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[sharp corners, boxrule=0pt, frame hidden, interior hidden, borderline west={3pt}{0pt}{shadecolor}, breakable, enhanced]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, enhanced, sharp corners, boxrule=0pt, breakable, borderline west={3pt}{0pt}{shadecolor}, interior hidden]}{\end{tcolorbox}}\fi
 
 \renewcommand*\contentsname{Table of contents}
 {
@@ -204,6 +209,8 @@ trends for prediction that have often been ignored in previous research.
 \setcounter{tocdepth}{3}
 \tableofcontents
 }
+\newpage
+
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
 
@@ -220,60 +227,64 @@ such as previous election results (10). Exploring new data sources such
 as GT is also warranted given the persisting discussion on the validity
 of polling data (13).\footnote{More recently, scholars have turned to
   using reweighted non-representative polls to predict elections (e.g.,
-  13).} In our study we pursue the following research question: Can we
-use Google Trends data to predict election results in a multi-party
-system? Thereby, we make a series of contributions to scholarship using
-GT for predictive purposes generally but also specifically for
-elections: First, we are among the first to evidence on the predictive
-power of GT in the multi-party system setting. Thereby, we use GT to
-predict four elections in Germany and highlight the specific challenges
-that originate from the multi-party context. We also provide a
-systematic review of previous research highlight variation across
-several important dimensions. This review both helps us to highlight our
+  13).}\\
+In our study we pursue the following research question: Can we use
+Google Trends data to predict election results in a multi-party system?
+Thereby, we make a series of contributions to scholarship using GT for
+predictive purposes generally but also specifically for elections:
+First, we are among the first to evidence on the predictive power of GT
+in the multi-party system setting. Thereby, we use GT to predict four
+elections in Germany and highlight the specific challenges that
+originate from the multi-party context. We also provide a systematic
+review of previous research highlighting variation across several
+important dimensions. This review both helps us to highlight our
 contributions and can represent a starting point for future research on
-GT predictions (see Table~\ref{tbl-2}). Second, when using GT for
-predictions one of the most important choices lies in the GT data window
-on which those predictions are based. The data window may vary in terms
-of width, e.g., our prediction could be based on averaging 1 week of GT
-data as opposed to 3 weeks of GT data. And, the data window may vary in
-terms of distance to the event that shall be predicted, e.g., we could
-predict an election using a data window that ends just two days before
-the election or a data window that ends three months before the
-election. Granka (Granka 2013) suggested to explore moving averages to
-assess how well models withstand changes closer to the election date.
-While previous studies have varied these aspects, we are the first to
-build a framework that allows to cycle through fine-grained values of
-both width and distance testing the predictive accuracy of thousands of
-resulting models. Third, following previous studies, we compare the
-predictive power of different model classes. Besides, a model that only
-includes GT data, we explore the predictive accuracy of models that
-combine GT data with election data and polling data. Finally, we compare
-our predictions to simple polling data. This provides us with an answer
-as to whether GT really does represent an alternative to classic purely
-poll-based methods and whether combinations are fruitful. Finally, we
-provide a systematic overview of the challenges one faces in using GT
-data for predictions part of which have been neglected in prior
+GT predictions (see Table~\ref{tbl-2}).\\
+Second, when using GT for predictions one of the most important choices
+lies in the GT data window on which those predictions are based. The
+data window may vary in terms of width, e.g., our prediction could be
+based on averaging 1 week of GT data as opposed to 3 weeks of GT data.
+And, the data window may vary in terms of distance to the event that
+shall be predicted, e.g., we could predict an election using a data
+window that ends just two days before the election or a data window that
+ends three months before the election. Granka (14) suggested to explore
+moving averages to assess how well models withstand changes closer to
+the election date. While previous studies have varied these aspects, we
+are the first to build a framework that allows to cycle through
+fine-grained values of both width and distance testing the predictive
+accuracy of thousands of resulting models.\\
+Third, following previous studies, we compare the predictive power of
+different model classes. Besides, a model that only includes GT data, we
+explore the predictive accuracy of models that combine GT data with
+election data and polling data. And, we compare our predictions to
+simple polling data. This provides us with an answer as to whether GT
+really does represent an alternative to classic purely poll-based
+methods and whether combinations are fruitful.\\
+Fourth, we provide a systematic overview of the challenges one faces in
+using GT data for predictions part of which have been neglected in prior
 research. These comprise choices on the GT platform, e.g., we can
 restrict that data to searches belonging to certain categories, but also
 the varying nature of GT data across samples. We discuss which previous
 studies have acknowledged these and other challenges and tackle them in
 a systematic fashion to study their impact. Thereby, we provide a
-blueprint for future GT research. Below, we start by providing an
-overview of research that leverages GT data for predictive purposes
-generally but also for political outcomes (see Section 2). In Section 3
-we explain our methodological approach, the data we are collecting and
-using as well as the predictive models we are building. Section 4
+blueprint for future GT research.\\
+In Section~\ref{sec-review} we start by providing an overview of
+research that leverages GT data for predictive purposes generally but
+also for political outcomes. In Section~\ref{sec-methodology} we explain
+our methodological approach, the data we are collecting and using as
+well as the predictive models we are building. Section~\ref{sec-results}
 presents our results namely the predictions of four elections. In the
-conclusion (Section 5) we summarize the most important insights.
+conclusion we summarize the most important insights (see
+Section~\ref{sec-conclusion}).
 
-\hypertarget{using-google-trends-to-predict-elections-and-other-phenomena}{%
+\hypertarget{sec-review}{%
 \section{Using Google Trends to predict elections and other
-phenomena}\label{using-google-trends-to-predict-elections-and-other-phenomena}}
+phenomena}\label{sec-review}}
 
 The proportion of internet users aged 14 and over in Germany has risen
-from 37\% in 1991 to 91\% individuals aged 14 and older (14). In terms
+from 37\% in 1991 to 91\% individuals aged 14 and older (15). In terms
 of search engines Google is by far the dominant search engine with
-market shares of 80.4\% (desktop) and 96.8\% (mobile) (15). Nonetheless,
+market shares of 80.4\% (desktop) and 96.8\% (mobile) (16). Nonetheless,
 as we will discuss below, Google users are not necessarily
 representative of the German electorate.
 
@@ -293,17 +304,17 @@ number of studies using GT data has grown significantly. In general, the
 assumption underlying those studies is that search queries in Google
 reﬂect the genuine interests or intentions of people. While GT was most
 frequently used in the ﬁeld of Computer Science, usage in other
-disciplines has picked up (16). In a ground-breaking study Ginsberg and
+disciplines has picked up (17). In a ground-breaking study Ginsberg and
 colleagues used GT data and its real-time nature to predict the spread
 of inﬂuenza, comparing its accuracy to predictions by the Government
 Agency Center for Disease Control and Prevention (CDC) (2). This first
 study started a debate on the advantages but also deficiencies of GT flu
-predictions (19). The enormous potential of GT data was also
+predictions (20). The enormous potential of GT data was also
 demonstrated by Choi \& Varian (1), who predicted economic indicators
 including automobile sales, unemployment claims, travel destination
 planning, etc. The continued popularity is reﬂected in recently
 published papers that used GT data in the context of the COVID-19
-pandemic. Brodeur et al. (20) for example examined whether COVID-19 and
+pandemic. Brodeur et al. (21) for example examined whether COVID-19 and
 the associated lockdowns initiated in Europe and America led to changes
 in well-being.
 
@@ -316,24 +327,24 @@ elections (see also Table A1). Reviewing the literature a few aspects
 stand out. First, the focus usually lies on binary electoral outcomes.
 Prado-Román et al. (7), for example, were able to predict the ﬁnal
 results of all presidential elections in the US and Canada for the time
-period 2004 -- 2016. Polykalas et al. (21) were able to forecast Greek
+period 2004 -- 2016. Polykalas et al. (22) were able to forecast Greek
 and Spain election results. However, other studies found GT to be less
 helpful in predicting elections, despite their focus on binary settings
-(23). Other studies illustrated that GT data can be used to predict
+(24). Other studies illustrated that GT data can be used to predict
 referendum results {[}(3), (4)). (6) successfully predicted six
 referendums in different countries in Europe between 2014 and 2016, for
-example the Brexit referendum. Polykalas et al. (24) used GT to predict
+example the Brexit referendum. Polykalas et al. (25) used GT to predict
 elections in Germany, examining only the two most popular parties, the
 SPD and the CDU, trying to predict which of the two parties will win. In
 contrast to the previously mentioned studies, the authors additionally
 weight their GT predictions using previous election results to control
 for the selection bias, i.e., the fact that not everyone uses the
 internet. As indicated in Table~\ref{tbl-1}, one of the few exceptions
-predicting multi-party elections is (25). Sjövill's thesis uses GT data
+predicting multi-party elections is (26). Sjövill's thesis uses GT data
 to predict party shares focusing on the three Swedish federal elections
-2010, 2014 and 2018. Sjövill (25) emphasizes the importance of weighting
+2010, 2014 and 2018. Sjövill (26) emphasizes the importance of weighting
 the GT predictions using previous ﬁnal election results and polling
-data, to control for the sample selection bias of GT data. Sjövill (25)
+data, to control for the sample selection bias of GT data. Sjövill (26)
 compares diﬀerent models with the diﬀerent weighting methods and finds
 that they mostly have the same predictive accuracy as the average of
 pre-election opinion polls. The weighting method using actual polling
@@ -351,42 +362,44 @@ the underlying GT data. It is one of our aims to provide a more
 systematic approach to choosing the data window comparing predictions
 for a wide variety of choices. Third, while researchers have compared GT
 predictions to classical polling data, they have also explored different
-weighting schemes that may decrease sample selection bias {[}(24),
-(25)). Sample selection bias is present if, e.g., voters of conservative
-parties are on average older and thus use the internet less. As a
-consequence they are underrepresented among Google users leading to an
-underestimation of the vote share of conservative parties. Polykalas et
-al. (24) weighted their GT predictions with election results from the
-previous election. Sjövill (25) constructed three different models: A
-long-term model that weighs GT predictions with partys' previous
-election results; an intermediate model weighting the GT predictions
-using semi-annual and highly representative polling data from a
-respected election poll in Sweden; and a short-term model which used
-average monthly polling data for weighting. While all models came close
-to the results of the election polls in the election years studied, the
-short time model proved to be the most informative. Inspired by this
-research we also compare different weighting schemes as described in
-Section 3. Finally, with few exceptions, most studies remain silent on a
-set of important characteristics of the GT platform and its data. At the
-same time these characteristics can affect any predictive exercise. A
-first issue is that data provided by GT represents a random sample that
-changes over time (26). As summarized in Table~\ref{tbl-1}, column
-``Multiple GT datasets'', we only found one study that bases its
-predictions on several GT data samples (26). Following Raubenheimer et
-al. (26) we develop a systematic sampling strategy for GT data and
-average our predictions across those samples as described in Section 3.3
-and Appendix ``GT data collection and sampling error''. A second issue
-is the selection of GT search terms. This selection potentially has the
-strongest effect on any predictions we make, hence, transparently
-communicating how and following which rational these terms have been
-selected is of utmost importance. A third issue is whether to further
-refine search terms by picking a category filter provided by Google.
-Such filters attempt to identify searches that belong to particular
-topics helping to identify only relevant searches. With the exception of
-Mavragani \& Tsagarakis (6) no previous studies made use of such
-categories (cf.~column ``Cat. used'' in Table~\ref{tbl-1}). Below, we
-compare the impact of basing predictions on searches refined through
-such a category and non-refined searches.
+weighting schemes that may decrease sample selection bias (26). Sample
+selection bias is present if, e.g., voters of conservative parties are
+on average older and thus use the internet less. As a consequence they
+are underrepresented among Google users leading to an underestimation of
+the vote share of conservative parties. Polykalas et al. (25) weighted
+their GT predictions with election results from the previous election.
+Sjövill (26) constructed three different models: A long-term model that
+weighs GT predictions with partys' previous election results; an
+intermediate model weighting the GT predictions using semi-annual and
+highly representative polling data from a respected election poll in
+Sweden; and a short-term model which used average monthly polling data
+for weighting. While all models came close to the results of the
+election polls in the election years studied, the short time model
+proved to be the most informative. Inspired by this research we also
+compare different weighting schemes as described in
+Section~\ref{sec-models}. Finally, with few exceptions, most studies
+remain silent on a set of important characteristics of the GT platform
+and its data. At the same time these characteristics can affect any
+predictive exercise. A first issue is that data provided by GT
+represents a random sample that changes over time (27). As summarized in
+Table~\ref{tbl-1}, column ``Multiple GT datasets'', we only found one
+study that bases its predictions on several GT data samples (27).
+Following Raubenheimer et al. (27) we develop a systematic sampling
+strategy for GT data and average our predictions across those samples as
+described in Section~\ref{sec-gtdatacollection} and
+Section~\ref{sec-gtsampling}. A second issue is the selection of GT
+search terms (see Section~\ref{sec-searchterms}). This selection
+potentially has the strongest effect on any predictions we make, hence,
+transparently communicating how and following which rational these terms
+have been selected is of utmost importance. A third issue is whether to
+further refine search terms by picking a category filter provided by
+Google (see Section~\ref{sec-categoryfilter}). Such filters attempt to
+identify searches that belong to particular topics helping to identify
+only relevant searches. With the exception of Mavragani \& Tsagarakis
+(6) no previous studies made use of such categories filters (cf.~column
+``Cat. used'' in Table~\ref{tbl-1}). Below, we compare the impact of
+basing predictions on searches refined through such a category and
+non-refined searches.
 
 \hypertarget{tbl-1}{}
 \begin{table}
@@ -425,49 +438,48 @@ Askitas (2015a) & Irish "Gay Marriage" Referendum 2015 & 1 week & N = 1; 1 day b
 \endgroup{}
 \end{table}
 
-\hypertarget{data-and-method}{%
-\section{Data and Method}\label{data-and-method}}
-
-\hypertarget{google-trends-as-a-data-source}{%
-\subsection{Google Trends as a data
-source}\label{google-trends-as-a-data-source}}
+\hypertarget{sec-methodology}{%
+\section{Data and Method}\label{sec-methodology}}
 
 In our analysis we rely on three types of data, Google trends data (see
-Section 3.2-3.3) as well as data on from polls and actual election
-results (see Section 3.4). GT provides access to a largely unﬁltered
-sample of ``real-time'' searches on different topics (up to 36h before
-the actual time you conduct the search) or a ﬁltered and representative
-sample (as claimed by Google) of searches that are older than 36 hours
-starting from the year 2004. The data can be obtained for different
-search types that correspond to diﬀerent Google products like ``Web
-search,'' ``News,'' ``Images,'' ``Shopping'' and ``Youtube''.
-Importantly, GT does not provide access to data on individual searches.
-Rather the data is anonymized and Google aggregates the data to the
-federal state level, country level or world level. Besides, it is
-possible to filter searches belonging to different categories, e.g.,
-``Law and Government'', with the aim of only getting searches for the
-word's meaning one is interested in. The result we get are a
-standardized, relative measure of search volume for a single word/search
-term, a combination of search terms using operators,\footnote{Available
-  Operators: No quotation marks (results for each word in your query),
-  Quotation marks (coherent search phrase), Plus sign (serves as
-  function of an OR-operator) and Minus sign (Excludes word after the
-  operator) \textbf{(Google Trends Help 2023d)}.} or comparisons, i.e.,
-one input in relation to the other inputs,\footnote{Possible to compare
-  up to ﬁve groups of terms at one time and up to 25 terms in each group
-  (Google Trends Help 2023a).} over a selected time period. Google
-calculates how much search volume in each region a search term or query
-had, relative to all searches in that region. Using this information,
-Google assigns a measure of popularity to search terms (scale of 0 -
-100), leaving out repeated searches from the same person over a short
-period of time and searches with apostrophes and other special
-characters (27). The maximum of the scale corresponds to a search term's
-maximum level of popularity relative to other search terms and time
-periods.
+Section~\ref{sec-gtdatacollection}) as well as data on polls and actual
+election results (see Section~\ref{sec-polldatacollection}).
 
-\hypertarget{search-terms-and-category-filter}{%
-\subsection{Search terms and category
-filter}\label{search-terms-and-category-filter}}
+\hypertarget{sec-gtdata}{%
+\subsection{Google Trends as a data source}\label{sec-gtdata}}
+
+GT provides access to a largely unﬁltered sample of ``real-time''
+searches on different topics (up to 36h before the actual time you
+conduct the search) or a ﬁltered and representative sample (as claimed
+by Google) of searches that are older than 36 hours starting from the
+year 2004. The data can be obtained for different search types that
+correspond to diﬀerent Google products like ``Web search,'' ``News,''
+``Images,'' ``Shopping'' and ``Youtube''. Importantly, GT does not
+provide access to data on individual searches. Rather the data is
+anonymized and Google aggregates the data to the federal state level,
+country level or world level. Besides, it is possible to filter searches
+belonging to different categories, e.g., ``Law and Government'', with
+the aim of only getting searches for the word's meaning one is
+interested in. The result we get are a standardized, relative measure of
+search volume for a single word/search term, a combination of search
+terms using operators,\footnote{Available Operators: No quotation marks
+  (results for each word in your query), Quotation marks (coherent
+  search phrase), Plus sign (serves as function of an OR-operator) and
+  Minus sign (Excludes word after the operator) \textbf{(Google Trends
+  Help 2023d)}.} or comparisons, i.e., one input in relation to the
+other inputs,\footnote{Possible to compare up to ﬁve groups of terms at
+  one time and up to 25 terms in each group (Google Trends Help 2023a).}
+over a selected time period. Google calculates how much search volume in
+each region a search term or query had, relative to all searches in that
+region. Using this information, Google assigns a measure of popularity
+to search terms (scale of 0 - 100), leaving out repeated searches from
+the same person over a short period of time and searches with
+apostrophes and other special characters (28). The maximum of the scale
+corresponds to a search term's maximum level of popularity relative to
+other search terms and time periods.
+
+\hypertarget{sec-searchterms}{%
+\subsection{Search terms and category filter}\label{sec-searchterms}}
 
 The first step in using Google searches to predict phenomena is the
 selection of search terms on which we base our predictions. Since words
@@ -478,12 +490,12 @@ Trends (6), a shortcoming since categories help purge the search term
 for multiple meanings and thus assure that one gets results for the
 right version of that search term. For instance, in our case adding the
 category ``Law and Government'' when searching for the search term
-``Grüne'' assures that a political party is meant and not the color
-(28). Below we describe how we selected the search terms and which
+``Grüne'' assures that the political party is meant and not the color
+(29). Below we describe how we selected the search terms and which
 selections we chose for the GT's category filter.
 
-\hypertarget{category-filter}{%
-\subsubsection{Category filter}\label{category-filter}}
+\hypertarget{sec-categoryfilter}{%
+\subsubsection{Category filter}\label{sec-categoryfilter}}
 
 The first step in our analysis was to compare all supercategories within
 Google's ``Web Search'' product across our four elections (09', 13', 17'
@@ -502,8 +514,9 @@ Government category was the most suitable and also the most reasonable
 for our purposes, as it places search queries in the political context.
 Previous studies have mostly chosen the ``All categories'' category
 which performs significantly worse than ``Law \& Government'' in the
-German context. We refer the reader to Appendix A1 for the corresponding
-statistics.
+German context. We refer the reader to
+Section~\ref{sec-categoryfilterselection} for the corresponding
+analyses.
 
 \hypertarget{search-terms}{%
 \subsubsection{Search terms}\label{search-terms}}
@@ -577,8 +590,8 @@ top candidates provided signiﬁcantly better results.\footnote{Regarding
   leadership, which results in the same amount of search terms for each
   party. This, however, leads to much worse predictions than our main
   analysis. Thus, we assume that the parties are not overrepresented by
-  their multiple top candidates.} Table~\ref{tbl-2} below provides an
-overview of the ﬁnal search terms.
+  their multiple top candidates.} Table~\ref{tbl-2} displays the final
+search queries.
 
 \hypertarget{tbl-2}{}
 \begin{table}
@@ -599,8 +612,8 @@ Election date & Search queries\\
 \endgroup{}
 \end{table}
 
-\hypertarget{collecting-gt-data}{%
-\subsection{Collecting GT data}\label{collecting-gt-data}}
+\hypertarget{sec-gtdatacollection}{%
+\subsection{Collecting GT data}\label{sec-gtdatacollection}}
 
 To collect data on GT, we use the R package ``gtrendsR'' (Massicotte \&
 Eddelbuettel, 2023). For the purpose of our analysis we rely on the
@@ -618,68 +631,59 @@ scale for the comparative GT data is always anchored (setting the
 maximum) using the most popular search term, we can leave out or
 exchange search terms as it does not change their popularity relative to
 the maximum. As a result we get estimates of search interest for all six
-parties. We collected Google Trends data, having set the geo-location to
-Germany, for our search queries from the first day of an election year
-until the 26th September for 2009, 2013, 2017 and 2021. Additionally we
-collected data from the election year 2005, which we later used to
-construct a weighting factor.\footnote{Choosing a period longer than 270
-  days for the election our years, results in getting weekly data
-  instead of daily data. One might also ask if it would make a
-  difference to pull one dataset that covers all interval and distance
-  combinations, as in our case, or to pull single datasets for each
-  interval and distance combination. We checked this and it made no
-  difference since we only use the comparison function of Google Trends.
-  Accordingly, the ratio of the parties to each other remains the same
-  (29).}
+parties. Table~\ref{tbl-2} displays the final search queries. We
+collected Google Trends data, having set the geo-location to Germany,
+for our search queries from the first day of an election year until the
+26th September for 2009, 2013, 2017 and 2021. Additionally we collected
+data from the election year 2005, which we later used to construct a
+weighting factor.\footnote{Choosing a period longer than 270 days for
+  the election our years, results in getting weekly data instead of
+  daily data. One might also ask if it would make a difference to pull
+  one dataset that covers all interval and distance combinations, as in
+  our case, or to pull single datasets for each interval and distance
+  combination. We checked this and it made no difference since we only
+  use the comparison function of Google Trends. Accordingly, the ratio
+  of the parties to each other remains the same (30).}
 
 \hypertarget{google-trends-samples}{%
 \subsubsection{Google Trends samples}\label{google-trends-samples}}
 
 Importantly, Google Trends draws new samples of all searches on the
-platform several times a week (26). As a result, the data varies
+platform several times a week (27). As a result, the data varies
 slightly from sample to sample. Google states that the samples taken are
 representative of all Google search queries. However, Google does not
-provide any information on how this representativeness is achieved (27).
+provide any information on how this representativeness is achieved (28).
 Since Google does not specify at what intervals new samples are taken,
 we collected new data sets every hour for several weeks and compared
 them. It turned out that new samples were taken at least once a day,
 sometimes more often. To account for the variation one may find across
 samples, we collect GT data at 10 different time points between 01/12/22
-and 10/12/22 (see Table A1 in Appendix A.2). We compare datasets across
-time points to assure that we base our estimates on non-identical
-datasets as to account for sampling error. In our data analysis, we then
-use the average values across those datasets as well as the associated
-confidence intervals. Surprisingly, we are the first study within the
-election prediction literature to acknowledge this problem, although it
-is an obvious source of error (29). Figure~\ref{fig-A2} in Appendix A.2
-visualizes the variation of the 10 GT datasets. Moreover, in contrast to
-statements in the literature referring to data from the Google Trends
-website (31) and the GTEfH API (32), we find that sometimes more than
-one different sample can be obtained on the same day (see Table A1 in
-Appendix A.2) and that drawing samples from different PCs in different
-networks at the same time yields the same sample when using gtrendsR.
-
-\hypertarget{collecting-polling-and-election-data}{%
-\subsection{Collecting polling and election
-data}\label{collecting-polling-and-election-data}}
-
-In addition to Google Trends data we also collected polling data both as
-a comparison for our Google Trend predictions but also to weight our
-Google Trends predictions. The polling data comes from one of the most
-reputable German polling institutes, Infratest dimap. Finally, the
-outcome we want to predict are actual election results. We collected the
-corresponding data from the oﬃcial source of the federal government
-(Bundeswahlleiter 2023).
+and 10/12/22 (see Table~\ref{tbl-A1} in Section~\ref{sec-gtsampling}).
+We compare datasets across time points to assure that we base our
+estimates on non-identical datasets as to account for sampling error. In
+our data analysis, we then use the average values across those datasets
+as well as the associated confidence intervals. Surprisingly, we are the
+first study within the election prediction literature to acknowledge
+this problem, although it is an obvious source of error (30).
+Figure~\ref{fig-A2} in Section~\ref{sec-gtsampling} visualizes the
+variation of the 10 GT datasets. Moreover, in contrast to statements in
+the literature referring to data from the Google Trends website (32) and
+the GTEfH API (33), we find that sometimes more than one different
+sample can be obtained on the same day (see Table~\ref{tbl-A1} in
+Section~\ref{sec-gtsampling}) and that drawing samples from different
+PCs in different networks at the same time yields the same sample when
+using gtrendsR.
 
 \hypertarget{google-trends-data-windows}{%
-\subsection{Google trends data
+\subsubsection{Google trends data
 windows}\label{google-trends-data-windows}}
 
 After having collected data from 1 January to 27 September of each
 election year, the question arises which data windows within these data
 are best suited for election prediction. As depicted in
 Figure~\ref{fig-2}, data windows are defined by their width (length of
-time period) and distance to the election.
+time period) and distance to the election. In previous research authors
+rarely provided a justification for the corresponding choices.
 
 \begin{figure}[h]
 
@@ -691,71 +695,75 @@ time period) and distance to the election.
 
 \end{figure}
 
-In previous research authors rarely provided a justification for the
-corresponding choices. The majority of studies used time window(s) with
-a width of 1 or 2 weeks / 1 or 3 months ending one day before
-election/referendum. Our aim is to systematically examine as many data
-windows as possible in order to find the best possible prediction
-windows and to provide guidance for future research. In doing so we
-compare small with large data windows. Small data windows better reflect
-searches in short time spans and better reflect the current mood in
-those time periods. Wider data windows reflect average interest across a
-longer time period and average out non-meaningful spikes (e.g., TV
-appearances) as well as potentially covering more relevant events. For
-instance, we could chose a wide, several-week data window that covers
-both searches from in-person voters right before the election but also
-searches from mail-in voters a few weeks before. We compare data windows
-of different width namely 7, 14, 21, 28, 42, 56, 70 and 91 days. Another
-essential aspect is the distance of our GT data windows to the election.
-We could base our predictions on a data window that is far from the
-election, corresponding to a large distance, or a data window that ends
-right before the election. Previous studies have barely examined this
-aspect and have mostly chose a distance of one day to the election.
+In what concerns width, the majority of studies used time window(s) with
+a width of 1/2 weeks or 1/3 months. In contrast, our aim is to
+systematically examine as many data windows as possible in order to find
+the best possible prediction windows and to provide guidance for future
+research. In doing so we compare small with large data windows. Small
+data windows better reflect the searches occurring in short time spans
+and the current mood in those time periods. Wider data windows reflect
+average interest across a longer time period and average out
+non-meaningful spikes (e.g., TV appearances). We compare data windows of
+eight widths namely 7, 14, 21, 28, 42, 56, 70 and 91 days.\\
+In what concerns distance, previous studies have barely examined this
+aspect and have mostly chosen a distance of one day to the election.
 However, election campaign leaders and demoscopists will be more
-interested in how the parties are performing, e.g.~two weeks or three
-months before the election. Furthermore, it is of interest to compare
-which data windows or models are best suited at which point in time. One
-assumption could be that polls are more suitable shortly before the
-election, but GT data with a longer distance to the election. For these
-reasons, we compare the predictive power of GT data windows of distance
-one to 150 days before election day where a distance of, e.g., 30 days
+interested in how parties are predicted to perform at an earlier
+timepoint, e.g., two weeks or three months before the election. We
+compare the predictive power of GT data windows of distance one to 150
+days before election day. For instance, a distance of, e.g., 30 days
 means that the GT data window ends 30 days before the election. In
 total, we compare 8 (number of widths) * 150 (number of distances) =
-1200 different GT data windows.
+1200 different GT data windows per election.
+
+\hypertarget{sec-polldatacollection}{%
+\subsection{Collecting polling and election
+data}\label{sec-polldatacollection}}
+
+In addition to Google Trends data we also collected polling data both as
+a comparison for our Google Trend predictions but also to weight our
+Google Trends predictions. The polling data comes from one of the most
+reputable German polling institutes, Infratest dimap. Finally, the
+outcome we want to predict are actual election results. We collected the
+corresponding data from the oﬃcial source of the federal government
+(Bundeswahlleiter 2023).
 
 \hypertarget{sec-models}{%
 \subsection{Prediction models and benchmark}\label{sec-models}}
 
 In our analysis, we predict party shares in four federal elections in
 Germany: 2009, 2013, 2017 and 2021. We build three broad classes of
-predictive models: Our first class of models, MC1, consists of the raw,
-unweighted Google Trends data; The second class of models, MC2, uses a
-weighting factor based on the results of the preceding election; Our
-last class of models, MC3, weights the GT predictions using polling
-results of Infratest dimap, which will be explained in more detail
-below. In total we estimate 4 (elections) * 3 (model classes) * 1200
-(data windows) = 14400 models. We compare predictions of models based on
-GT data to predictions based on models drawing on polls for the time
-windows to benchmark their performance.\footnote{The term model does not
+predictive models:\\
+Our first class of models, MC1, consists of the raw, unweighted Google
+Trends data; The second class of models, MC2, uses a weighting factor
+based on the results of the preceding election; Our last class of
+models, MC3, weights the GT predictions using polling results of
+Infratest dimap, which will be explained in more detail below. In total
+we estimate 4 (elections) * 3 (model classes) * 1200 (data windows) =
+14400 models. We compare predictions of models based on GT data to
+predictions based on models drawing on polls for the time windows to
+benchmark their performance.\footnote{The term model does not
   necessarily refer to a sophisticated statistical model here. For
   instance, the models based on polls are simply the party shares as
   measured in the polls.} For each election, we compare our predictions
-with the actual election results and calculate the average deviation of
-our predictions from the election results. The calculated average
-absolute deviations serve as a performance indicator for the different
-models. MC1 models predict party shares solely with Google Trends data.
-To obtain these we proceeded as follows: We started by calculating the
-Google proportion for each party p for an interval i. As shown in Eq. 1,
-in the ﬁrst step, we use the average Google search interest of each
-party p for the examined data window i, for example, the average search
-interest for the search query of the CDU for the data window with width
-7 days and distance 7 days. Then we divide it by the sum N of all
-parties average search interest for that data window. The Google
-proportion thus serves as a prediction in percent for the respective
-party.
+for the single parties with the actual election results. Below we
+visualize and evaluate both errors across our models for single parties
+\(y_{p}-\hat{y}_{p}\) as well as averaged across parties using the
+\(MAE = \frac{\sum_{i=1}^{n}|y_{p}-\hat{y}_{p}|}{n}\) where \(p\)
+corresponds to a party and \(y_{p}\) and \(\hat{y}_{p}\) to the true and
+predicted party share respectively.\\
+MC1 models predict party shares solely with Google Trends data. To
+obtain these we proceeded as follows: We started by calculating the
+Google proportion for each party \(p\) for a data window \(i\). As shown
+in Eq. 1, in the ﬁrst step, we use the average Google search interest of
+each party \(p\) for the examined data window \(i\), for example, the
+average search interest for the search query of the CDU for the data
+window with width 7 days and distance 7 days. Then we divide it by the
+sum \(N\) of all parties average search interest for that data window.
+The Google proportion thus serves as a prediction in percent for the
+respective party.
 
-Google Proportionp,i= Avg. Google search interestp,ip=1NAvg. Google
-search interestp,i (Eq. 1)
+\[\text{Google Proportion}_{p,i}=\frac{\text{Avg. Google search interest}_{p,i}}{\sum_{p=1}^{N} \text{Avg. Google search interest}_{p,i}}\text{ (Eq. 1)}\]
 
 If we add up the Google proportions of all the parties examined, we
 arrive at 100\%. This Google proportion serves as the sole basis for
@@ -767,35 +775,34 @@ means that in the polls the main parties can sometimes only get 91.3\%,
 whereas in our analysis they get 100\%. As a result, we assume that
 party shares are slightly overestimated in the GT data. We provide
 additonal analyses constructing an ``other'' category from google search
-data as described in Appendix A.5. We concluded, however, that ignoring
-the ``other'' category is fine. In addition, in our conclusion, we
-discuss possible ways of how the ``other'' category could be accounted
-for when collecting GT data. For models of class MC2 and MC3 we use
-weighting factors in conjunction with the party shares predicted by GT
-proportions. Models of class MC2 are based on the approach of Polykalas
-et al. (21), who used the results of the previous federal election to
-calculate a weighting factor. As shown in Eq. 2, to calculate the
-weighting factor WMC2 for a party p, for the data window i and the
-election year T, we divide the previous election results of that party p
-of the previous election year T-4 by the respective Google proportion.
-For example, to predict the SPD's share in 2017 we must first calculate
-the weighting factor WMC2. For that, we take the SPD's election result
-in 2013 and divide it by the GT proportion of the SPD for the election
-of 2013 using the same distance d and width w for the respective data
-window i. Subsequently, the GT prediction of the SPD's 2017 share, is
-multiplied by the weighting factor WMC2 of the SPD. The result is the
+data in Section~\ref{sec-other-parties} finding that the results do not
+change much. In our conclusion we discuss possible ways of how the
+``other'' category could be accounted for when collecting GT data.\\
+For models of class MC2 and MC3 we use weighting factors in conjunction
+with the party shares predicted by GT proportions. Models of class MC2
+are based on the approach of Polykalas et al. (22), who used the results
+of the previous federal election to calculate a weighting factor. As
+shown in \(Eq. 2\), to calculate the weighting factor \(WMC2\) for a
+party \(p\), for the data window \(i\) and the election year \(T\), we
+divide the previous election results of that party \(p\) of the previous
+election year \(T-4\) by the respective Google proportion. For example,
+to predict the SPD's share in 2017 we must first calculate the weighting
+factor \(WMC2\). For that, we take the SPD's election result in 2013 and
+divide it by the GT proportion of the SPD for the election of 2013 using
+the same distance d and width w for the respective data window i.
+Subsequently, the GT prediction of the SPD's 2017 share, is multiplied
+by the weighting factor \(WMC2\) of the SPD. The result is the
 prediction provided by M2 for the SPD's share in 2017.
 
-WeightMC2(p,i,T)=Previous election resultsp,T-4Google proportionp,i,T-4
-(Eq. 2)
+\[\text{Weight}_{MC2(p,i,T)}=\frac{\text{Previous election results}_{p,T-4}}{\text{Google proportionp}_{i,T-4}}\text{ (Eq. 2)}\]
 
-WeightMC2(p,i,T) tries to account for the possible selection that
-characterizes individuals that end up in the GT data by including
-information on shares in the previous election (4 years earlier) in
-Germany. For instance, non-Internet users are probably underrepresented
-and younger voters overrepresented among GT users. Because the
-electorate changes for each election, we cannot assume that this
-weighting method controls/offsets the complete sample bias for the
+\(\text{Weight}_{MC2(p,i,T)}\) partly may account for the possible
+selection that characterizes individuals that end up in the GT data by
+including information on shares in the previous election (4 years
+earlier) in Germany. For instance, non-Internet users are probably
+underrepresented and younger voters over-represented among GT users.
+Because the electorate changes for each election, we cannot assume that
+this weighting method controls/offsets the complete sample bias for the
 election year we want to predict. But it should provide better
 predictions than models of class MC1 that are solely based on GT
 data.\footnote{A special case is MC2 for the 2013 election, for which
@@ -839,8 +846,7 @@ factor consists of the poll at the start of this time period (here Poll
 (here Time Period 1). We do the same for the other time periods within
 the data window, i.e., Time Periods 2 and 3.
 
-WeightMC3(t ‐ t+1)=PollTime Period xGoogle proportionTime Period x - 1
-(3)
+\[\text{Weight}_{MC3(t ‐ t+1)}=\frac{\text{Poll}_{\text{Time Period x}}}{\text{Google proportion}_{\text{Time Period x - 1}}}\text{ (Eq. 2)}\]
 
 Time Period 1 is special insofar that in most cases the start date of
 the time window and a poll do not lie on the same date. Therefore the
@@ -861,8 +867,8 @@ factor is thereby limited by the two last polls before the time window
   wouldn't make sense to calculate a weighting factor using only one day
   of Google data and applying it on the same day.}
 
-\hypertarget{results}{%
-\section{Results}\label{results}}
+\hypertarget{sec-results}{%
+\section{Results}\label{sec-results}}
 
 \hypertarget{comparing-predictions-across-gt-data-windows-across-parties}{%
 \subsection{Comparing predictions across GT data windows, across
@@ -886,61 +892,60 @@ and party shares across data windows}
 
 In Figure~\ref{fig-4} we visualize a subset of the predictions provided
 by MC1-GT models for the most recent general election in Germany (26th
-of September 2021). Figure~\ref{fig-4} plots 3600 deviations =
-predictions - actual vote shares\footnote{Obtained by averaging
-  predictions over 10 GT data samples. CHECK!} across parties as points
-connected by lines, namely predictions for 6 parties of based on 600
-models defined by 4 widths and 150 distances.\footnote{The graph is only
-  showing a subset of our predictions restricted to one election and
-  four data window widths. Overall, from our models that are solely
-  based on GT data we yielded 27600 deviations = predictions - actual
-  vote shares, namely predictions for 6 parties of based on 4800 models
-  defined by 8 widths, 150 distances and 4. For the 2009 election, we
-  have 21600 solely GT data based predictions. For the 2013, 2017, 2021
-  elections we obtained 21600 27600 predictions.}
+of September 2021). The most recent election is ideal for benchmarking
+GT predictions, because usage of the platform has changed over time.
+Figure~\ref{fig-4} plots the prediction errors \((y_{p}-\hat{y}_{p})\)
+as points connected by lines for 3600 predictions = 6 parties * 600
+models (defined by 4 widths and 150 distances).\footnote{Obtained by
+  averaging predictions over 10 GT data samples.}\footnote{The graph is
+  only showing a subset of our predictions restricted to one election
+  and four data window widths. Overall, from our models that are solely
+  based on GT data we yielded 27600 predictions, namely predictions for
+  6 parties of based on 4800 models defined by 8 widths, 150 distances
+  and 4. For the 2009 election, we have 21600 solely GT data based
+  predictions. For the 2013, 2017, 2021 elections we obtained 21600
+  27600 predictions.}
 
-The most recent election is ideal for benchmarking GT predictions,
-because usage of the platform has changed over time. Connecting lines
-have been added to facilitate comparison. The single panels (Plot 1-4)
-correspond to the four different widths of the data windows going from 7
-days to 91 days (see right-hand y-axis). The x-axis indicates the
-distance of the respective window to the election. First, we find that
-the width and distance of the data window to the election matters. We
-compare models of differing width (from top to bottom) and distance
-(from left to right). Data windows of low width, e.g., the models based
-on 7 days of GT data in the top plot, vary much stronger in their
-predictive accuracy across time. In other words, with such small time
-spans it matters which week of GT data we have picked for our
+Connecting lines have been added to facilitate comparison. The single
+panels (Plot 1-4) correspond to the four different widths of the data
+windows going from 7 days to 91 days (see right-hand y-axis). The x-axis
+indicates the distance of the respective window to the election. First,
+we find that the width and distance of the data window to the election
+matters. We compare models of differing width (from top to bottom) and
+distance (from left to right). Data windows of low width, e.g., the
+models based on 7 days of GT data in the top plot, vary much stronger in
+their predictive accuracy across time. In other words, with such small
+time spans it matters which week of GT data we have picked for our
 prediction. Naturally, this variation decreases when we extend the time
 window on which we base our prediction going from 7 days (Plot 1) to 91
 days (Plot 4) at the bottom in Figure~\ref{fig-4}. Second, on average
 accuracy seems to improve slightly the smaller the distance between the
-GT data window and the election. In Figure~\ref{fig-5} (next section) we
-plot the prediction error averaged across all parties for MC1-GT models
-(red line) contrasting them with other models. Focusing on the red line
-this analysis also indicates that the error decreases the closer we are
-to the election. However, we can also clearly see that picking a short
-data window, e.g., 7 days, results in considerable variation in what
-regards accuracy (see Figure~\ref{fig-4}, Plot 1). In addition, we used
-a linear model to model the trend of accuracy as a function of distance
-holding the width constant at 14 days in Table~\ref{tbl-A2}. For the
-2021 election, the average deviation decreases by 0.02\% per day
-distance. In other words, if move the data window 100 days closer to the
-election, the mean absolute deviation decreases by 2\%. This, however,
-is not true for the other elections (cf. Table~\ref{tbl-A2}). Third,
-Figure~\ref{fig-4} also highlights the strong variation in accuracy
-between parties. For instance, GT predictions of the vote share of the
-Linke are more accurate than, e.g., for the AFD, with the deviation
-being closer to 0 across models. For the 2021 election the error
-generally seems highest for the AfD. Moreover, shares of certain parties
-are usually underestimated (e.g., SPD), while others are overestimated
-(e.g., AfD). It seems that the quality of Google searches as a signal of
-vote choice differs across parties. Importantly, in Figure~\ref{fig-A4}
-provides further visualizations for more intervals for the 2021
-election, Figure~\ref{fig-A5} provide visualizations for the other
-elections and Table~\ref{tbl-A2} also provides models for the other
-elections. The insights described above are largely confirmed when using
-data for other elections.
+GT data window and the election. In Figure~\ref{fig-5} we plot the
+prediction error averaged across all parties for MC1-GT models (red
+line) contrasting them with other models. Focusing on the red line this
+analysis also indicates that the error decreases the closer we are to
+the election. However, we can also clearly see that picking a short data
+window, e.g., 7 days, results in considerable variation in what regards
+accuracy (see Figure~\ref{fig-4}, Plot 1).\\
+In addition, we used a linear model to model the trend of accuracy as a
+function of distance holding the width constant at 14 days in
+Table~\ref{tbl-A2}. For the 2021 election, the average error decreases
+by 0.02\% per day distance. In other words, if move the data window 100
+days closer to the election, the mean absolute error decreases by 2\%.
+This, however, is not true for the other elections (cf.
+Table~\ref{tbl-A2}). Third, Figure~\ref{fig-4} also highlights the
+strong variation in accuracy between parties. For instance, GT
+predictions of the vote share of the Linke are more accurate than, e.g.,
+for the AFD, with the error being closer to 0 across models. For the
+2021 election the error generally seems highest for the AfD. Moreover,
+shares of certain parties are usually underestimated (e.g., SPD), while
+others are overestimated (e.g., AfD). It seems that the quality of
+Google searches as a signal of vote choice differs across parties.
+Importantly, in Figure~\ref{fig-A4} provides further visualizations for
+more intervals for the 2021 election, Figure~\ref{fig-A5} provide
+visualizations for the other elections and Table~\ref{tbl-A2} also
+provides models for the other elections. The insights described above
+are largely confirmed when using data for other elections.
 
 \hypertarget{comparing-predictions-across-model-classes}{%
 \subsection{Comparing predictions across model
@@ -992,12 +997,13 @@ acceptable for certain applications where we only need rough
 predictions. Besides, if we want to decrease the dependency of GT-based
 predictions on short-term trends we should probably base our predictions
 on a larger time span as shown in Plot in Figure~\ref{fig-3}. We provide
-findings for other elections in the next section and in
+findings for other elections in
+Section~\ref{sec-comparison-models-elections} and in
 Section~\ref{sec-comparing-model-classes-other}.
 
-\hypertarget{comparing-predictions-across-model-classes-and-elections}{%
+\hypertarget{sec-comparison-models-elections}{%
 \subsection{Comparing predictions across model classes and
-elections}\label{comparing-predictions-across-model-classes-and-elections}}
+elections}\label{sec-comparison-models-elections}}
 
 Above we focused on the most recent election in Germany (9th of
 September 2021). This focus is justified: Given the changing user
@@ -1074,12 +1080,12 @@ more representative of German voters in the 2013, 2017 elections than in
 2009 or 2021. Second, it could be related to the elections themselves.
 Potentially, the extend to which the action ``search for'' is related to
 ``vote for'' depends on the election with more ``charged'' elections
-like the 2021 election decreasing this correlation (33). Third, it is
+like the 2021 election decreasing this correlation (34). Third, it is
 possible that the accuracy of the polling data which we use as a
 benchmark varies over time.
 
-\hypertarget{conclusion}{%
-\section{Conclusion}\label{conclusion}}
+\hypertarget{sec-conclusion}{%
+\section{Conclusion}\label{sec-conclusion}}
 
 Google trends data has become a popular data source for prediction in
 different domains such as elections. While most previous research
@@ -1110,7 +1116,7 @@ the benchmark in terms of accuracy, especially in the case of the lates
 election in 2021. We found that models that combine polling data with GT
 data (MC3) data fare better than purely GT-data-based models (MC1).
 Furthermore, we find that weighting GT data with previous electoral
-outcomes (21) does not help predictive accuracy, at least not for the
+outcomes (22) does not help predictive accuracy, at least not for the
 German case (cf. Figure~\ref{fig-3}). Third, while we argued that recent
 elections are the appropriate benchmarks for GT data predictions,
 comparisons to past elections may still be revealing. Especially,
@@ -1134,16 +1140,16 @@ term selection. For instance, we found that it matters which category
 search filter is selected (cf.~Appendix A.1). Our study has several
 limitations that provide venues for future research. First, we pursued a
 systematic approach to search term selection, testing different search
-terms against each other (see Section 3.2). Future research might
-benefit from choosing an even wider net of search terms, trying out
-different ones. Second, while we predicted elections shares we did not
-forecast them in that the elections happened already. Since, we didn't
-built any sophisticated models we somewhat circumvented the danger of
-adapting our models to already seen data. Nonetheless, as is now more
-common in the literature on election forecasting (8), studie that rely
-on GT data for prediction could also be pre-registered. Third, from the
-general perspective of election forecasting, GT data could be seen as
-just another dynamic signal that can be integrated into more
+terms against each other (see Section~\ref{sec-searchterms}). Future
+research might benefit from choosing an even wider net of search terms,
+trying out different ones. Second, while we predicted elections shares
+we did not forecast them in that the elections happened already. Since,
+we didn't built any sophisticated models we somewhat circumvented the
+danger of adapting our models to already seen data. Nonetheless, as is
+now more common in the literature on election forecasting (8), studie
+that rely on GT data for prediction could also be pre-registered. Third,
+from the general perspective of election forecasting, GT data could be
+seen as just another dynamic signal that can be integrated into more
 sophisticated modelling strategies (e.g., 10) that go beyond the simple
 weighting approach used in the present paper. Whether such additional
 sources of data can improve predictions remains to be tested. Fourth,
@@ -1152,26 +1158,26 @@ how representative the GT data is of searches on the platform (1) and
 how representative users of the GT platform are of voting population
 (2). Pertaining to (1), both aspects of representiveness should be
 studied further. Finding variation across GT data samples Raubenheimer
-et al. (26) suggested that there might be a publication bias, i.e.,
+et al. (27) suggested that there might be a publication bias, i.e.,
 successful predictions are based on suitable samples. For this reason we
-averaged across GT data samples (cf.~Section 3.3. and A.2). However,
-more rearch into the variability of such samples for particular
-predictions is warranted. However, (2) is relevant as well. Platforms
-are generally quite secretive about their userbase. Collecting more
-evidence on how representative Goodle users are of the general (voting)
-population would help to explain the accuracy of corresponding
-predictions and help to develop more sophisticated weighting schemes.
+averaged across GT data samples (cf. Section~\ref{sec-gtdatacollection}
+and Section~\ref{sec-gtsampling}). However, more rearch into the
+variability of such samples for particular predictions is warranted.
+However, (2) is relevant as well. Platforms are generally quite
+secretive about their userbase. Collecting more evidence on how
+representative Goodle users are of the general (voting) population would
+help to explain the accuracy of corresponding predictions and help to
+develop more sophisticated weighting schemes.
 
 \newpage
 
-\hypertarget{online-appendix}{%
-\section{Online appendix}\label{online-appendix}}
+\textbf{\scalebox{2}{Online appendix}}
 
 \beginsupplement
 
-\hypertarget{category-filter-selection-and-search-terms}{%
-\subsection{Category filter selection and search
-terms}\label{category-filter-selection-and-search-terms}}
+\hypertarget{sec-categoryfilterselection}{%
+\section{Category filter selection and search
+terms}\label{sec-categoryfilterselection}}
 
 As discussed in Section 3.2, Google trends allows for restricting
 searches to certain categories, helpful insofar it allows for
@@ -1221,9 +1227,8 @@ years.
 
 \end{figure}
 
-\hypertarget{gt-data-collection-and-sampling-error}{%
-\subsection{GT data collection and sampling
-error}\label{gt-data-collection-and-sampling-error}}
+\hypertarget{sec-gtsampling}{%
+\section{GT data collection and sampling error}\label{sec-gtsampling}}
 
 Table A1 shows the collected datasets across a day that were different.
 We collected the data hourly, but Table A1 only shows the collected
@@ -1231,7 +1236,7 @@ samples that are different. Each .Rdata file correspondings to a time
 point when we collected the respective GT datasets for the different
 search terms. In principle, we could have stored the single datasets
 contained in each .Rdata file as .csv-files. But the approach we chose
-turned out to be more feasable. As discussed by Raubenheimer et al. (26)
+turned out to be more feasable. As discussed by Raubenheimer et al. (27)
 google trends data samples may differ across time. Across the series of
 datasets we collected we checked for each .RData file if all the
 contained datasets are different as compared to the previously collected
@@ -1355,7 +1360,7 @@ variability accross samples is relatively low.
 \end{figure}
 
 \hypertarget{models-and-weighting-methods}{%
-\subsection{Models and weighting
+\section{Models and weighting
 methods}\label{models-and-weighting-methods}}
 
 Challenges when calculating the weighting factor M3: In single cases,
@@ -1392,10 +1397,10 @@ data cannot be used and our model would be too heavily biased as a
 result.
 
 \hypertarget{further-results}{%
-\subsection{Further results}\label{further-results}}
+\section{Further results}\label{further-results}}
 
 \hypertarget{comparing-predictions-across-gt-data-windows-across-parties-other-elections-and-widths}{%
-\subsubsection{Comparing predictions across GT data windows, across
+\subsection{Comparing predictions across GT data windows, across
 parties: Other elections and
 widths}\label{comparing-predictions-across-gt-data-windows-across-parties-other-elections-and-widths}}
 
@@ -1462,9 +1467,8 @@ Adjusted R$^{2}$ & 0.010 & 0.008 & 0.005 & 0.079 & 0.041 \\
 \end{table}
 
 \hypertarget{sec-comparing-model-classes-other}{%
-\subsubsection{Comparing predictions across model classes: Other
-elections and data window
-widths}\label{sec-comparing-model-classes-other}}
+\subsection{Comparing predictions across model classes: Other elections
+and data window widths}\label{sec-comparing-model-classes-other}}
 
 \begin{figure}[H]
 
@@ -1500,7 +1504,7 @@ widths}\label{sec-comparing-model-classes-other}}
 \end{figure}
 
 \hypertarget{replicating-analysis-across-more-elections}{%
-\subsection{Replicating analysis across more
+\section{Replicating analysis across more
 elections}\label{replicating-analysis-across-more-elections}}
 
 \begin{figure}[H]
@@ -1514,8 +1518,8 @@ elections}\label{replicating-analysis-across-more-elections}}
 \end{figure}
 
 \hypertarget{benchmarking-gt-data-and-our-models-against-all-other-leading-polling-institutes}{%
-\subsection{Benchmarking GT data and our models against all other
-leading polling
+\section{Benchmarking GT data and our models against all other leading
+polling
 institutes}\label{benchmarking-gt-data-and-our-models-against-all-other-leading-polling-institutes}}
 
 \begin{figure}[H]
@@ -1540,10 +1544,9 @@ institutes}\label{benchmarking-gt-data-and-our-models-against-all-other-leading-
 
 \end{figure}
 
-\hypertarget{replicating-analysis-using-a-other-parties-category-for-gt-data}{%
-\subsection{Replicating analysis using a ``other parties'' category for
-GT
-data}\label{replicating-analysis-using-a-other-parties-category-for-gt-data}}
+\hypertarget{sec-other-parties}{%
+\section{Replicating analysis using a ``other parties'' category for GT
+data}\label{sec-other-parties}}
 
 \begin{figure}[H]
 
@@ -1626,6 +1629,9 @@ files that correspond to the steps we followed to conduct this study:
   \item
     Contains the code to collect polling data from different polling
     companies in Germany including Infratest Dimap.
+  \item
+    Creates files ``data\_polls\_*.csv'' for data from the different
+    polling companies.
   \end{itemize}
 \item
   Step 2: Collect GT data (\texttt{2\_Step\_2\_collect\_GT\_data.R})
@@ -1633,7 +1639,11 @@ files that correspond to the steps we followed to conduct this study:
   \begin{itemize}
   \tightlist
   \item
-    Contains the code to collect the GT data.
+    Contains the code to collect the GT data and is schedules to run
+    every hour over a certain time period.
+  \item
+    Creates ``.RData'' files in a folder called ``Data\_raw'' that
+    contain the search volume data for the respective searches.
   \end{itemize}
 \item
   Step 3: Subsetting GT data (\texttt{3\_Step\_3\_subset\_GT\_data.R})
@@ -1641,8 +1651,12 @@ files that correspond to the steps we followed to conduct this study:
   \begin{itemize}
   \tightlist
   \item
-    Contains the code to subset the GT data to obtain the samples on
-    which we base our analysis.
+    This file is used to compare the collected GT datasets that are
+    stored within ``.RData'' files within the ``Data\_raw'' folder.
+  \item
+    Subsequently, only ``.Rdata'' files are used (1 per day) where all
+    the GT datasets are different from previous ones. These files are
+    copied to the ``Data'' folder.
   \end{itemize}
 \item
   Step 4: Generate predictions
@@ -1652,9 +1666,20 @@ files that correspond to the steps we followed to conduct this study:
   \tightlist
   \item
     Contains the code to yield the predictions based on the GT data.
+  \item
+    This file loads the GT datasets stored in the ``Data'' folder and
+    the polling data and builds the different predictive models that are
+    analyzed in the paper.
+  \item
+    ``append\_other\_pools\_to\_data.R'' (find file)
+  \item
+    Create the files ``data\_models.csv'',
+    ``data\_models\_sonstige.csv'',
+    ``data\_predictions\_final\_mean.csv'' and
+    ``data\_predictions\_final\_mean\_sonstige.csv''
   \end{itemize}
 \item
-  Step 4: Conduct analyses and generate paper
+  Step 5: Conduct analyses and generate paper
   (\texttt{5\_Step\_5\_generate\_paper.qmd})
 
   \begin{itemize}
@@ -1758,22 +1783,27 @@ elections with non-representative polls. International Journal of
 Forecasting {[}Internet{]}. 2015;31(3):980--91. Available from:
 \url{https://www.sciencedirect.com/science/article/pii/S0169207014000879}}
 
-\leavevmode\vadjust pre{\hypertarget{ref-initiative_d21_share_2022}{}}%
+\leavevmode\vadjust pre{\hypertarget{ref-Granka2013-mu}{}}%
 \CSLLeftMargin{14. }%
+\CSLRightInline{Granka L. Using online search traffic to predict {US}
+presidential elections. PS Polit Sci Polit. 2013 Apr;46(2):271--9. }
+
+\leavevmode\vadjust pre{\hypertarget{ref-initiative_d21_share_2022}{}}%
+\CSLLeftMargin{15. }%
 \CSLRightInline{D21 I. Share of internet users in {Germany} from 2001 to
 2021 {[}{Graph}{]}. Statista {[}Internet{]}. 2022 {[}cited 2023 Feb
 17{]}; Available from:
 \url{https://www.statista.com/statistics/380514/internet-usage-rate-germany/}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-statcounter_desktop_2023}{}}%
-\CSLLeftMargin{15. }%
+\CSLLeftMargin{16. }%
 \CSLRightInline{StatCounter. Desktop and mobile search market share of
 search engines in {Germany} in {December} 2023 {[}{Graph}{]}. Statista
 {[}Internet{]}. 2023 {[}cited 2023 Feb 17{]}; Available from:
 \url{https://www.statista.com/statistics/445974/search-engines-market-share-of-desktop-and-mobile-search-germany/}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-jun_ten_2018}{}}%
-\CSLLeftMargin{16. }%
+\CSLLeftMargin{17. }%
 \CSLRightInline{Jun SP, Yoo HS, Choi S. Ten years of research change
 using {Google} {Trends}: {From} the perspective of big data utilizations
 and applications. Technological Forecasting and Social Change
@@ -1781,21 +1811,21 @@ and applications. Technological Forecasting and Social Change
 \url{https://www.sciencedirect.com/science/article/pii/S0040162517315536}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-kandula_reappraising_2019}{}}%
-\CSLLeftMargin{17. }%
+\CSLLeftMargin{18. }%
 \CSLRightInline{Kandula S, Shaman J.
 \href{https://doi.org/10.1371/journal.pcbi.1007258}{Reappraising the
 utility of {Google} {Flu} {Trends}.} PLoS computational biology. 2019
 Aug;15(8):e1007258. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-lazer_parable_2014}{}}%
-\CSLLeftMargin{18. }%
+\CSLLeftMargin{19. }%
 \CSLRightInline{Lazer D, Kennedy R, King G, Vespignani A.
 \href{https://doi.org/10.1126/science.1248506}{The {Parable} of {Google}
 {Flu}: {Traps} in {Big} {Data} {Analysis}}. Science (New York, NY). 2014
 Mar;343:1203--5. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-yang_accurate_2015}{}}%
-\CSLLeftMargin{19. }%
+\CSLLeftMargin{20. }%
 \CSLRightInline{Yang S, Santillana M, Kou SC. Accurate estimation of
 influenza epidemics using {Google} search data via {ARGO}. Proceedings
 of the National Academy of Sciences {[}Internet{]}.
@@ -1803,13 +1833,13 @@ of the National Academy of Sciences {[}Internet{]}.
 \url{https://www.pnas.org/doi/abs/10.1073/pnas.1515373112}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-brodeur_covid-19_2021}{}}%
-\CSLLeftMargin{20. }%
+\CSLLeftMargin{21. }%
 \CSLRightInline{Brodeur A, Clark AE, Fleche S, Powdthavee N. {COVID}-19,
 lockdowns and well-being: {Evidence} from {Google} {Trends}. Journal of
 public economics. 2021;193:104346. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-polykalas_general_2013}{}}%
-\CSLLeftMargin{21. }%
+\CSLLeftMargin{22. }%
 \CSLRightInline{Polykalas SE, Prezerakos GN, Konidaris A.
 \href{https://doi.org/10.1109/WAINA.2013.155}{A {General} {Purpose}
 {Model} for {Future} {Prediction} {Based} on {Web} {Search} {Data}:
@@ -1818,7 +1848,7 @@ public economics. 2021;193:104346. }
 and {Applications} {Workshops}. 2013. p. 213--8. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-harkan_predicting_2021}{}}%
-\CSLLeftMargin{22. }%
+\CSLLeftMargin{23. }%
 \CSLRightInline{Harkan AA. Predicting the {Results} of the 2019
 {Indonesian} {Presidential} {Election} with {Google} {Trends}. In:
 Asia-{Pacific} {Research} in {Social} {Sciences} and {Humanities}
@@ -1826,27 +1856,27 @@ Asia-{Pacific} {Research} in {Social} {Sciences} and {Humanities}
 2021. p. 1--9. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-wolf_trending_2018}{}}%
-\CSLLeftMargin{23. }%
+\CSLLeftMargin{24. }%
 \CSLRightInline{Wolf JT. Trending in the {Right} {Direction}: {Using}
 {Google} {Trends} {Data} as a {Measure} of {Public} {Opinion} {During} a
 {Presidential} {Election} {[}\{PhD\} \{Thesis\}{]}. Virginia Tech; 2018.
 }
 
 \leavevmode\vadjust pre{\hypertarget{ref-polykalas_algorithm_2013}{}}%
-\CSLLeftMargin{24. }%
+\CSLLeftMargin{25. }%
 \CSLRightInline{Polykalas SE, Prezerakos GN, Konidaris A. An algorithm
 based on {Google} {Trends}' data for future prediction. {Case} study:
 {German} elections. IEEE International Symposium on Signal Processing
 and Information Technology. 2013;000069--73. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-sjovill_using_2020}{}}%
-\CSLLeftMargin{25. }%
+\CSLLeftMargin{26. }%
 \CSLRightInline{Sjövill R. Using {Search} {Query} {Data} to {Predict}
 the {General} {Election}: {Can} {Google} {Trends} {Help} {Predict} the
 {Swedish} {General} {Election}? 2020. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-raubenheimer_hey_2021}{}}%
-\CSLLeftMargin{26. }%
+\CSLLeftMargin{27. }%
 \CSLRightInline{Raubenheimer JE, Riordan BC, Merrill JE, Winter T, Ward
 RM, Scarf D, et al. Hey {Google}! Will {New} {Zealand} vote to legalise
 cannabis? {Using} {Google} {Trends} data to predict the outcome of the
@@ -1855,45 +1885,45 @@ Policy {[}Internet{]}. 2021 Apr;90:103083. Available from:
 \url{https://doi.org/10.1016\%2Fj.drugpo.2020.103083}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-google_trends_help_faq_2023}{}}%
-\CSLLeftMargin{27. }%
+\CSLLeftMargin{28. }%
 \CSLRightInline{Help GT. {FAQ} about {Google} {Trends} data - {Trends}
 {Help} {[}Internet{]}. 2023 {[}cited 2023 Jan 27{]}. Available from:
 \url{https://support.google.com/trends/answer/4365533?hl=en\&amp\%3Bref_topic=6248052}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-google_trends_help_refine_2023}{}}%
-\CSLLeftMargin{28. }%
+\CSLLeftMargin{29. }%
 \CSLRightInline{Help GT. Refine {Trends} results by category - {Trends}
 {Help} {[}Internet{]}. 2023 {[}cited 2023 Jan 27{]}. Available from:
 \url{https://support.google.com/trends/answer/4359597?hl=en\&amp;ref_topic=4365530}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-eichenauer_obtaining_2022}{}}%
-\CSLLeftMargin{29. }%
+\CSLLeftMargin{30. }%
 \CSLRightInline{Eichenauer VZ, Indergand R, Martínez IZ, Sax C.
 Obtaining consistent time series from {Google} {Trends}. Economic
 Inquiry {[}Internet{]}. 2022;60(2):694--705. Available from:
 \url{https://onlinelibrary.wiley.com/doi/abs/10.1111/ecin.13049}}
 
 \leavevmode\vadjust pre{\hypertarget{ref-Behnen2020-tf}{}}%
-\CSLLeftMargin{30. }%
+\CSLLeftMargin{31. }%
 \CSLRightInline{Behnen P, Kessler R, Kruse F, Gómez JM, Schoenmakers J,
 Zerr S. Experimental evaluation of scale, and patterns of systematic
 inconsistencies in google trends data. In: {ECML} {PKDD} 2020 workshops.
 Springer International Publishing; 2020. p. 374--84. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-Stephens-Davidowitz2014-qr}{}}%
-\CSLLeftMargin{31. }%
+\CSLLeftMargin{32. }%
 \CSLRightInline{Stephens-Davidowitz S, Varian H. A hands-on guide to
 google data. further details on the construction can be found on the
 Google Trends page. 2014; }
 
 \leavevmode\vadjust pre{\hypertarget{ref-Raubenheimer2022-xe}{}}%
-\CSLLeftMargin{32. }%
+\CSLLeftMargin{33. }%
 \CSLRightInline{Raubenheimer JE. A {PRACTICAL} {ALGORITHM} {FOR}
 {EXTRACTING} {MULTIPLE} {DATA} {SAMPLES} {FROM} {GOOGLE} {TRENDS}
 {EXTENDED} {FOR} {HEALTH}. Am J Epidemiol. 2022 Aug;191(9):1666--9. }
 
 \leavevmode\vadjust pre{\hypertarget{ref-faas_german_2022}{}}%
-\CSLLeftMargin{33. }%
+\CSLLeftMargin{34. }%
 \CSLRightInline{Faas T, Klingelhöfer T.
 \href{https://doi.org/10.1080/01402382.2022.2045783}{German politics at
 the traffic light: New beginnings in the election of 2021}. West
