@@ -220,7 +220,7 @@ Finally, we provide a systematic overview of the challenges one faces in
 using GT data for predictions part of which have been neglected in prior
 research.
 \end{abstract}
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[borderline west={3pt}{0pt}{shadecolor}, breakable, sharp corners, interior hidden, boxrule=0pt, frame hidden, enhanced]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[enhanced, frame hidden, sharp corners, boxrule=0pt, borderline west={3pt}{0pt}{shadecolor}, interior hidden, breakable]}{\end{tcolorbox}}\fi
 
 \renewcommand*\contentsname{Table of contents}
 {
@@ -1434,7 +1434,7 @@ European Politics. 2022;45(7):1506--21. }
 
 \newpage
 
-\textbf{\scalebox{2}{Online appendix}}
+\scalebox{2}{Online appendix}
 
 \beginsupplement
 
@@ -1646,21 +1646,6 @@ procedure is therefore to ignore the calculation of the weighting factor
 and assign a weighting value of 1 in these cases to the AFD, so that no
 weighting takes place if the entry is missing and only the Google
 Proportion is used.
-
-Challenges when applying the weighting factor for class MC3: When
-applying the calculated weighting factors, the same problem as
-previously mentioned can occur, i.e.~that single parties in the mean
-Google proportion, on which the weighting factor has to be applied, have
-the value 0. To circumvent this issue, we assign this party the value 1
-so that the respective party can be weighted. If previously in the
-calculation of the weighting factor the mean Google proportion of a
-party was 0 or the AFD was not included in the 2013 polls and
-accordingly the value 0 of the weighting factor was replaced by 1 and
-the mean Google proportion of a party to which this weighting factor of
-1 is to be applied is also 0, then the corresponding poll values of the
-poll used for calculating the weighting factor for these parties are to
-be inserted, since the Google data cannot be used and our model would be
-too heavily biased as a result.
 
 \hypertarget{further-results}{%
 \section{Further results}\label{further-results}}
