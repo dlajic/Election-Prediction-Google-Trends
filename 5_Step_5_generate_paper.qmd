@@ -2240,10 +2240,6 @@ data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
                                                        "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
                                             ordered = TRUE)
 
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-
 cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
           "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
 
@@ -2287,12 +2283,16 @@ ggplot(data_plot3,
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
+  scale_x_date(breaks = function(x) seq.Date(from = min(x), 
+   											  to = max(x), 
+   											  by = "30 days"),# x_breaks,
+               labels = function(x) paste("Distance: ",  seq.Date(from = min(x), 
+         to = max(x), 
+         by = "4 weeks")-max(x), " day(s)\n",
+                  "Date: ", seq.Date(from = min(x), 
+                                     to = max(x), 
+                                     by = "30 days")
+)
   ) +
   scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
     theme_minimal(base_size = 22) +
@@ -2335,10 +2335,6 @@ data_plot$model_time_interval_fac <- factor(data_plot$model_time_interval_fac,
                                                        "Interval: 70 days", "Interval: 77 days", "Interval: 84 days", "Interval: 91 days"),
                                             ordered = TRUE)
 
-x_breaks <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-x_labels_distance <- unique(data_plot$model_time_distance)[seq(1, length(unique(data_plot$model_time_distance)), 10)]
-x_labels_date <- unique(data_plot$GT_end_date)[seq(1, length(unique(data_plot$GT_end_date)), 10)]
-
 cols <- c("SPD" = "red", "CDU" = "black", "AFD" = "blue", 
           "FDP" = "orange", "Linke" = "purple", "Grüne" = "green")
 
@@ -2382,12 +2378,16 @@ ggplot(data_plot3,
   facet_grid(vars(model_time_interval_fac),
              vars(election_date), 
              scales = "free") +
-  #facet_wrap(~model_time_interval_fac, ncol = 1) +
-  # xlim(min(data_plot$GT_end_date) - 1, as.Date("2021-09-26")+1) +
-  scale_x_date(breaks = x_breaks,
-               labels = paste("Distance: ",  x_labels_distance, " day(s)\n",
-                              "Date: ", x_labels_date
-               )
+  scale_x_date(breaks = function(x) seq.Date(from = min(x), 
+   											  to = max(x), 
+   											  by = "30 days"),# x_breaks,
+               labels = function(x) paste("Distance: ",  seq.Date(from = min(x), 
+         to = max(x), 
+         by = "4 weeks")-max(x), " day(s)\n",
+                  "Date: ", seq.Date(from = min(x), 
+                                     to = max(x), 
+                                     by = "30 days")
+)
   ) +
   scale_color_manual(labels = c("GT", "GT + election weight", "GT + weekly polls weight", "Infratest Dimap", "Forsa", "Kantar", "Forschungsgruppe Wahlen", "IfD Allensbach"),values = cols3) + 
     theme_minimal(base_size = 22) +
