@@ -102,20 +102,6 @@
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
 \usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-\usepackage{xcolor}
-\usepackage{booktabs}
 \usepackage{siunitx}
 \usepackage{multirow}
 \newcommand{\beginsupplement}{\setcounter{section}{0} \renewcommand{\thesection}{A\arabic{section}}  \setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
@@ -193,7 +179,7 @@
 \title{Can we predict multi-party elections with Google Trends data?
 Evidence across elections, data windows, and model classes}
 \author{Jan Behnert \and Dean Lajic \and Paul C. Bauer}
-\date{2023-06-12}
+\date{2023-06-13}
 
 \begin{document}
 \maketitle
@@ -220,14 +206,8 @@ Finally, we provide a systematic overview of the challenges one faces in
 using GT data for predictions part of which have been neglected in prior
 research.
 \end{abstract}
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[enhanced, frame hidden, sharp corners, boxrule=0pt, borderline west={3pt}{0pt}{shadecolor}, interior hidden, breakable]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[borderline west={3pt}{0pt}{shadecolor}, interior hidden, breakable, boxrule=0pt, enhanced, sharp corners, frame hidden]}{\end{tcolorbox}}\fi
 
-\renewcommand*\contentsname{Table of contents}
-{
-\hypersetup{linkcolor=}
-\setcounter{tocdepth}{3}
-\tableofcontents
-}
 \newpage
 
 \hypertarget{introduction}{%
@@ -587,30 +567,31 @@ candidates were added.\footnote{A special case was the party ``Die
   Linke,'' which nominated eight top candidates in 2013. By comparing
   the search queries of the individual top candidates separately, we
   ﬁltered out the only two top candidates that seemed relevant for the
-  prediction, who were ``Gregor Gysi'' and ``Sarah Wagenknecht.''} The
-ﬁnal search queries of a party are made up of the party abbreviation and
-the top candidate(s), which are linked with the ``+'' operator. This
-functions according to the scheme of an OR operation, i.e., it sums up
-the search interest for each individual term. In step 3, we compared the
-predictive power of a set of search terms containing both the party
-abbreviation and the top candidate with another set containing only the
-party abbreviations. We found that the additional consideration of the
-top candidates provided signiﬁcantly better results.\footnote{Regarding
-  the number of terms within a search query for a party, one could argue
-  that the result of a search query should be divided by the number of
-  search terms, because the search queries of some parties contain more
-  individual terms and could thus be overrepresented (e.g.~if a party
-  has a dual leadership). In our opinion, this argumentation is not
-  plausible, because the search terms for one party never provide an
-  equal share of the search interest. The share of the term for the
-  party abbreviation is much higher than that for the party candidates,
-  so it is illogical to treat them equally. We checked this scenario by
-  searching only for the more popular candidate when there is a dual
-  leadership, which results in the same amount of search terms for each
-  party. This, however, leads to much worse predictions than our main
-  analysis. Thus, we assume that the parties are not overrepresented by
-  their multiple top candidates.} Table~\ref{tbl-2} displays the final
-search queries.
+  prediction, who were ``Gregor Gysi'' and ``Sarah Wagenknecht.'' For
+  the AfD we used the search term ``Afd'' finding that it to be
+  equivalent to ``AFD'' and ``AfD''.} The ﬁnal search queries of a party
+are made up of the party abbreviation and the top candidate(s), which
+are linked with the ``+'' operator. This functions according to the
+scheme of an OR operation, i.e., it sums up the search interest for each
+individual term. In step 3, we compared the predictive power of a set of
+search terms containing both the party abbreviation and the top
+candidate with another set containing only the party abbreviations. We
+found that the additional consideration of the top candidates provided
+signiﬁcantly better results.\footnote{Regarding the number of terms
+  within a search query for a party, one could argue that the result of
+  a search query should be divided by the number of search terms,
+  because the search queries of some parties contain more individual
+  terms and could thus be overrepresented (e.g.~if a party has a dual
+  leadership). In our opinion, this argumentation is not plausible,
+  because the search terms for one party never provide an equal share of
+  the search interest. The share of the term for the party abbreviation
+  is much higher than that for the party candidates, so it is illogical
+  to treat them equally. We checked this scenario by searching only for
+  the more popular candidate when there is a dual leadership, which
+  results in the same amount of search terms for each party. This,
+  however, leads to much worse predictions than our main analysis. Thus,
+  we assume that the parties are not overrepresented by their multiple
+  top candidates.} Table~\ref{tbl-2} displays the final search queries.
 
 \hypertarget{tbl-2}{}
 \begin{table}
@@ -954,7 +935,7 @@ This, however, is not true for the other elections (cf.
 Table~\ref{tbl-A2}). Third, Figure~\ref{fig-4} also highlights the
 strong variation in accuracy between parties. For instance, GT
 predictions of the vote share of the Linke are more accurate than, e.g.,
-for the AFD, with the error being closer to 0 across models. For the
+for the AfD, with the error being closer to 0 across models. For the
 2021 election the error generally seems highest for the AfD. Moreover,
 shares of certain parties are usually underestimated (e.g., SPD), while
 others are overestimated (e.g., AfD). It seems that the quality of
@@ -1641,9 +1622,9 @@ weighting factor, the weighting factor for this party is not 0 but 1,
 which means that no weighting takes place for this party and solely the
 Google Proportion of this party is used. A further issue that had to be
 circumvented is that the 2013 polls do not consistently include a value
-for the AFD party, as this party was newly founded in 2013. The
+for the AfD party, as this party was newly founded in 2013. The
 procedure is therefore to ignore the calculation of the weighting factor
-and assign a weighting value of 1 in these cases to the AFD, so that no
+and assign a weighting value of 1 in these cases to the AfD, so that no
 weighting takes place if the entry is missing and only the Google
 Proportion is used.
 
