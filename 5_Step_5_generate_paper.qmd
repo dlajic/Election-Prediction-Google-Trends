@@ -3,10 +3,10 @@ title: "Can we predict multi-party elections with Google Trends data? Evidence a
 abstract-title: "Abstract"
 abstract: "Google trends (GT), a service aggregating search queries on Google, has been used to predict various outcomes such as as the spread of influenza, automobile sales, unemployment claims, and travel destination planning [@choi_predicting_2012; @ginsberg_detecting_2009]. Social scientists also used GT to predict elections and referendums across different countries and time periods, sometimes with more, sometimes with less success. We provide unique evidence on the predictive power of GT in the German multi-party systems, forecasting four elections (2009, 2013, 2017, 2021). Thereby, we make several contributions: First, we present one of the first attempts to predict a multi-party election using GT and highlight the specific challenges that originate from this setting. In doing so, we also provide a comprehensive and systematic overview of prior research. Second, we develop a framework that allows for fine-grained variation of the GT data window both in terms of its width and distance to the election. Subsequently, we test the predictive accuracy of several thousand models resulting from those fine-grained specifications. Third, we compare the predictive power of different model classes that are purely GT data based but also incorporate polling data as well as previous elections. Finally, we provide a systematic overview of the challenges one faces in using GT data for predictions part of which have been neglected in prior research."
 author:
-  - name: Jan Behnert
-  - name: Dean Lajic
-  - name: Paul C. Bauer
-date: 'last-modified'
+  - name: #Jan Behnert
+  - name: #Dean Lajic
+  - name: #Paul C. Bauer
+date: '' #last-modified
 format:
   pdf:
     keep-tex: true
