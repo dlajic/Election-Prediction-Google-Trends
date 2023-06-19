@@ -892,6 +892,32 @@ We can only speculate why there is such strong variation across elections. First
 Google trends data has become a popular data source for prediction in different domains such as elections. While most previous research focuses on binary electoral outcomes such as referendum results or presidential elections, we evaluate GT predictions in a multi-party setting. We developed a framework that allows us to compare predictions across 1200 fine-grained GT data windows that vary both in terms of width (7 to 91 days) and distance to the election (1 to 150 days). And, we compare predictions across several elections (four general elections in Germany). Besides, we provide a more systematic assessment hitherto neglected choices such as the selection of search terms, GT data samples and search refinement categories. Tackling these different dimensions allows us to provide some unique insights. First, we find that predictive accuracy varies significantly as a function of the width and distance of GT data windows. To some extent disagreement on the predictive accuracy of GT data in previous research may be linked to the varying choices researchers made here (cf. @tbl-2). In what concerns width(s), accuracy varies significantly across time for shorter data windows (here 7-28 days). We would generally recommend choosing larger data windows for predictive purposes to average out variation that is due to singular events. And, akin to classic polling data we find that predictive accuracy increases the closer our data window to the election. Second, in terms of predictive models we compared models based on GT data, on GT + previous electoral outcomes data and GT + opinion poll data. Generally, high quality opinion polls, in our case by the renowned company Infratest Dimap, still represents the benchmark in terms of accuracy, especially in the case of the latest election in 2021. We found that models that combine polling data with GT data (MC3) data fare better than purely GT-data-based models (MC1). Furthermore, we find that weighting GT data with previous electoral outcomes [cf. @polykalas_algorithm_2013, @polykalas_general_2013] does not help predictive accuracy, at least not for the German case (cf. @fig-3). Third, while we argued that recent elections are the appropriate benchmarks for GT data predictions, comparisons to past elections may still be revealing. Especially, insofar our findings for the 2021 election are somewhat discouraging, which goes against earlier studies that emphasize the predictive accuracy of GT data. Hence, we need to test whether our findings for 2021 also hold for other elections. And, especially for the 2013 and 2017 election GT data models where much more accurate, at times beating or at least aligning with predictions based on opinion polls (cf. @fig-6). Above we speculated that the nature of the election may affect the predictive power of GT data [cf. @faas_german_2022]. More generally, this highlights that conclusions regarding predictive accuracy from one election may not generalize to other elections. Finally, we conclude that GT prediction research should ideally become more. From our review we learned that identifying the various characteristics in @tbl-2, i.e., all representing important choices when using GT data, was a challenge. Future research would benefit if authors would report more details, e.g., the exact time of GT data collection, the number of GT samples, the nature of search term selection. For instance, we found that it matters which category search filter is selected (see @sec-categoryfilterselection).\
 Our study has several limitations that provide venues for future research. First, we pursued a systematic approach to search term selection, testing different search terms against each other (see @sec-searchterms). Future research might benefit from choosing an even wider net of search terms, trying out different ones. Second, while we predicted elections shares we did not forecast them in that the elections happened already. Since, we didn't built any sophisticated models we somewhat circumvented the danger of adapting our models to already seen data. Nonetheless, as is now more common in the literature on election forecasting [@gschwend_zweitstimme_2022], studies that rely on GT data for prediction could also be pre-registered. Third, from the general perspective of election forecasting, GT data could be seen as just another dynamic signal that can be integrated into more sophisticated modelling strategies [e.g., @stoetzer_forecasting_2019] that go beyond the simple weighting approach used in the present paper. Whether such additional sources of data can improve predictions remains to be tested. Fourth, the changing predictive power of GT across elections maybe related to (1) how representative the GT data is of searches on the platform and (2) how representative users of the GT platform are of voting the population. Pertaining to (1), both aspects of representiveness should be studied further. Finding variation across GT data samples Raubenheimer et al. [@raubenheimer_hey_2021] suggested that there might be a publication bias, i.e., successful predictions are based on suitable samples. For this reason we averaged across GT data samples (cf. @sec-gtdatacollection and @sec-gtsampling). However, more rearch into the variability of such samples for particular predictions is warranted. However, user representativity (2) is relevant as well. Platforms are generally quite secretive about their userbase. Collecting more evidence on how representative Goodle users are of the general (voting) population would help to explain the accuracy of corresponding predictions and help to develop more sophisticated weighting schemes.
 
+
+
+
+## Declarations
+
+### Acknowledgments
+No acknowledgments at this stage.
+
+### Ethics approval and consent to participate
+Not applicable.
+### Consent for publication
+
+### Availability of data and materials
+All materials and data will be made available over the harvard dataverse.
+### Competing interests
+The authors declare that they have no competing interests in relation to this research, whether fnancial, personal,
+authorship or otherwise, that could afect the research and its results presented in this paper
+
+### Funding
+This research received no specific grant from any funding agency in the public, commercial, or not-for-proft sectors.
+### Authors' contributions
+All authors contributed equally to the manuscript.
+
+
+
+
 \newpage
 
 # References
