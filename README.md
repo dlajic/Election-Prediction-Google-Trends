@@ -1,2 +1,0 @@
-# Election Prediction Google Trends
- 
