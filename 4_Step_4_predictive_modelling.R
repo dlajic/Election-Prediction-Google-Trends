@@ -77,13 +77,13 @@ list_electionresults[["2021-09-26"]] <- data.frame(party=c("AFD", "CDU", "FDP", 
 
 
 # load poll datasets
-Infratest_Dimap_polls <- read_delim("data_polls_infratest_dimap.csv", delim = ";")
-Forsa_polls           <- read_delim("data_polls_forsa.csv", delim = ";",
+Infratest_Dimap_polls <- read_delim("./Data_polls/data_polls_infratest_dimap.csv", delim = ";")
+Forsa_polls           <- read_delim("./Data_polls/data_polls_forsa.csv", delim = ";",
                                     locale = locale(decimal_mark = ","))
-Kantar_polls          <- read_delim("data_polls_kantar.csv", delim = ";")
-FGW_polls             <- read_delim("data_polls_fgw.csv", delim = ";",
+Kantar_polls          <- read_delim("./Data_polls/data_polls_kantar.csv", delim = ";")
+FGW_polls             <- read_delim("./Data_polls/data_polls_fgw.csv", delim = ";",
                                     locale = locale(decimal_mark = ","))
-Allensbach_polls      <- read_delim("data_polls_allens.csv", delim = ";",
+Allensbach_polls      <- read_delim("./Data_polls/data_polls_allens.csv", delim = ";",
                                     locale = locale(decimal_mark = ","))
 
 
@@ -1862,7 +1862,7 @@ data_predictions <- data_predictions %>%
            dev_upper.ci = Mean_dev + 1.96*(SD_dev/sqrt(n()))) #%>%
    # replace_na(.,0)
   
-  ######### Kann man nuch besser lösen ????????  ################
+  ######### Kann man nuch besser lösen ?  ################
   #Sinn: summarize die oben genannten aber behalte andere Spalten wie datasource_weight etc.
   data_predictions_final_mean <- merge(data_predictions_final_mean, data_predictions, by = c("model_name","party"))
   data_predictions_final_mean <- data_predictions_final_mean %>% select(-c(20,21,22,23,24), -("df_id"))
@@ -1918,13 +1918,13 @@ data_predictions <- data_predictions %>%
   
   
   # load poll datasets
-  Infratest_Dimap_polls <- read_delim("data_polls_infratest_dimap.csv", delim = ";")
-  Forsa_polls           <- read_delim("data_polls_forsa.csv", delim = ";",
+  Infratest_Dimap_polls <- read_delim("./Data_polls/data_polls_infratest_dimap.csv", delim = ";")
+  Forsa_polls           <- read_delim("./Data_polls/data_polls_forsa.csv", delim = ";",
                                       locale = locale(decimal_mark = ","))
-  Kantar_polls          <- read_delim("data_polls_kantar.csv", delim = ";")
-  FGW_polls             <- read_delim("data_polls_fgw.csv", delim = ";",
+  Kantar_polls          <- read_delim("./Data_polls/data_polls_kantar.csv", delim = ";")
+  FGW_polls             <- read_delim("./Data_polls/data_polls_fgw.csv", delim = ";",
                                       locale = locale(decimal_mark = ","))
-  Allensbach_polls      <- read_delim("data_polls_allens.csv", delim = ";",
+  Allensbach_polls      <- read_delim("./Data_polls/data_polls_allens.csv", delim = ";",
                                       locale = locale(decimal_mark = ","))
   
   

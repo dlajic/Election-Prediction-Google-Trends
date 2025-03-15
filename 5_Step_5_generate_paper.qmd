@@ -118,7 +118,7 @@ Google has made its data on Google searches freely available for everyone in the
 #| tbl-pos: H
 
 ##
-table_1 <- read_csv("Table_1.csv")
+table_1 <- read_csv("./Tables/Table_1.csv")
 #Syntax
 table_1[is.na(table_1)] = ""
 kable(table_1, booktabs = TRUE) %>%
@@ -174,8 +174,8 @@ Fundamentally, we assume that google searches for political parties and politici
 # save(terms_Linke, file = paste0("termsLinke_", gsub(":|\\s", "_", Sys.time()), ".RData"))
 
 # Load data
-load(file = "termsCDU_2023-02-27_11_16_30.RData")
-load(file = "termsLinke_2023-02-27_11_16_34.RData")
+load(file = "./Terms_Comparison/termsCDU_2023-02-27_11_16_30.RData")
+load(file = "./Terms_Comparison/termsLinke_2023-02-27_11_16_34.RData")
 
 
 
@@ -306,7 +306,7 @@ After having collected data from 1 January to 27 September of each election year
 #| label: fig-2
 #| fig-cap: "Logic of Google Trends data windows"
 
-knitr::include_graphics("Figure_2_data_window_logic.pdf")
+knitr::include_graphics("./figures/Figure_2_data_window_logic.pdf")
 ```
 
 In what concerns width, the majority of studies used time window(s) with a width of 1/2 weeks or 1/3 months. In contrast, our aim is to systematically examine as many data windows as possible in order to find the best possible prediction windows and to provide guidance for future research. In doing so we compare small with large data windows. Small data windows better reflect the searches occurring in short time spans and the current mood in those time periods. Wider data windows reflect average interest across a longer time period and average out non-meaningful spikes (e.g., TV appearances). We compare data windows of eight widths namely 7, 14, 21, 28, 42, 56, 70 and 91 days.\
@@ -343,7 +343,7 @@ $\text{Weight}_{MC2(p,i,T)}$ partly may account for the possible selection that 
 #| label: fig-3
 #| fig-cap: "Weighting logic underlying models of class MC3"
 
-knitr::include_graphics("Figure_3_weighting_logic.pdf")
+knitr::include_graphics("./figures/Figure_3_weighting_logic.pdf")
 ```
 
 For models of class MC3, we use polling data from the Infratest Dimap institute for weighting, which is normally published every two weeks.[^10] This enables us to calculate a new weighting factor every two weeks, which corrects for possible over- or underestimates in the GT data. This is especially true for short-term trends due to specific events (e.g. television appearances) that lead to an increase in search queries. The weighting factor is calculated similarly to the previous weighting factor, except that in this case we are looking at slices of two weeks of data (the period from one survey to the next).[^11] The weighting scheme underlying MC3 models is illustrated in @fig-3. @fig-3 depicts a data window that contains three election polls, Poll 1-3. Poll 1-3 slice the data window into Time periods 1-4. Moreover, there is polls before the data window namely Poll X1 and X2. We always weight the GT data (proportions) of a time period, e.g., Time Period 2 with a weighting factor. As shown in Eq. 3, the weighting factor consists of the poll at the start of this time period (here Poll 1) divided by the GT data (proportions) of the previous time period (here Time Period 1). We do the same for the other time periods within the data window, i.e., Time Periods 2 and 3.
@@ -1570,10 +1570,10 @@ setwd("..")
 # rm(list=ls())
 
 # Load data
-load(file = "terms_SPD_2023-02-27_11_02_50.RData")
-load(file = "terms_Grüne_2023-02-27_11_04_41.RData")
-load(file = "terms_AFD_2023-06-12_22_02_53.RData")
-load(file = "terms_FDP_2023-02-27_11_06_00.RData")
+load(file = "./Terms_Comparison/terms_SPD_2023-02-27_11_02_50.RData")
+load(file = "./Terms_Comparison/terms_Grüne_2023-02-27_11_04_41.RData")
+load(file = "./Terms_Comparison/terms_AFD_2023-06-12_22_02_53.RData")
+load(file = "./Terms_Comparison/terms_FDP_2023-02-27_11_06_00.RData")
 
 
 # Modify data
