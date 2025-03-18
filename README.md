@@ -8,8 +8,9 @@ This project provides unique evidence on the predictive power of Google Trends (
 3. **Comparison of Different Model Classes:** We compare the predictive power of different model classes that are purely GT data-based but also incorporate polling data as well as previous elections.
 4. **Systematic Overview of Challenges:** Finally, we provide a systematic overview of the challenges one faces in using GT data for predictions, some of which have been neglected in prior research.
 
-![Main Plot](./figures/fig-5-1.pdf)
-*Comparison of predictive power between models, length (days) and with of data window for the 2021 election*
+
+![Main Plot](./figures/fig-6-1.png)
+
 
 ## Reproducing and Replicating This Study
 
