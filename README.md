@@ -1,4 +1,4 @@
-# Project Title: Predictive Power of Google Trends in German Multi-Party Elections
+# Project Title: Can we predict multi-party elections with Google Trends data? Evidence across elections, data windows, and model classes
 
 **Summary:**
 This project provides unique evidence on the predictive power of Google Trends (GT) in the German multi-party systems, forecasting four elections (2009, 2013, 2017, 2021). Our contributions are multifaceted:
@@ -7,6 +7,9 @@ This project provides unique evidence on the predictive power of Google Trends (
 2. **Development of an Analytical Framework:** We develop a framework that allows for fine-grained variation of the GT data window both in terms of its width and distance to the election. We then test the predictive accuracy of several thousand models resulting from these fine-grained specifications.
 3. **Comparison of Different Model Classes:** We compare the predictive power of different model classes that are purely GT data-based but also incorporate polling data as well as previous elections.
 4. **Systematic Overview of Challenges:** Finally, we provide a systematic overview of the challenges one faces in using GT data for predictions, some of which have been neglected in prior research.
+
+![Main Plot](./figures/fig-5-1.pdf)
+*Comparison of predictive power between models, length (days) and with of data window for the 2021 election*
 
 ## Reproducing and Replicating This Study
 
