@@ -41,3 +41,5 @@ Our objective with this study was to provide other researchers with a transparen
 #### Step 5: Conduct analyses and generate paper
 - **File:** `5_Step_5_generate_paper.qmd`
 - **Description:** Contains the code to analyse and visualize our predictions as well as generate the paper.
+
+> Forked by D. Lajic to showcase contributions to the published paper.
