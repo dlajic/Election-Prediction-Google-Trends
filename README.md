@@ -1,7 +1,7 @@
 # Project Title: Can we predict multi-party elections with Google Trends data? Evidence across elections, data windows, and model classes
 
 > **About this fork**  
-> This repository is based on a joint student project by Jan Bahnert and me (Dean Lajic), originally developed as part of a seminar at the University of Mannheim.  
+> This repository is based on a joint student project by Jan Behnert and me (Dean Lajic), originally developed as part of a seminar at the University of Mannheim.  
 > The work was later extended and published with the support of our lecturer, Dr. Paul Bauer.  
 > This fork highlights my individual contributions as part of my GitHub portfolio.
 
