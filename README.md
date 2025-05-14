@@ -2,7 +2,7 @@
 
 > **About this fork**  
 > This repository is based on a joint student project by Jan Behnert and me (Dean Lajic), originally developed as part of a seminar at the University of Mannheim. The project was later substantially extended and finalized together with our lecturer, Dr. Paul Bauer, and published in a peer-reviewed journal.
-> This fork reflects my individual contributions and is intended as part of my GitHub portfolio.
+> This fork serves as a reference to our joint project, to which I contributed significantly in both research and implementation. It is included here as part of my GitHub portfolio.
 
 **Summary:**
 This project provides unique evidence on the predictive power of Google Trends (GT) in the German multi-party systems, forecasting four elections (2009, 2013, 2017, 2021). Our contributions are multifaceted:
