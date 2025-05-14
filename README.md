@@ -1,9 +1,8 @@
 # Project Title: Can we predict multi-party elections with Google Trends data? Evidence across elections, data windows, and model classes
 
 > **About this fork**  
-> This repository is based on a joint student project by Jan Behnert and me (Dean Lajic), originally developed as part of a seminar at the University of Mannheim.  
-> The work was later extended and published with the support of our lecturer, Dr. Paul Bauer.  
-> This fork highlights my individual contributions as part of my GitHub portfolio.
+> This repository is based on a joint student project by Jan Behnert and me (Dean Lajic), originally developed as part of a seminar at the University of Mannheim. The project was later substantially extended and finalized together with our lecturer, Dr. Paul Bauer, and published in a peer-reviewed journal.
+> This fork reflects my individual contributions and is intended as part of my GitHub portfolio.
 
 **Summary:**
 This project provides unique evidence on the predictive power of Google Trends (GT) in the German multi-party systems, forecasting four elections (2009, 2013, 2017, 2021). Our contributions are multifaceted:
@@ -46,5 +45,3 @@ Our objective with this study was to provide other researchers with a transparen
 #### Step 5: Conduct analyses and generate paper
 - **File:** `5_Step_5_generate_paper.qmd`
 - **Description:** Contains the code to analyse and visualize our predictions as well as generate the paper.
-
-> Forked by D. Lajic to showcase contributions to the published paper.
